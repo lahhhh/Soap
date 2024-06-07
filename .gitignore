@@ -1,3 +1,10 @@
 x64/
 .vs/
 Resources/
+soap.aps
+soap.rc
+soap.sln
+soap.ui
+soap.vxproj
+soap.vxproj.filters
+soap.vxproj.user
