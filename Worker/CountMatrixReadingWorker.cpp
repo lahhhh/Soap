@@ -72,6 +72,7 @@ bool CountMatrixReadingWorker::read_file() {
 			this->triplets_.emplace_back(0, i - 1, first_row[i].toInt());
 		}
 	}
+	this->nrow_ = 1;
 
 	bool success = true;
 	std::mutex mutex, mutex2;
@@ -103,6 +104,7 @@ bool CountMatrixReadingWorker::read_file() {
 		this->triplets_ << sub_triplets;
 		mutex2.unlock();
 	};
+
 	while (!in.atEnd()) {
 		cache.clear();
 		count = 0;

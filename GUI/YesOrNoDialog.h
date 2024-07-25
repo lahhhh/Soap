@@ -8,7 +8,8 @@
 #include <QVBoxLayout>
 #include <QHBoxLayout>
 
-class YesOrNoDialog : public QDialog
+class YesOrNoDialog
+    : public QDialog
 {
     Q_OBJECT
 public:
@@ -27,6 +28,8 @@ public:
     bool static get_response(const QString & title, const QString & message);
 
 private slots:
+
     void accept();
+
     void reject();
 };

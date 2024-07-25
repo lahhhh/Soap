@@ -252,7 +252,7 @@ namespace custom_plot {
 					axis_rect,
 					x,
 					y,
-					middle_color,
+					low_color,
 					scatter_size
 				);
 

@@ -1,8 +1,10 @@
 #include "TranscriptionalFactorFootprintingWorker.h"
 
+#include <zlib.h>
+#include <QtConcurrent/QtConcurrent>
+
 #include "GenomeUtility.h"
 #include "Custom.h"
-#include <zlib.h>
 
 TranscriptionalFactorFootprintingWorker::TranscriptionalFactorFootprintingWorker(
 	const Metadata* metadata,
@@ -12,12 +14,12 @@ TranscriptionalFactorFootprintingWorker::TranscriptionalFactorFootprintingWorker
 	const QStringList& transcriptional_factor_names,
 	const Fragments* fragments
 ) :
-	mode_(WorkMode::FragmentsObject),
+	mode_(WorkMode::Object),
 	metadata_(metadata),
 	bias_(bias),
 	species_(species),
 	motif_position_(motif_position),
-	transcriptional_factor_names_(transcriptional_factor_names),
+	transcriptional_factor_names_(_Cs cast<std::vector>(_Cs cast<std::string>(transcriptional_factor_names))),
 	fragments_object_(fragments)
 {};
 
@@ -35,7 +37,7 @@ TranscriptionalFactorFootprintingWorker::TranscriptionalFactorFootprintingWorker
 	int height,
 	int width
 ) :
-	mode_(WorkMode::FragmentsObjectGenomicRange),
+	mode_(WorkMode::GenomicRange),
 	metadata_(metadata),
 	bias_(bias),
 	species_(species),
@@ -65,12 +67,12 @@ TranscriptionalFactorFootprintingWorker::TranscriptionalFactorFootprintingWorker
 	int height,
 	int width
 ) :
-	mode_(WorkMode::FragmentsObjectBatch),
+	mode_(WorkMode::Batch),
 	metadata_(metadata),
 	bias_(bias),
 	species_(species),
 	motif_position_(motif_position),
-	transcriptional_factor_names_(transcriptional_factor_names),
+	transcriptional_factor_names_(_Cs cast<std::vector>(_Cs cast<std::string>(transcriptional_factor_names))),
 	output_directory_(output_directory),
 	factor_name_(factor_name),
 	fragments_object_(fragments),
@@ -156,7 +158,7 @@ std::pair<bool, Eigen::MatrixXi> TranscriptionalFactorFootprintingWorker::get_in
 
 	Eigen::ArrayX<bool> cell_filter = Eigen::ArrayX<bool>::Constant(n_cell, false);
 	bool filter_cell{ false };
-	if (this->mode_ == WorkMode::FragmentsObjectBatch) {
+	if (this->mode_ == WorkMode::Batch) {
 		for (auto&& level : this->levels_) {
 			cell_filter += _Cs equal(this->factors_, level);
 		}
@@ -338,7 +340,7 @@ void TranscriptionalFactorFootprintingWorker::mode2() {
 
 void TranscriptionalFactorFootprintingWorker::run() {
 
-	if (this->mode_ == WorkMode::FragmentsObjectGenomicRange) {
+	if (this->mode_ == WorkMode::GenomicRange) {
 		this->mode2();
 		G_TASK_END;
 		return;
@@ -354,28 +356,18 @@ void TranscriptionalFactorFootprintingWorker::run() {
 		G_TASK_END;
 	};
 
-	int n_tf = this->transcriptional_factor_names_.size();
+	std::mutex m1, m2;
+	auto fun = [this, &m1, &m2](int i) {
 
-	int n_threads = omp_get_max_threads();
-	n_threads *= 0.4;
+		std::string tf_name = this->transcriptional_factor_names_[i];
 
-#pragma omp parallel for num_threads(n_threads)
-	for (int i = 0; i < n_tf; ++i) {
-
-		QString tf_name = this->transcriptional_factor_names_[i];
-
-		bool success{ false };
-		std::vector<std::string> motif_sequence;
-		GenomicRange motif_location;
-
-	#pragma omp critical
-		{
-			std::tie(success, motif_sequence, motif_location) = this->get_motif_location_sequence(tf_name);
-		}
+		m1.lock();
+		auto [success, motif_sequence, motif_location] = this->get_motif_location_sequence(QString::fromStdString(tf_name));
+		m1.unlock();
 
 		if (!success) {
-			G_TASK_WARN("Found no legal sequence in " + tf_name);
-			continue;
+			G_TASK_WARN("Found no legal sequence in " + QString::fromStdString(tf_name));
+			return;
 		}
 		auto expected_insertions = this->find_expected_insertions(motif_sequence);
 
@@ -384,55 +376,61 @@ void TranscriptionalFactorFootprintingWorker::run() {
 
 		auto [success2, insertion_matrix] = this->get_insertion_matrix(motif_index, insertion_width);
 		if (!success2) {
-			continue;
+			return;
 		}
 
-	#pragma omp critical
-		{
-			if (this->mode_ == WorkMode::FragmentsObjectBatch) {
+		m2.lock();
+		if (this->mode_ == WorkMode::Batch) {
 
-				Footprint fpt(
-					this->motif_position_->motifs_.at(tf_name),
+			Footprint fpt(
+				this->motif_position_->motifs_.at(QString::fromStdString(tf_name)),
+				insertion_matrix,
+				this->cell_names_,
+				_Cs cast<QString>(_Cs minus(_Cs seq_n(1, insertion_width), insertion_width / 2)),
+				expected_insertions,
+				motif_location
+			);
+
+			QString file_name = this->output_directory_ + "/" + _Cs standardize_windows_file_name(fpt.motif_.motif_name_) + ".png";
+
+			bool success = fpt.draw(
+				file_name,
+				this->factor_name_,
+				this->levels_,
+				this->factors_,
+				this->graph_settings_,
+				this->height_,
+				this->width_
+			);
+
+			if (!success) {
+				G_TASK_WARN(QString::fromStdString(tf_name) + " task is failed.");
+			}
+		}
+		else {
+
+			G_TASK_LOG("Calculation of " + QString::fromStdString(tf_name) + " finished.");
+
+			emit x_footprint_ready(
+				Footprint(
+					this->motif_position_->motifs_.at(QString::fromStdString(tf_name)),
 					insertion_matrix,
 					this->cell_names_,
 					_Cs cast<QString>(_Cs minus(_Cs seq_n(1, insertion_width), insertion_width / 2)),
 					expected_insertions,
 					motif_location
-				);
-
-				QString file_name = this->output_directory_ + "/" + _Cs standardize_windows_file_name(fpt.motif_.motif_name_) + ".png";
-
-				bool success = fpt.draw(
-					file_name,
-					this->factor_name_,
-					this->levels_,
-					this->factors_,
-					this->graph_settings_,
-					this->height_,
-					this->width_
-				);
-
-				if (!success) {
-					G_TASK_WARN(tf_name + " task is failed.");
-				}
-			}
-			else {
-
-				G_TASK_LOG("Calculation of " + tf_name + " finished.");
-
-				emit x_footprint_ready(
-					Footprint(
-						this->motif_position_->motifs_.at(tf_name),
-						insertion_matrix,
-						this->cell_names_,
-						_Cs cast<QString>(_Cs minus(_Cs seq_n(1, insertion_width), insertion_width / 2)),
-						expected_insertions,
-						motif_location
-					)
-				);
-			}
+				)
+			);
 		}
-	}
+		m2.unlock();
+	};
 
+	int n_tf = this->transcriptional_factor_names_.size();
+
+	auto params = _Cs seq_n(0, n_tf);
+	QFuture<void> f = QtConcurrent::map(params, fun);
+	f.waitForFinished();
+
+	G_TASK_LOG("Footprinting Finished.");
 	G_TASK_END;
 }

@@ -36,8 +36,8 @@ private slots:
 	void s_remove_first();
 	void s_remove_last();
 	void s_remove_all();
-	void s_remove_if_start_with();
-	void s_remove_if_end_with();
+	void s_remove_prefix();
+	void s_remove_suffix();
 	void s_remove_until_first();
 	void s_remove_until_last();
 	void s_remove_from_first();
@@ -47,5 +47,5 @@ private slots:
 
 	void s_view();
 
-	void s_compare_violin_plot();
+	void s_compare_plot();
 };

@@ -39,6 +39,10 @@ private slots:
 
 	void s_feature_plot();
 
+	void s_highlight();
+
+	void s_multiple_numeric_feature_plot();
+
 	void s_chromvar_plot();
 
 	void s_cicero_plot();

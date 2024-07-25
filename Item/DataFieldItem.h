@@ -88,8 +88,6 @@ private slots:
     void s_heatmap_plot();    
     void s_cell_heatmap_plot();
 
-    void s_facet_violin_plot();
-
     void s_correlation_heatmap_plot();
 
     void s_find_deg();

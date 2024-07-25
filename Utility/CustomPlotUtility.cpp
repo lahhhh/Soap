@@ -464,5 +464,23 @@ namespace custom_plot {
 				low_color.green() + (int)(proportion * (high_color.green() - low_color.green())),
 				low_color.blue() + (int)(proportion * (high_color.blue() - low_color.blue())));
 		};
+
+
+		std::pair<double, double> calculate_text_size(
+			const QString& text, 
+			const QFont& font, 
+			double xrange, 
+			double yrange,
+			double rect_width,
+			double rect_height)
+		{
+			// Step 1: Calculate text size in pixels using QFontMetrics
+			QFontMetrics fm(font);
+
+			auto [w, h] = fm.boundingRect(text).size();
+
+			// Calculate text size in plot range units
+			return { w / rect_width * xrange, h / rect_height * yrange };
+		}
 	};
 };

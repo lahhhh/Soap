@@ -47,7 +47,7 @@ public:
 		const QList<soap::InputStyle>& input_style,
 		const QList<QStringList>& qstring_list_items, 
 		const QList<QMap<QString, QStringList>>& qstring_map_items,
-		const QList<LogicHandler*> & logic_handlers
+		const QList<void*>& ptrs
 	);
 
 	static QStringList get_response(
@@ -57,12 +57,10 @@ public:
 		const QList<soap::InputStyle>& input_style,
 		const QList<QStringList>& qstring_list_items = {},
 		const QList<QMap<QString, QStringList>>& qstring_map_items = {},
-		const QList<LogicHandler*>& logic_handlers = {}
+		const QList<void*>& ptrs = {}
 	);
 
 private:
-
-	QList<LogicHandler*> logic_handlers;
 
 	SignalEmitter* signal_emitter_{ nullptr };
 
@@ -106,198 +104,30 @@ private slots:
 	void reject();
 };
 
-inline QStringList compare_layouts_to_list(const QString& cl) {
-	return cl.split(SOAP_DELIMITER);
-}
+QStringList compare_layouts_to_list(const QString& cl);
 
-inline bool switch_to_bool(const QString& sw) {
-	return sw == SWITCH_ACCEPT;
-};
+bool switch_to_bool(const QString& sw);
 
-inline QStringList multiple_file_to_list(const QString& mf) {
-	QStringList ret = mf.split(SOAP_DELIMITER);
-	const qsizetype size = ret.size();
+QStringList multiple_file_to_list(const QString& mf);
 
-	if (size > 1) {
-		return ret.sliced(1, size - 1);
-	}
-	else {
-		return {};
-	}
-}
+QStringList multiple_line_edit_to_list(const QString& al);
 
-inline QStringList multiple_line_edit_to_list(const QString& al) {
-	QStringList ret = al.split(SOAP_DELIMITER);
-	const qsizetype size = ret.size();
+QStringList multiple_line_edit_with_completer_to_list(const QString& al);
 
-	if (size > 1) {
-		return ret.sliced(1, size - 1);
-	}
-	else {
-		return {};
-	}
-}
+QPair<QStringList, QStringList> multiple_double_line_edit_with_completer_layout_to_pair(const QString& mdl);
 
-inline QStringList multiple_line_edit_with_completer_to_list(const QString& al) {
-	QStringList ret = al.split(SOAP_DELIMITER);
-	const qsizetype size = ret.size();
+QStringList simple_choice_to_list(const QString& sc);
 
-	if (size > 1) {
-		return ret.sliced(1, size - 1);
-	}
-	else {
-		return {};
-	}
-}
+QPair<QString, QStringList> factor_choice_to_pair(const QString& fc);
 
-inline QPair<QStringList, QStringList> multiple_double_line_edit_with_completer_layout_to_pair(const QString& mdl) {
-	if (mdl.isEmpty()) {
-		return QPair<QStringList, QStringList>();
-	}
+QPair<QPair<QString, QStringList>, QPair<QString, QStringList>> factor_choice_with_line_edit_to_pair(const QString& fcw);
 
-	QStringList tmp = mdl.split(SOAP_DELIMITER), ret1, ret2;
-	const qsizetype size = (tmp.size() - 1) / 2;
+QPair<QPair<QString, QStringList>, QPair<QString, QStringList>> factor_double_line_edit_with_completer_to_pair(const QString& fcw);
 
-	for (qsizetype i = 0; i < size; ++i) {
-		ret1 << tmp[i * 2 + 1];
-		ret2 << tmp[i * 2 + 2];
-	}
-	return qMakePair(ret1, ret2);
-}
+QPair<QStringList, QStringList> simple_choice_with_line_edit_layout_to_pair(const QString& scw);
 
-inline QStringList simple_choice_to_list(const QString& sc) {
-	QStringList ret = sc.split(SOAP_DELIMITER);
+std::tuple<QStringList, QStringList, QList<QColor>> simple_choice_with_line_edit_and_color_choice_layout_to_tuple(const QString& slc);
 
-	const qsizetype size = ret.size();
-	if (size > 1) {
-		return ret.sliced(1, ret.size() - 1);
-	}
-	else {
-		return {};
-	}
-}
+std::pair<QStringList, QList<QColor>> multi_line_edit_with_color_choice_layout_to_pair(const QString& mlc);
 
-inline QPair<QString, QStringList> factor_choice_to_pair(const QString& fc) {
-	QStringList ret = fc.split(SOAP_DELIMITER);
-
-	if (ret.size() == 1) {
-		return { ret[0], {} };
-	}
-	else {
-		return { ret[0], ret.sliced(1, ret.size() - 1) };
-	}
-}
-
-inline QPair<QPair<QString, QStringList>, QPair<QString, QStringList>> factor_choice_with_line_edit_to_pair(const QString& fcw) {
-	QStringList ret = fcw.split(SOAP_DELIMITER);
-
-	const qsizetype size = ret.size() / 2 - 1;
-	QPair<QString, QStringList> ret1, ret2;
-	ret1.first = ret[0];
-	ret2.first = ret[1];
-
-	for (qsizetype i = 0; i < size; ++i) {
-		ret1.second << ret[i * 2 + 2];
-		ret2.second << ret[i * 2 + 3];
-	}
-	return qMakePair(ret1, ret2);
-}
-
-inline QPair<QPair<QString, QStringList>, QPair<QString, QStringList>> factor_double_line_edit_with_completer_to_pair(const QString& fcw) {
-	QStringList ret = fcw.split(SOAP_DELIMITER);
-
-	const qsizetype size = ret.size() / 2 - 1;
-
-	QPair<QString, QStringList> ret1, ret2;
-	ret1.first = ret[0];
-	ret2.first = ret[1];
-
-	for (qsizetype i = 0; i < size; ++i) {
-		ret1.second << ret[i * 2 + 2];
-		ret2.second << ret[i * 2 + 3];
-	}
-	return qMakePair(ret1, ret2);
-}
-
-inline QPair<QStringList, QStringList> simple_choice_with_line_edit_layout_to_pair(const QString& scw) {
-	
-	QPair<QStringList, QStringList> ret;
-
-	if (scw.isEmpty()) {
-		return ret;
-	}
-
-	QStringList tmp = scw.split(SOAP_DELIMITER);
-
-	const qsizetype size = (tmp.size() - 1) / 2;
-
-	for (qsizetype i = 0; i < size; ++i) {
-		ret.first << tmp[i * 2 + 1];
-		ret.second << tmp[i * 2 + 2];
-	}
-
-	return ret;
-}
-
-inline std::tuple<QStringList, QStringList, QList<QColor>> simple_choice_with_line_edit_and_color_choice_layout_to_tuple(const QString& slc) {
-	if (slc.isEmpty()) {
-		return std::tuple<QStringList, QStringList, QList<QColor>>();
-	}
-	QStringList tmp = slc.split(SOAP_DELIMITER);
-
-	const qsizetype size = (tmp.size() - 1) / 3;
-
-	QStringList ret1, ret2;
-	ret1.reserve(size);
-	ret2.reserve(size);
-
-	QList<QColor> ret3;
-	ret3.reserve(size);
-
-	for (qsizetype i = 0; i < size; ++i) {
-		ret1 << tmp[i * 3 + 1];
-		ret2 << tmp[i * 3 + 2];
-		ret3 << QColor(tmp[i * 3 + 3]);
-	}
-
-	return std::make_tuple(ret1, ret2, ret3);
-}
-
-inline std::pair<QStringList, QList<QColor>> multi_line_edit_with_color_choice_layout_to_pair(const QString& mlc) {
-
-	if (mlc.isEmpty()) {
-		return std::pair<QStringList, QList<QColor>>();
-	}
-	QStringList tmp = mlc.split(SOAP_DELIMITER);
-
-	const qsizetype size = (tmp.size() - 1) / 2;
-
-	QStringList factors;
-	factors.reserve(size);
-
-	QList<QColor> colors;
-	colors.reserve(size);
-	
-	for (qsizetype i = 0; i < size; ++i) {
-		factors << tmp[i * 2 + 1];
-		colors << QColor(tmp[i * 2 + 2]);
-	}
-
-	return { factors, colors };
-}
-
-inline QStringList multi_check_box_to_list(const QString& mcb) {
-
-	if (mcb.isEmpty()) {
-		return {};
-	}
-
-	QStringList tmp = mcb.split(SOAP_DELIMITER);
-
-	if (tmp.size() > 1) {
-		return tmp.sliced(1);
-	}
-	else {
-		return {};
-	}
-}
+QStringList multi_check_box_to_list(const QString& mcb);

@@ -89,19 +89,16 @@ public:
 		return root;
 	}
 
-	IndexTree* sub_search(void* data);
 
-	IndexTree* search(void* data);
+	IndexTree* search(void* data, bool from_root = true);
 
-	IndexTree* sub_search(const QString& name);
+	IndexTree* search(const QString& name, bool from_root = true);
 
-	IndexTree* search(const QString& name);
+	QStringList search(soap::VariableType type, bool from_root = true);
 
-	QStringList sub_search_type(soap::VariableType type);
+	QString search_name(void* data, bool from_root = true);
 
-	QStringList search_type(soap::VariableType type);
-
-	QString search_name(void* data);
+	void* search_one(soap::VariableType type, bool from_root = true);
 
 	bool is_root() const;
 };

@@ -24,8 +24,6 @@ public:
 
 	void __s_update_interface() override;
 
-	void show_significant_chrom_var();
-
 private slots:
 
 	void s_volcano_plot();
@@ -33,6 +31,8 @@ private slots:
 	void s_heatmap_plot();
 
 	void s_show_significant();
+
+	void s_extract_feature_names();
 
 	void s_enrich_go();
 

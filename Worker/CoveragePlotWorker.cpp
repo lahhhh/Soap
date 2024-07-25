@@ -247,7 +247,9 @@ bool CoveragePlotWorker::find_gene_in_region() {
 		return false;
 	}
 	for (const auto& name : this->gene_structure_.keys()) {
+
 		if (this->gene_structure_[name].second.size() == 0) {
+
 			this->gene_structure_.remove(name);
 		}
 	}
@@ -509,6 +511,7 @@ void CoveragePlotWorker::run() {
 	res.group_factors = this->levels_;
 	res.normalized_matrix = this->normalized_matrix_;
 	res.gene_structure = this->gene_structure_;
+
 	res.peak_locations = this->peak_locations_;
 	res.peak_links = this->peak_links_;
 	res.draw_legend = this->draw_legend_;

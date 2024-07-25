@@ -31,6 +31,12 @@ namespace custom {
 		return QString::number(src);
 	}
 
+	template<typename Dst, typename Src>
+		requires std::same_as<std::decay_t<Src>, std::string>&& std::same_as<Dst, QString>
+	SOAP_INLINE Dst cast(Src src) {
+		return QString::fromStdString(src);
+	}
+
 
 	//--------- cast to qstring -----------//
 
@@ -50,6 +56,11 @@ namespace custom {
 	template<>
 	SOAP_INLINE int cast<int>(const QString& src) {
 		return src.toInt();
+	}
+
+	template<>
+	SOAP_INLINE std::string cast<std::string>(const QString& src) {
+		return src.toStdString();
 	}
 
 
@@ -1307,7 +1318,7 @@ namespace custom {
 		std::size_t size = std::ranges::size(ct);
 
 		if (size <= 1) {
-			return std::nan(0);
+			return std::nan("0");
 		}
 
 		double mean = _Cs mean(ct), variance{ 0.0 };
@@ -2759,7 +2770,7 @@ namespace custom {
 
 		const std::size_t size = std::ranges::size(ct1);
 		if (size * sum_square_x == sum_x * sum_x || size * sum_square_y == sum_y * sum_y)
-			return std::nan(0);
+			return std::nan("0");
 
 		return (size * sum_x_y - sum_x * sum_y) / std::sqrt((size * sum_square_x - sum_x * sum_x) * (size * sum_square_y - sum_y * sum_y));
 	}
@@ -2791,7 +2802,7 @@ namespace custom {
 				denominator2 += (*iter2 - rank_y_average) * (*iter2 - rank_y_average);
 			}
 			if (denominator1 == 0 || denominator2 == 0) {
-				return std::nan(0);
+				return std::nan("0");
 			}
 
 			return numerator / std::sqrt(denominator1 * denominator2);

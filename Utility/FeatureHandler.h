@@ -16,7 +16,7 @@ struct FEATURE_DATA {
 
 	QStringList factor_names;
 
-	QStringList completer_names;
+	QStringList numeric_names;
 };
 
 struct QUERY_DATA {
@@ -120,11 +120,17 @@ class FeatureHandler
 public:
 
 	FeatureHandler() = default;
+	explicit FeatureHandler(Metadata* d) : type_(DataType::Metadata), data_(d) {};
 	explicit FeatureHandler(DataFrame* d) : type_(DataType::DataFrame), data_(d) {};
 	explicit FeatureHandler(SingleCellRna* d) : type_(DataType::SingleCellRna), data_(d) {};
 	explicit FeatureHandler(SingleCellAtac* d) : type_(DataType::SingleCellAtac), data_(d) {};
 	explicit FeatureHandler(SingleCellMultiome* d) : type_(DataType::SingleCellMultiome), data_(d) {};
 	explicit FeatureHandler(BulkRna* d) : type_(DataType::BulkRna), data_(d) {};
+
+	void set(Metadata* d) {
+		this->type_ = DataType::Metadata;
+		this->data_ = d;
+	};
 
 	void set(DataFrame* d){
 		this->type_ = DataType::DataFrame;
@@ -160,7 +166,7 @@ public:
 	soap::Species get_species();
 
 	enum class DataType : int { NoType, SingleCellRna, SingleCellAtac, SingleCellMultiome, DataFrame,
-		BulkRna};
+		BulkRna, Metadata};
 
 	DataType type_{ DataType::NoType };
 
@@ -175,12 +181,14 @@ private:
 	QUERY_DATA get_data_single_cell_rna(QUERY_INFO);
 	QUERY_DATA get_data_single_cell_atac(QUERY_INFO);
 	QUERY_DATA get_data_single_cell_multiome(QUERY_INFO);
-	QUERY_DATA get_data_single_cell_dataframe(QUERY_INFO);
+	QUERY_DATA get_data_dataframe(QUERY_INFO);
+	QUERY_DATA get_data_metadata(QUERY_INFO);
 
 	FEATURE_DATA get_feature_names_bulk_rna();
 	FEATURE_DATA get_feature_names_single_cell_rna();
 	FEATURE_DATA get_feature_names_single_cell_atac();
 	FEATURE_DATA get_feature_names_single_cell_multiome();
 	FEATURE_DATA get_feature_names_dataframe();
+	FEATURE_DATA get_feature_names_metadata();
 };
 

@@ -87,6 +87,14 @@ namespace custom_plot {
 		QVector<QColor> kmeans_palette(int n, int alpha = 255, int m = 2000, int random_state = 1997);
 
 		QColor gradient_color(double proportion, const QColor& low_color, const QColor& high_color);
+
+		std::pair<double, double> calculate_text_size(
+			const QString& text,
+			const QFont& font,
+			double xrange,
+			double yrange,
+			double rect_width,
+			double rect_height);
 	};
 };
 

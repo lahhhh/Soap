@@ -89,7 +89,7 @@ void ChromVARItem::s_differential_analysis() {
 
 void ChromVARItem::s_embedding_plot() {
 
-	auto emb_names = this->index_tree_->search_type(soap::VariableType::Embedding);
+	auto emb_names = this->index_tree_->search(soap::VariableType::Embedding);
 
 	if (emb_names.isEmpty()) {
 		return;

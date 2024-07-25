@@ -40,6 +40,12 @@ QStringList FeatureHandler::get_metadata_names() {
 	case DataType::SingleCellMultiome:
 		return static_cast<SingleCellMultiome*>(this->data_)->metadata()->mat_.colnames_;
 		break;
+	case DataType::Metadata:
+		return static_cast<Metadata*>(this->data_)->mat_.colnames_;
+		break;
+	case DataType::DataFrame:
+		return static_cast<DataFrame*>(this->data_)->mat_.colnames_;
+		break;
 		break;
 	default:
 		break;
@@ -69,6 +75,9 @@ FEATURE_DATA FeatureHandler::get_feature_names() {
 	case DataType::DataFrame:
 		res = get_feature_names_dataframe();
 		break;
+	case DataType::Metadata:
+		res = get_feature_names_metadata();
+		break;
 	default:
 		break;
 	}
@@ -77,7 +86,7 @@ FEATURE_DATA FeatureHandler::get_feature_names() {
 
 	res.factor_names = _Cs unique(res.factor_names);
 
-	res.completer_names = _Cs unique(res.completer_names);
+	res.numeric_names = _Cs unique(res.numeric_names);
 
 	return res;
 };
@@ -101,7 +110,7 @@ FEATURE_DATA FeatureHandler::get_feature_names_bulk_rna() {
 	if (counts != nullptr) {
 
 		res.all_names << counts->rownames_;
-		res.completer_names << counts->rownames_;
+		res.numeric_names << counts->rownames_;
 
 		return res;
 	}
@@ -110,7 +119,7 @@ FEATURE_DATA FeatureHandler::get_feature_names_bulk_rna() {
 
 	if (normalized != nullptr) {
 		res.all_names << normalized->rownames_;
-		res.completer_names << normalized->rownames_;
+		res.numeric_names << normalized->rownames_;
 
 		return res;
 	}
@@ -136,7 +145,7 @@ FEATURE_DATA FeatureHandler::get_feature_names_single_cell_rna() {
 	if (counts != nullptr) {
 
 		res.all_names << counts->rownames_;
-		res.completer_names << counts->rownames_;
+		res.numeric_names << counts->rownames_;
 
 		return res;
 	}
@@ -145,7 +154,7 @@ FEATURE_DATA FeatureHandler::get_feature_names_single_cell_rna() {
 
 	if (normalized != nullptr) {
 		res.all_names << normalized->rownames_;
-		res.completer_names << normalized->rownames_;
+		res.numeric_names << normalized->rownames_;
 
 		return res;
 	}
@@ -186,7 +195,7 @@ FEATURE_DATA FeatureHandler::get_feature_names_single_cell_atac() {
 	if (gene_activity_counts != nullptr) {
 
 		res.all_names << gene_activity_counts->rownames_;
-		res.completer_names << gene_activity_counts->rownames_;
+		res.numeric_names << gene_activity_counts->rownames_;
 	}
 	else {
 		auto gene_activity_normalized = single_cell_atac->gene_activity_normalized();
@@ -194,7 +203,7 @@ FEATURE_DATA FeatureHandler::get_feature_names_single_cell_atac() {
 		if (gene_activity_normalized != nullptr) {
 
 			res.all_names << gene_activity_normalized->rownames_;
-			res.completer_names << gene_activity_normalized->rownames_;
+			res.numeric_names << gene_activity_normalized->rownames_;
 		}
 	}
 	return res;
@@ -206,6 +215,16 @@ FEATURE_DATA FeatureHandler::get_feature_names_dataframe() {
 	auto data_frame = static_cast<DataFrame*>(this->data_);
 
 	this->check_custom_matrix_names(data_frame->mat_, res);
+
+	return res;
+};
+
+FEATURE_DATA FeatureHandler::get_feature_names_metadata() {
+	FEATURE_DATA res;
+
+	auto metadata = static_cast<Metadata*>(this->data_);
+
+	this->check_custom_matrix_names(metadata->mat_, res);
 
 	return res;
 };
@@ -227,7 +246,7 @@ FEATURE_DATA FeatureHandler::get_feature_names_single_cell_multiome() {
 	if (rna_counts != nullptr) {
 
 		res.all_names << rna_counts->rownames_;
-		res.completer_names << rna_counts->rownames_;
+		res.numeric_names << rna_counts->rownames_;
 	}
 	else {
 		auto rna_normalized = single_cell_multiome->rna_normalized();
@@ -235,7 +254,7 @@ FEATURE_DATA FeatureHandler::get_feature_names_single_cell_multiome() {
 		if (rna_normalized != nullptr) {
 
 			res.all_names << rna_normalized->rownames_;
-			res.completer_names << rna_normalized->rownames_;
+			res.numeric_names << rna_normalized->rownames_;
 		}
 	}
 
@@ -259,7 +278,7 @@ FEATURE_DATA FeatureHandler::get_feature_names_single_cell_multiome() {
 	if (gene_activity_counts != nullptr) {
 
 		res.all_names << gene_activity_counts->rownames_;
-		res.completer_names << gene_activity_counts->rownames_;
+		res.numeric_names << gene_activity_counts->rownames_;
 	}
 	else {
 		auto gene_activity_normalized = single_cell_multiome->trans_normalized();
@@ -267,7 +286,7 @@ FEATURE_DATA FeatureHandler::get_feature_names_single_cell_multiome() {
 		if (gene_activity_normalized != nullptr) {
 
 			res.all_names << gene_activity_normalized->rownames_;
-			res.completer_names << gene_activity_normalized->rownames_;
+			res.numeric_names << gene_activity_normalized->rownames_;
 		}
 	}
 	return res;
@@ -285,7 +304,7 @@ void FeatureHandler::check_custom_matrix_names(CustomMatrix& mat, FEATURE_DATA& 
 		case CustomMatrix::DataType::DoubleNumeric:
 		case CustomMatrix::DataType::IntegerNumeric:
 			res.all_names << name;
-			res.completer_names << name;
+			res.numeric_names << name;
 			break;
 		default:
 			break;
@@ -344,7 +363,10 @@ QUERY_DATA FeatureHandler::get_data(QUERY_INFO info) {
 		return get_data_single_cell_multiome(info);
 		break;
 	case DataType::DataFrame:
-		return get_data_single_cell_dataframe(info);
+		return get_data_dataframe(info);
+		break;
+	case DataType::Metadata:
+		return get_data_metadata(info);
 		break;
 	default:
 		break;
@@ -450,7 +472,7 @@ QUERY_DATA FeatureHandler::get_data_single_cell_atac(QUERY_INFO info) {
 	}
 }
 
-QUERY_DATA FeatureHandler::get_data_single_cell_dataframe(QUERY_INFO info) {
+QUERY_DATA FeatureHandler::get_data_dataframe(QUERY_INFO info) {
 
 	QUERY_DATA res{ info.name };
 
@@ -459,6 +481,20 @@ QUERY_DATA FeatureHandler::get_data_single_cell_dataframe(QUERY_INFO info) {
 	if (data_frame->mat_.contains(info.name)) {
 
 		this->check_custom_matrix(data_frame->mat_, res, info.name);
+	}
+
+	return res;
+};
+
+QUERY_DATA FeatureHandler::get_data_metadata(QUERY_INFO info) {
+
+	QUERY_DATA res{ info.name };
+
+	auto metadata = static_cast<Metadata*>(this->data_);
+
+	if (metadata->mat_.contains(info.name)) {
+
+		this->check_custom_matrix(metadata->mat_, res, info.name);
 	}
 
 	return res;

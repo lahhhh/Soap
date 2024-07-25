@@ -3,9 +3,11 @@
 #include "MatrixWindow.h"
 #include "EnrichWorker.h"
 #include "CommonDialog.h"
-#include "Identifier.h"
 #include "ItemIOWorker.h"
 #include "CustomPlot.h"
+
+#include "StringVector.h"
+
 #include "FileWritingWorker.h"
 
 void DifferentialAnalysisItem::__s_update_interface() {
@@ -38,6 +40,8 @@ void DifferentialAnalysisItem::__set_menu() {
 	ADD_MAIN_ACTION("Heatmap Plot", s_heatmap_plot);
 
 	ADD_MAIN_ACTION("Show Significant", s_show_significant);
+
+	ADD_MAIN_ACTION("Extract Feature Names", s_extract_feature_names);
 
 	ADD_MAIN_MENU("Enrich");
 
@@ -311,7 +315,7 @@ void DifferentialAnalysisItem::s_heatmap_plot() {
 				p.second,
 				now_start + p.first / 2,
 				1.0,
-				gs.get_left_label_font(),
+				gs.get_bottom_label_font(),
 				Qt::AlignBottom | Qt::AlignHCenter);
 
 			now_start += p.first;
@@ -582,101 +586,158 @@ void DifferentialAnalysisItem::s_volcano_plot() {
 	this->draw_suite_->update(draw_area);
 };
 
-void DifferentialAnalysisItem::show_significant_chrom_var() {
+void DifferentialAnalysisItem::s_extract_feature_names() {
 
 	auto comparisons = _Cs paste(this->data()->mat_.get_const_qstring_reference(METADATA_DE_COMPARISON_1),
 		this->data()->mat_.get_const_qstring_reference(METADATA_DE_COMPARISON_2), " vs. ");
 
 	auto comp = _Cs unique(comparisons);
 
+	QString value_filter_string{ "log2 Fold Change(Absolute Value >):1" };
+	QString value_name{ METADATA_DE_LOG2_FOLD_CHANGE };
+
+	if (this->data()->data_type_ == DifferentialAnalysis::DataType::ChromVAR) {
+		value_filter_string = "Z Score Difference Threshold:2.0";
+		value_name = METADATA_DE_Z_SCORE_DIFFERENCE;
+	}
+
 	QStringList settings = CommonDialog::get_response(
 		this->signal_emitter_,
 		"Setting For Significance",
-		{ "P Value(<):0.05", "Type", "Comparison", "Z Score Difference Threshold:2.0"},
-		{soap::InputStyle::NumericLineEdit, soap::InputStyle::ComboBox, soap::InputStyle::ComboBox, soap::InputStyle::NumericLineEdit},
-		{{ "All", "Upregulated", "Downregulated" }, comp }
+		{ "P Value(<):0.05", value_filter_string, "Type", "All Comparison:no", "Comparison", "Top N:0"},
+		{ soap::InputStyle::NumericLineEdit, soap::InputStyle::NumericLineEdit, soap::InputStyle::ComboBox, 
+		soap::InputStyle::SwitchButton, soap::InputStyle::ComboBox, soap::InputStyle::IntegerLineEdit },
+		{ { "All", "Upregulated", "Downregulated" }, comp }
 	);
 	if (settings.isEmpty())return;
 
 	double feature_p_threshold = settings[0].toDouble();
+	double value_threshold = settings[1].toDouble();
 	if (feature_p_threshold <= 0 || feature_p_threshold > 1) {
 		G_LOG("Invalid p value! Reset to 0.05");
 		feature_p_threshold = 0.05;
 	}
 
 	Eigen::ArrayX<bool> filter = _Cs less_than(this->data()->mat_.get_const_double_reference(METADATA_DE_ADJUSTED_P_VALUE), feature_p_threshold);
-	QString regulate_type = settings[1];
+
+	QString regulate_type = settings[2];
 	if (regulate_type == "Upregulated") {
-		filter *= _Cs greater_than(this->data()->mat_.get_const_double_reference(METADATA_DE_Z_SCORE_DIFFERENCE), 0.);
+		filter *= _Cs greater_than(this->data()->mat_.get_const_double_reference(value_name), 0.);
 	}
 	else if (regulate_type == "Downregulated") {
-		filter *= _Cs less_than(this->data()->mat_.get_const_double_reference(METADATA_DE_Z_SCORE_DIFFERENCE), 0.);
+		filter *= _Cs less_than(this->data()->mat_.get_const_double_reference(value_name), 0.);
 	}
 
-	filter *= _Cs equal(comparisons, settings[2]);
+	bool all_comparison = switch_to_bool(settings[3]);
+	if (!all_comparison) {
+		filter *= _Cs equal(comparisons, settings[4]);
+	}
 
-	filter *= _Cs greater_than(_Cs abs(this->data()->mat_.get_const_double_reference(METADATA_DE_Z_SCORE_DIFFERENCE)), settings[3].toDouble());
-
+	filter *= _Cs greater_equal(_Cs abs(this->data()->mat_.get_const_double_reference(METADATA_DE_LOG2_FOLD_CHANGE)), std::abs(value_threshold));
 	if (filter.count() == 0) {
-		G_NOTICE("No significant differential feature expression found.");
+		G_NOTICE("No feature found.");
 		return;
 	}
 
-	auto z_diff = _Cs sliced(this->data()->mat_.get_const_double_reference(METADATA_DE_Z_SCORE_DIFFERENCE), filter);
-	auto order = _Cs order(z_diff, true);
+	int top_n = settings[5].toInt();
+	if (top_n < 0) {
+		G_WARN("Invalid settings : top N");
+		return;
+	}
 
-	auto tmp = this->data()->mat_.row_sliced(filter).row_reordered(order);
-	MatrixWindow::show_matrix(
-		&tmp,
-		"Significant Result",
-		this->signal_emitter_);
+	if (all_comparison) {
+
+		QVector<int> order;
+
+		for (auto&& c : comp) {
+			Eigen::ArrayX<bool> sub_filter = filter * _Cs equal(comparisons, c);
+			auto sub_vals = _Cs sliced(this->data()->mat_.get_const_double_reference(value_name), sub_filter);
+			auto sub_order = _Cs order(sub_vals, true);
+
+			if (top_n > 0 && sub_order.size() > top_n) {
+				sub_order = sub_order.segment(0, top_n).eval();
+			}
+
+			order << _Cs cast<QVector>(_Cs reordered(_Cs which(sub_filter), sub_order));
+		}
+
+		QStringList feature_names = _Cs reordered(this->data()->mat_.get_const_qstring_reference(METADATA_DE_FEATURE_NAME), order);
+		StringVector* sv = new StringVector(feature_names);
+
+		this->signal_emitter_->x_data_create_soon(sv, soap::VariableType::StringVector, "Extracted Feature Names");
+	}
+	else {
+
+		auto vals = _Cs sliced(this->data()->mat_.get_const_double_reference(value_name), filter);
+		auto order = _Cs order(vals, true);
+		QStringList feature_names = _Cs reordered(this->data()->mat_.get_const_qstring_reference(METADATA_DE_FEATURE_NAME), _Cs reordered(_Cs which(filter), order));
+		
+		if (top_n > 0 && feature_names.size() > top_n) {
+			feature_names = feature_names.sliced(0, top_n);
+		}
+		
+		StringVector* sv = new StringVector(feature_names);
+
+		this->signal_emitter_->x_data_create_soon(sv, soap::VariableType::StringVector, "Extracted Feature Names");
+	}
+
 };
 
 void DifferentialAnalysisItem::s_show_significant() {
 
-	if (this->data()->data_type_ == DifferentialAnalysis::DataType::ChromVAR) {
-		this->show_significant_chrom_var();
-		return;
-	}
-
 	auto comparisons = _Cs paste(this->data()->mat_.get_const_qstring_reference(METADATA_DE_COMPARISON_1),
 		this->data()->mat_.get_const_qstring_reference(METADATA_DE_COMPARISON_2), " vs. ");
 
 	auto comp = _Cs unique(comparisons);
 
+	QString value_filter_string{ "log2 Fold Change(Absolute Value >):1" };
+	QString value_name{ METADATA_DE_LOG2_FOLD_CHANGE };
+
+	if (this->data()->data_type_ == DifferentialAnalysis::DataType::ChromVAR) {
+		value_filter_string = "Z Score Difference Threshold:2.0";
+		value_name = METADATA_DE_Z_SCORE_DIFFERENCE;
+	}
+
 	QStringList settings = CommonDialog::get_response(
 		this->signal_emitter_,
 		"Setting For Significance",
-		{ "P Value(<):0.05", "log2 Fold Change(Absolute Value >):1", "Type", "Comparison" },
-		{soap::InputStyle::NumericLineEdit, soap::InputStyle::NumericLineEdit, soap::InputStyle::ComboBox, soap::InputStyle::ComboBox},
+		{ "P Value(<):0.05", value_filter_string, "Type", "All Comparison:no","Comparison" },
+		{soap::InputStyle::NumericLineEdit, soap::InputStyle::NumericLineEdit, soap::InputStyle::ComboBox, 
+		soap::InputStyle::SwitchButton, soap::InputStyle::ComboBox},
 		{{ "All", "Upregulated", "Downregulated" }, comp }
 	);
 	if (settings.isEmpty())return;
 
 	double feature_p_threshold = settings[0].toDouble();
-	double fold_change_threshold = settings[1].toDouble();
+	double value_threshold = settings[1].toDouble();
 	if (feature_p_threshold <= 0 || feature_p_threshold > 1) {
 		G_LOG("Invalid p value! Reset to 0.05");
 		feature_p_threshold = 0.05;
 	}
 
 	Eigen::ArrayX<bool> filter = _Cs less_than(this->data()->mat_.get_const_double_reference(METADATA_DE_ADJUSTED_P_VALUE), feature_p_threshold);
+	
 	QString regulate_type = settings[2];
 	if (regulate_type == "Upregulated") {
-		filter *= _Cs greater_than(this->data()->mat_.get_const_double_reference(METADATA_DE_LOG2_FOLD_CHANGE), 0.);
+		filter *= _Cs greater_than(this->data()->mat_.get_const_double_reference(value_name), 0.);
 	}
 	else if (regulate_type == "Downregulated") {
-		filter *= _Cs less_than(this->data()->mat_.get_const_double_reference(METADATA_DE_LOG2_FOLD_CHANGE), 0.);
+		filter *= _Cs less_than(this->data()->mat_.get_const_double_reference(value_name), 0.);
 	}
-	filter *= _Cs equal(comparisons, settings[3]);
-	filter *= _Cs greater_equal(_Cs abs(this->data()->mat_.get_const_double_reference(METADATA_DE_LOG2_FOLD_CHANGE)), std::abs(fold_change_threshold));
+
+	bool all_comparison = switch_to_bool(settings[3]);
+	if (!all_comparison) {
+		filter *= _Cs equal(comparisons, settings[4]);
+	}
+
+	filter *= _Cs greater_equal(_Cs abs(this->data()->mat_.get_const_double_reference(METADATA_DE_LOG2_FOLD_CHANGE)), std::abs(value_threshold));
 	if (filter.count() == 0) {
-		G_NOTICE("No significant differential feature expression found.");
+		G_NOTICE("No significant differential feature found.");
 		return;
 	}
 
-	auto logfc = _Cs sliced(this->data()->mat_.get_const_double_reference(METADATA_DE_LOG2_FOLD_CHANGE), filter);
-	auto order = _Cs order(logfc, true);
+	auto vals = _Cs sliced(this->data()->mat_.get_const_double_reference(value_name), filter);
+	auto order = _Cs order(vals, true);
 
 	auto tmp = this->data()->mat_.row_sliced(filter).row_reordered(order);
 	

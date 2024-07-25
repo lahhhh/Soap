@@ -234,7 +234,7 @@ namespace custom_plot {
 				}
 			}
 
-			_CpPatch add_title(draw_area, sub_layout, data.name, gs.get_title_font());
+			_CpPatch add_title(draw_area, sub_layout, gs.get_title(data.name), gs.get_title_font());
 		}
 
 		return { axis_rect, legend_layout };
@@ -489,7 +489,7 @@ namespace custom_plot {
 			QStringList gene_names = res.gene_structure.keys();
 
 			for (auto&& gene_name : gene_names) {
-				if (gene_name.startsWith("RP") || gene_name.contains('.')) {
+				if (gene_name.startsWith("RP") && gene_name.contains('.')) {
 					res.gene_structure.remove(gene_name);
 				}
 			}
@@ -499,7 +499,7 @@ namespace custom_plot {
 			QStringList gene_names = res.gene_structure.keys();
 
 			for (auto&& gene_name : gene_names) {
-				if (gene_name.startsWith("AC") || gene_name.contains('.')) {
+				if (gene_name.startsWith("AC") && gene_name.contains('.')) {
 					res.gene_structure.remove(gene_name);
 				}
 			}
@@ -573,6 +573,7 @@ namespace custom_plot {
 					update = false;
 
 					int n_loc = locs.size();
+
 					if (n_loc == 0) {
 						break;
 					}
@@ -2040,6 +2041,9 @@ namespace custom_plot {
 		QCPColorScale* color_scale = new QCPColorScale(draw_area);
 		color_scale->setType(QCPAxis::atRight);
 
+		if (minimum_value == maximum_value) {
+			maximum_value += 0.01;
+		}
 		color_scale->setDataRange(QCPRange(minimum_value, maximum_value));
 		color_scale->setGradient(gradient);
 		color_scale->axis()->setLabelFont(gs.get_legend_tick_label_font());
@@ -2192,14 +2196,15 @@ namespace custom_plot {
 		const QStringList& levels,
 		const QList<QColor>& colors,
 		const QString& legend_title,
-		const GraphSettings& gs
+		const GraphSettings& gs,
+		int legend_index
 	) {
 		_CpPatch add_round_legend(
 			draw_area,
 			legend_layout,
 			levels,
 			colors,
-			legend_title,
+			gs.get_legend_title(legend_title, legend_index),
 			gs.get_legend_column_width(),
 			gs.get_legend_row_width(),
 			gs.get_legend_title_font(),

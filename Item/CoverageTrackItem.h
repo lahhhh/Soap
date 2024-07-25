@@ -18,5 +18,7 @@ public:
 
     void __s_update_interface() override;
 
+    void s_show_coverage();
+
 };
 

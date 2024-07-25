@@ -173,8 +173,6 @@ bool ScentWorker::read_ppi_database() {
 
 	int n_gene = gene_names.size();
 
-	qDebug() << n_gene;
-
 	this->ppi_.mat_ = Eigen::MatrixXi::Zero(n_gene, n_gene);
 
 	line = in.readLine();
@@ -210,8 +208,6 @@ bool ScentWorker::calculate_sr() {
 
 	Eigen::ArrayXd srv = Eigen::ArrayXd::Zero(n_cell);
 
-	int count{ 0 };
-
 #pragma omp parallel for num_threads(10)
 	for (int i = 0; i < n_cell; ++i) {
 		Eigen::ArrayXd exp_v = this->expression_.mat_.col(i);
@@ -232,7 +228,6 @@ bool ScentWorker::calculate_sr() {
 
 		double sr = (invp_v * sv).sum();
 		srv[i] = sr;
-		qDebug() << ++count << n_cell;
 	}
 
 	srv /= this->max_sr_;

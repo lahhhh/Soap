@@ -38,24 +38,32 @@ bool IndexTree::is_root() const {
 	return this->parent_ == nullptr;
 };
 
-QString IndexTree::search_name(void* data) {
-	IndexTree* it = this->search(data);
+QString IndexTree::search_name(void* data, bool from_root) {
+
+	IndexTree* it = this->search(data, from_root);
 
 	if (it != nullptr) {
 		return it->name_;
 	}
 	else {
-		return QString();
+		return {};
 	}
 };
 
-IndexTree* IndexTree::sub_search(void* data) {
-	if (this->data_ == data) {
-		return this;
+IndexTree* IndexTree::search(void* data, bool from_root) {
+
+	IndexTree* start = this;
+
+	if (from_root) {
+		start = this->root();
 	}
 
-	for (auto& child : this->children_) {
-		auto res = child.second.sub_search(data);
+	if (start->data_ == data) {
+		return start;
+	}
+
+	for (auto& child : start->children_) {
+		auto res = child.second.search(data, false);
 		if (res != nullptr) {
 			return res;
 		}
@@ -64,21 +72,44 @@ IndexTree* IndexTree::sub_search(void* data) {
 	return nullptr;
 };
 
-IndexTree* IndexTree::search(void* data) {
-	IndexTree* root = this->root();
+void* IndexTree::search_one(soap::VariableType type, bool from_root) {
 
-	return root->sub_search(data);
-};
+	IndexTree* start = this;
 
-QStringList IndexTree::sub_search_type(soap::VariableType type) {
-	QStringList res;
-
-	if (this->type_ == type) {
-		res << this->name_;
+	if (from_root) {
+		start = this->root();
 	}
 
-	for (auto& child : this->children_) {
-		auto sub_res = child.second.sub_search_type(type);
+	if (start->type_ == type) {
+		return start->data_;
+	}
+
+	for (auto& child : start->children_) {
+		auto sub_res = child.second.search_one(type, false);
+		if (sub_res != nullptr) {
+			return sub_res;
+		}
+	}
+
+	return nullptr;
+};
+
+QStringList IndexTree::search(soap::VariableType type, bool from_root) {
+
+	IndexTree* start = this;
+
+	if (from_root) {
+		start = this->root();
+	}
+
+	QStringList res;
+
+	if (start->type_ == type) {
+		res << start->name_;
+	}
+
+	for (auto& child : start->children_) {
+		auto sub_res = child.second.search(type, false);
 		if (!sub_res.isEmpty()) {
 			res << sub_res;
 		}
@@ -87,32 +118,25 @@ QStringList IndexTree::sub_search_type(soap::VariableType type) {
 	return res;
 };
 
-QStringList IndexTree::search_type(soap::VariableType type) {
-	IndexTree* root = this->root();
+IndexTree* IndexTree::search(const QString& name, bool from_root) {
 
-	return root->sub_search_type(type);
-};
+	IndexTree* start = this;
 
-IndexTree* IndexTree::sub_search(const QString& name) {
-
-	if (this->name_ == name) {
-		return this;
+	if (from_root) {
+		start = this->root();
 	}
 
-	for (auto&& child : this->children_) {
+	if (start->name_ == name) {
+		return start;
+	}
 
-		auto res = child.second.sub_search(name);
+	for (auto&& child : start->children_) {
+
+		auto res = child.second.search(name, false);
 		if (res != nullptr) {
 			return res;
 		}
 	}
 
 	return nullptr;
-};
-
-IndexTree* IndexTree::search(const QString& name) {
-
-	IndexTree* root = this->root();
-
-	return root->sub_search(name);
 };

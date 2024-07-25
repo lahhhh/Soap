@@ -207,6 +207,8 @@ bool ChromVARWorker::get_background_peaks() {
 	std::ranges::for_each(bin_membership, [&bin_density](auto t) {++bin_density[t]; });
 	constexpr int n_iteration = 50;
 	this->background_peaks_.resize(n_peak, n_iteration);
+
+#pragma omp parallel for
 	for (int i = 0; i < bs * bs; ++i) {
 		auto ix = _Cs which(bin_membership == i);
 		int n_ix_ele = ix.size();
@@ -223,6 +225,7 @@ bool ChromVARWorker::get_background_peaks() {
 			this->background_peaks_.row(ix[j]) = sampled.segment(j * n_iteration, n_iteration);
 		}
 	}
+
 	return true;
 };
 
@@ -310,8 +313,8 @@ bool ChromVARWorker::compute_deviations() {
 		Eigen::ArrayXd z = normdev / sd_sampled_deviation;
 
 		if (!fail_filter.isEmpty()) {
-			_Cs assign(normdev, 0.0 /*std::nan(0)*/, fail_filter);
-			_Cs assign(z, 0.0 /*std::nan(0)*/, fail_filter);
+			_Cs assign(normdev, 0.0 /*std::nan("0")*/, fail_filter);
+			_Cs assign(z, 0.0 /*std::nan("0")*/, fail_filter);
 		}
 
 		chrom_var->z_.row(i) = z;

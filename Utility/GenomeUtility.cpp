@@ -170,6 +170,112 @@ namespace custom {
 		return std::make_tuple("", 0, 0, false);
 	};
 
+	int get_hexamer_loc(const char str[6]) {
+		int loc = 0;
+		switch (str[5])
+		{
+		case 'A':
+			break;
+		case 'C':
+			loc += 1;
+			break;
+		case 'G':
+			loc += 2;
+			break;
+		case 'T':
+			loc += 3;
+			break;
+		default:
+			return -1;
+		}
+
+		switch (str[4])
+		{
+		case 'A':
+			break;
+		case 'C':
+			loc += 4;
+			break;
+		case 'G':
+			loc += 8;
+			break;
+		case 'T':
+			loc += 12;
+			break;
+		default:
+			return -1;
+		}
+
+		switch (str[3])
+		{
+		case 'A':
+			break;
+		case 'C':
+			loc += 16;
+			break;
+		case 'G':
+			loc += 32;
+			break;
+		case 'T':
+			loc += 48;
+			break;
+		default:
+			return -1;
+		}
+
+		switch (str[2])
+		{
+		case 'A':
+			break;
+		case 'C':
+			loc += 64;
+			break;
+		case 'G':
+			loc += 128;
+			break;
+		case 'T':
+			loc += 192;
+			break;
+		default:
+			return -1;
+		}
+
+		switch (str[1])
+		{
+		case 'A':
+			break;
+		case 'C':
+			loc += 256;
+			break;
+		case 'G':
+			loc += 512;
+			break;
+		case 'T':
+			loc += 768;
+			break;
+		default:
+			return -1;
+		}
+
+		switch (str[0])
+		{
+		case 'A':
+			break;
+		case 'C':
+			loc += 1024;
+			break;
+		case 'G':
+			loc += 2048;
+			break;
+		case 'T':
+			loc += 3072;
+			break;
+		default:
+			return -1;
+		}
+		return loc;
+	}
+
 	QString get_hexamer_from_loc(int loc) {
 		if (loc > 4095 || loc < 0) {
 			return QString();
@@ -191,6 +297,7 @@ namespace custom {
 		if (gene_filter.count() == 0) {
 			return std::make_tuple("", 0, 0, '-', false);
 		}
+
 		int index = _Cs get_first_index(gene_filter);
 		QString sequence_name = genome.sequence_names_[index];
 		char strand = genome.strand_[index];

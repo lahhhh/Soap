@@ -28,6 +28,10 @@ void EmbeddingItem::__set_menu() {
 
 	ADD_MAIN_ACTION("Feature Plot", s_feature_plot);
 
+	ADD_MAIN_ACTION("Highlight", s_highlight);
+
+	ADD_MAIN_ACTION("Numeric Feature Plot", s_multiple_numeric_feature_plot);
+
 	ADD_MAIN_ACTION("View", s_view);
 
 	if (this->data()->data_type_ == Embedding::DataType::Pca) {
@@ -174,6 +178,328 @@ void EmbeddingItem::s_chromvar_plot() {
 	this->show(chrom_var->z_.row(index), feature, false, "Z Score");
 };
 
+void EmbeddingItem::s_multiple_numeric_feature_plot() {
+
+	Eigen::MatrixXd feature_mat;
+	Eigen::ArrayXd x = this->data()->data_.mat_.col(0), y = this->data()->data_.mat_.col(1);
+	int n_cell = x.size();
+	bool scale{ false };
+	int nrow{ 1 };
+	QStringList valid_features;
+
+	if (this->attached_to(soap::VariableType::SingleCellRna) ||
+		this->attached_to(soap::VariableType::SingleCellAtac) ||
+		this->attached_to(soap::VariableType::BulkRna)) {
+
+		FeatureHandler handler;
+
+		if (this->attached_to(soap::VariableType::SingleCellRna)) {
+			SingleCellRna* single_cell_rna = this->trace_back<SingleCellRna>(1);
+			handler.set(single_cell_rna);
+		}
+		else if (this->attached_to(soap::VariableType::SingleCellAtac)) {
+			SingleCellAtac* single_cell_atac = this->trace_back<SingleCellAtac>(1);
+			handler.set(single_cell_atac);
+		}
+		else if (this->attached_to(soap::VariableType::BulkRna)) {
+			BulkRna* rna = this->trace_back<BulkRna>(1);
+			handler.set(rna);
+		}
+
+		QStringList settings = CommonDialog::get_response(
+			this->signal_emitter_,
+			"Feature Plot Setting",
+			{ "Feature", "Normalized:yes", "Scale:no", "Number of row:1" },
+			{ soap::InputStyle::MultipleLineEditWithCompleter, soap::InputStyle::SwitchButton,
+			soap::InputStyle::SwitchButton, soap::InputStyle::IntegerLineEdit },
+			{ handler.get_feature_names().numeric_names }
+		);
+
+		if (settings.isEmpty()) {
+			return;
+		}
+
+		QStringList features = multiple_line_edit_with_completer_to_list(settings[0]);
+		if (features.isEmpty()) {
+			return;
+		}
+
+		bool normalized = switch_to_bool(settings[1]);
+		scale = switch_to_bool(settings[2]);
+		nrow = settings[3].toInt();
+		if (nrow < 0) {
+			G_WARN("Number of rows can not be less than 1.");
+			return;
+		}
+
+		auto data = _Cs sapply(features, [&handler, normalized](auto&& t) {return handler.get_data({ t, normalized }); });
+
+		int n_valid{ 0 };
+		for (auto&& d : data) {
+			if (!d.is_continuous()) {
+				G_WARN("Feature " + d.name + " is not valid.");
+				continue;
+			}
+
+			++n_valid;
+		}
+		if (n_valid == 0) {
+			G_WARN("No Valid Feature.");
+			return;
+		}
+
+		feature_mat.resize(n_cell, n_valid);
+		int count{ 0 };
+		for (auto&& d : data) {
+			if (d.is_continuous()) {
+				feature_mat.col(count++) = _Cs cast<Eigen::ArrayX>(d.get_continuous());
+				valid_features << d.name;
+			}
+		}
+
+	}
+	else if (this->stem_from(soap::VariableType::SingleCellMultiome)) {
+
+		SingleCellMultiome* single_cell_multiome = this->get_root<SingleCellMultiome>();
+
+		FeatureHandler handler(single_cell_multiome);
+
+		QStringList settings = CommonDialog::get_response(
+			this->signal_emitter_,
+			"Feature Plot Setting",
+			{ "Feature", "Normalized:yes", "Scale:no", "Field", "Number of row:1" },
+			{ soap::InputStyle::MultipleLineEditWithCompleter, soap::InputStyle::SwitchButton, soap::InputStyle::SwitchButton,
+			soap::InputStyle::ComboBox, soap::InputStyle::IntegerLineEdit },
+			{ handler.get_feature_names().numeric_names, {"RNA", "ATAC", "Gene Activity"} }
+		);
+		if (settings.isEmpty())return;
+
+		QStringList features = multiple_line_edit_with_completer_to_list(settings[0]);
+
+		if (features.isEmpty()) {
+			return;
+		}
+
+		bool normalized = switch_to_bool(settings[1]);
+		scale = switch_to_bool(settings[2]);
+
+		bool gene_activity = settings[3] == "Gene Activity";
+
+		nrow = settings[4].toInt();
+		if (nrow < 0) {
+			G_WARN("Number of rows can not be less than 1.");
+			return;
+		}
+
+		auto data = _Cs sapply(features,
+			[&handler, normalized, gene_activity](auto&& t) {return handler.get_data({ t, normalized, gene_activity }); });
+
+		int n_valid{ 0 };
+		for (auto&& d : data) {
+			if (!d.is_continuous()) {
+				G_WARN("Feature " + d.name + " is not found.");
+				continue;
+			}
+
+			++n_valid;
+		}
+		if (n_valid == 0) {
+			G_WARN("No Valid Feature.");
+			return;
+		}
+
+		feature_mat.resize(n_cell, n_valid);
+		int count{ 0 };
+		for (auto&& d : data) {
+			if (d.is_continuous()) {
+				feature_mat.col(count++) = _Cs cast<Eigen::ArrayX>(d.get_continuous());
+				valid_features << d.name;
+			}
+		}
+	}
+
+	double min_val = feature_mat.minCoeff(), max_val = feature_mat.maxCoeff();
+	int n_valid_feature = feature_mat.cols();
+
+	if (scale) {
+		for (int i = 0; i < n_valid_feature; ++i) {
+			double mean = feature_mat.col(i).mean();
+
+			feature_mat.col(i).array() -= mean;
+
+			double sd = _Cs sd(feature_mat.col(i));
+			if (sd != 0.0) {
+				feature_mat.col(i).array() /= sd;
+			}
+		}
+
+		min_val = -1.0;
+		max_val = 1.0;
+	}
+
+
+	auto& gs = this->draw_suite_->graph_settings_;
+	auto [draw_area, left_layout, legend_layout] = _Cp prepare_lg_lg(gs);
+
+	for (int i = 0; i < n_valid_feature; ++i) {
+		QCPLayoutGrid* sub_layout = new QCPLayoutGrid;
+		int col = i / nrow;
+		int row = i - col * nrow;
+		left_layout->addElement(row, col, sub_layout);
+
+		QCPAxisRect* axis_rect = new QCPAxisRect(draw_area);
+		sub_layout->addElement(0, 0, axis_rect);
+		_CpPatch set_range(axis_rect, _CpUtility get_range(x, y));
+		_CpPatch set_border_only(axis_rect, Qt::black, 2);
+		_CpPatch scatter_gradient(
+			draw_area,
+			axis_rect,
+			x,
+			y,
+			feature_mat.col(i),
+			min_val,
+			max_val,
+			gs.get_gradient_low_color(),
+			gs.get_gradient_middle_color(),
+			gs.get_gradient_high_color(),
+			gs.get_scatter_point_size()
+		);
+
+		_CpPatch add_title(draw_area, sub_layout, valid_features[i], gs.get_title_font());
+	}
+
+	if (scale) {
+		_CpPatch add_gradient_legend(
+			draw_area,
+			legend_layout,
+			-1.0,
+			1.0,
+			"Expression",
+			"Low",
+			"High",
+			gs.get_legend_title_font(),
+			gs.get_legend_label_font(),
+			gs.get_gradient_low_color(),
+			gs.get_gradient_middle_color(),
+			gs.get_gradient_high_color()
+		);
+	}
+	else {
+		_Cp add_gradient_legend(draw_area, legend_layout, min_val, max_val, "Expression", gs);
+	}
+
+	this->draw_suite_->update(draw_area);
+};
+
+void EmbeddingItem::s_highlight() {
+
+	void* d = this->index_tree_->search_one(soap::VariableType::Metadata);
+
+	if (d == nullptr) {
+		G_WARN("No Metadata Found.");
+		return;
+	}
+
+	Metadata* metadata = static_cast<Metadata*>(d);
+	auto factor_info = metadata->mat_.get_factor_information(false);
+
+	if (factor_info.isEmpty()) {
+		G_WARN("No Suitable Metadata for Visualisation.");
+		return;
+	}
+
+	auto settings = CommonDialog::get_response(
+		this->signal_emitter_,
+		"Highlight Settings",
+		{ "Group", "Background Color:#ececec" },
+		{ soap::InputStyle::FactorChoice, soap::InputStyle::ColorChoice },
+		{},
+		{ factor_info }
+	);
+
+	if (settings.isEmpty()) {
+		return;
+	}
+
+	auto [factor_name, levels] = factor_choice_to_pair(settings[0]);
+	if (levels.isEmpty()) {
+		return;
+	}
+
+	QColor bg_color = QColor::fromString(settings[1]);
+
+	auto* embedding = this->data();
+
+	Eigen::ArrayXd x = embedding->data_.mat_.col(0);
+	Eigen::ArrayXd y = embedding->data_.mat_.col(1);
+	QString bottom_title = embedding->data_.colnames_[0];
+	QString left_title = embedding->data_.colnames_[1];
+
+	auto&& gs = this->draw_suite_->graph_settings_;
+	auto [draw_area, axis_rect, legend_layout] = _Cp prepare(gs);
+
+	_CpPatch set_range(axis_rect, _CpUtility get_range(x, y));
+	_Cp set_scatter_plot_axis_style(draw_area, axis_rect, bottom_title, left_title, x, y, gs);
+
+	const int n_level = levels.size();
+	QStringList values = metadata->mat_.get_qstring(factor_name);
+	auto colors = gs.palette(levels);
+
+	Eigen::ArrayX<bool> bg_filter = Eigen::ArrayX<bool>::Constant(values.size(), false);
+
+	for (int i = 0; i < n_level; ++i) {
+
+		auto filter = _Cs equal(values, levels[i]);
+		bg_filter += filter;
+	}
+
+	bg_filter = _Cs flip(bg_filter);
+	if (bg_filter.count() > 0) {
+
+		auto sub_x = _Cs sliced(x, bg_filter);
+		auto sub_y = _Cs sliced(y, bg_filter);
+
+		_CpPatch scatter(
+			draw_area,
+			axis_rect,
+			sub_x,
+			sub_y,
+			bg_color,
+			gs.get_scatter_point_size()
+		);
+	}
+
+	for (int i = 0; i < n_level; ++i) {
+
+		auto filter = _Cs equal(values, levels[i]);
+		auto sub_x = _Cs sliced(x, filter);
+		auto sub_y = _Cs sliced(y, filter);
+
+		_CpPatch scatter(
+			draw_area,
+			axis_rect,
+			sub_x,
+			sub_y,
+			colors[i],
+			gs.get_scatter_point_size()
+		);
+	}
+
+	_CpPatch add_round_legend(
+		draw_area,
+		legend_layout,
+		levels,
+		colors,
+		gs.get_legend_title(""),
+		gs.get_legend_column_width(),
+		gs.get_legend_row_width(),
+		gs.get_legend_title_font(),
+		gs.get_legend_label_font()
+	);
+
+	this->draw_suite_->update(draw_area);
+};
+
 void EmbeddingItem::s_feature_plot() {
 
 	if (this->attached_to(soap::VariableType::SingleCellRna) ||
@@ -201,7 +527,7 @@ void EmbeddingItem::s_feature_plot() {
 			{ "Feature", "Normalized:yes", "Scale:no", "Number of row:1" },
 			{ soap::InputStyle::MultipleLineEditWithCompleter, soap::InputStyle::SwitchButton, 
 			soap::InputStyle::SwitchButton, soap::InputStyle::IntegerLineEdit },
-			{ handler.get_feature_names().completer_names}
+			{ handler.get_feature_names().numeric_names}
 		);
 
 		if (settings.isEmpty()) {
@@ -252,7 +578,7 @@ void EmbeddingItem::s_feature_plot() {
 			{ "Feature", "Normalized:yes", "Scale:no", "Field", "Number of row:1"},
 			{ soap::InputStyle::MultipleLineEditWithCompleter, soap::InputStyle::SwitchButton, soap::InputStyle::SwitchButton,
 			soap::InputStyle::ComboBox, soap::InputStyle::IntegerLineEdit},
-			{ handler.get_feature_names().completer_names, {"RNA", "ATAC", "Gene Activity"}}
+			{ handler.get_feature_names().numeric_names, {"RNA", "ATAC", "Gene Activity"}}
 		);
 		if (settings.isEmpty())return;
 

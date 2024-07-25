@@ -1,5 +1,7 @@
 #include "MetadataItem.h"
 
+#include "ComparePlotDialog.h"
+
 #include "FileIO.h"
 #include "FileWritingWorker.h"
 #include "MetadataViewWindow.h"
@@ -22,7 +24,7 @@ void MetadataItem::__set_menu() {
 
 	ADD_MAIN_ACTION("Rename", __s_rename);
 
-	ADD_MAIN_ACTION("Compare Violin Plot", s_compare_violin_plot);
+	ADD_MAIN_ACTION("Compare Plot", s_compare_plot);
 
 	ADD_MAIN_ACTION("View", s_view);
 
@@ -37,8 +39,8 @@ void MetadataItem::__set_menu() {
 	ADD_ACTION("Remove First", "Edit", s_remove_first);
 	ADD_ACTION("Remove Last", "Edit", s_remove_last);
 	ADD_ACTION("Remove All", "Edit", s_remove_all);
-	ADD_ACTION("Remove If Start With", "Edit", s_remove_if_start_with);
-	ADD_ACTION("Remove If End With", "Edit", s_remove_if_end_with);
+	ADD_ACTION("Remove Prefix", "Edit", s_remove_prefix);
+	ADD_ACTION("Remove Suffix", "Edit", s_remove_suffix);
 	ADD_ACTION("Remove From First", "Edit", s_remove_from_first);
 	ADD_ACTION("Remove From Last", "Edit", s_remove_from_last);
 	ADD_ACTION("Remove Until First", "Edit", s_remove_until_first);
@@ -138,7 +140,7 @@ void MetadataItem::__s_delete_this() {
 	this->__remove_this();
 };
 
-void MetadataItem::s_compare_violin_plot() {
+void MetadataItem::s_compare_plot() {
 
 	const auto& metadata = this->data()->mat_;
 
@@ -149,170 +151,253 @@ void MetadataItem::s_compare_violin_plot() {
 		return;
 	}
 
-	auto valid_features = metadata.get_type_names(CustomMatrix::DataType::IntegerNumeric) <<
-		metadata.get_type_names(CustomMatrix::DataType::DoubleNumeric);
+	FeatureHandler handler;
+	if (this->stem_from(soap::VariableType::SingleCellRna)) {
+		handler.set(this->get_root<SingleCellRna>());
+	}
+	else if (this->stem_from(soap::VariableType::SingleCellAtac)) {
+		handler.set(this->get_root<SingleCellAtac>());
+	}
+	else if (this->stem_from(soap::VariableType::SingleCellMultiome)) {
+		handler.set(this->get_root<SingleCellMultiome>());
+	}
+	else if (this->stem_from(soap::VariableType::BulkRna)) {
+		handler.set(this->get_root<BulkRna>());
+	}
+	else {
+		handler.set(this->data());
+	}
 
-	if (valid_features.isEmpty()) {
+	auto features = handler.get_feature_names();
+
+	if (features.numeric_names.isEmpty()) {
 		G_WARN("No Valid Feature.");
 		return;
 	}
 
-	auto settings = CommonDialog::get_response(
-		this->signal_emitter_,
-		"Facet Violin Plot Settings",
-		{ "Features", "Factor", "Show Significance:yes", "facet:yes" },
-		{ soap::InputStyle::ComboBox, soap::InputStyle::FactorChoice,
-		 soap::InputStyle::SwitchButton, soap::InputStyle::SwitchButton },
-		{ valid_features },
-		{ factor_info }
+	auto settings = ComparePlotDialog::get_response(
+		factor_info,
+		features.numeric_names
 	);
 
-	if (settings.isEmpty()) {
+	auto&& [feature, normalize, use_gene_activity, show_p_value, group, type, comparisons] = settings;
+
+	if (feature.isEmpty()) {
 		return;
 	}
 
-	auto feature = settings[0];
-
-	auto [factor, levels] = factor_choice_to_pair(settings[1]);
-	if (levels.size() != 2) {
+	if (type == "Custom" && comparisons.isEmpty()) {
 		return;
 	}
 
-	bool show_significance = switch_to_bool(settings[2]);
-	bool facet = switch_to_bool(settings[3]);
+	auto feature_data = handler.get_data({ feature, normalize, use_gene_activity });
+	if (!feature_data.is_continuous()) {
+		G_WARN("Invalid Feature");
+		return;
+	}
 
-	QStringList group = metadata.get_qstring(factor);
+	auto factor_data = handler.get_data({ group });
+	if (!factor_data.is_factor()) {
+		G_WARN("Invalid Factor");
+		return;
+	}
 
-	auto& gs = this->draw_suite_->graph_settings_;
+	auto&& gs = this->draw_suite_->graph_settings_;
+
+	auto values = feature_data.get_continuous();
+	auto factors = factor_data.get_factor();
+	auto levels = factor_data.get_levels();
+	int n_level = levels.size();
+	auto colors = gs.palette(levels);
+	QList<Eigen::ArrayXd> vals = _Cs sapply(levels, [&values, &factors](auto&& level) {
+		return _Cs cast<Eigen::ArrayX>(_Cs sliced(values, _Cs equal(factors, level)));
+	});
+	QList<std::tuple<int, int, double>> sigs;
+	if (type == "All") {
+		for (int i = 1; i < n_level; ++i) {
+			for (int j = 0; j < n_level - i; ++j) {
+				double p = wilcox_test(vals[j], vals[j + i]);
+				sigs << std::make_tuple(j, j + i, p);
+			}
+		}
+	}
+	else if (type == "Significant Only") {
+		for (int i = 1; i < n_level; ++i) {
+			for (int j = 0; j < n_level - i; ++j) {
+				double p = wilcox_test(vals[j], vals[j + i]);
+				if (p >= 0.05) {
+					continue;
+				}
+				sigs << std::make_tuple(j, j + i, p);
+			}
+		}
+	}
+	else {
+		for (auto&& [c1, c2] : comparisons) {
+			auto ind1 = levels.indexOf(c1);
+			auto ind2 = levels.indexOf(c2);
+
+			if (ind1 == -1 || ind2 == -1 || ind1 == ind2) {
+				G_WARN("Illegal Comparison : " + c1 + " vs. " + c2);
+				return;
+			}
+
+			if (ind1 > ind2) {
+				std::swap(ind1, ind2);
+			}
+
+			double p = wilcox_test(vals[ind1], vals[ind2]);
+			sigs << std::make_tuple(ind1, ind2, p);
+		}
+	}
+
 	auto [draw_area, axis_rect, legend_layout] = _Cp prepare(gs);
 
-	auto feat = _Cs cast<Eigen::ArrayX>(metadata.get_double(feature));
-	_Cp set_simple_axis_no_title(axis_rect, gs);
+	double min{ 0.0 }, max{ 0.0 };
+	Eigen::ArrayXd bottom_ind;
 
-	int control_point_number = 16;
+	if (gs.use_boxplot()) {
+		auto [m, n] = std::ranges::minmax(values);
+		min = m;
+		max = n;
 
-	auto colors = gs.palette(levels);
-
-	if (facet) {
-
-		auto [min, max] = _CpPatch violin_facet(
+		_CpPatch box_batch(
 			draw_area,
 			axis_rect,
-			group,
+			factors,
 			levels,
 			colors,
-			feat,
+			_Cs cast<Eigen::ArrayX>(values),
 			1.0,
-			control_point_number
+			2.0,
+			gs.boxplot_draw_outlier(),
+			gs.get_scatter_point_size()
 		);
+		axis_rect->axis(QCPAxis::atBottom)->setRange(0, 2 * n_level);
 
-		if (show_significance) {
+		bottom_ind = Eigen::ArrayXd::LinSpaced(n_level, 1, 2 * n_level - 1);
 
-			Eigen::ArrayXd e1 = _Cs sliced(feat, _Cs equal(group, levels[0]));
-			Eigen::ArrayXd e2 = _Cs sliced(feat, _Cs equal(group, levels[1]));
-
-			double p = wilcox_test(e1, e2);
-
-			double val_span = max - min;
-			double marker_loc = max + 0.1 * val_span;
-			_CpPatch line(draw_area, axis_rect,
-				QVector<double>{ 0.4, 1.6},
-				QVector<double>{marker_loc, marker_loc},
-				Qt::black,
-				2);
-
-			QString sig{ "n.s." };
-			if (p < 0.001) {
-				sig = "***";
-			}
-			else if (p < 0.01) {
-				sig = "**";
-			}
-			else if (p < 0.05) {
-				sig = "*";
-			}
-
-			_CpPatch add_label(draw_area, axis_rect, sig, 1.0, marker_loc,
-				gs.get_scatter_label_font(),
-				Qt::AlignHCenter | Qt::AlignBottom);
-
-			max += 0.2 * val_span;
-		}
-
-		_CpPatch set_range(axis_rect, QCPRange(0.0, 2.0), _CpUtility get_range(min, max));
 		_Cp set_bottom_axis_label(
 			axis_rect,
-			_Cs cast<Eigen::ArrayX>(QVector<double>{1.0}),
-			{ feature },
+			bottom_ind,
+			levels,
 			6,
 			gs
 		);
+		
 	}
 	else {
 
-		auto [min, max] = _CpPatch violin_batch(
-			draw_area,
-			axis_rect,
-			group,
-			levels,
-			colors,
-			feat,
-			1.0,
-			2.0,
-			16
-		);
+		if (n_level == 2 && gs.use_facet_violin_plot()) {
+			auto [m, n] = _CpPatch violin_facet(
+				draw_area,
+				axis_rect,
+				factors,
+				levels,
+				colors,
+				_Cs cast<Eigen::ArrayX>(values),
+				1.0);
 
-		if (show_significance) {
+			min = m;
+			max = n;
 
-			Eigen::ArrayXd e1 = _Cs sliced(feat, _Cs equal(group, levels[0]));
-			Eigen::ArrayXd e2 = _Cs sliced(feat, _Cs equal(group, levels[1]));
+			bottom_ind.resize(2);
+			bottom_ind[0] = 0.6;
+			bottom_ind[1] = 1.4;
 
-			double p = wilcox_test(e1, e2);
-
-			double val_span = max - min;
-			double marker_loc = max + 0.1 * val_span;
-			_CpPatch line(draw_area, axis_rect,
-				QVector<double>{ 0.9, 3.1},
-				QVector<double>{marker_loc, marker_loc},
-				Qt::black,
-				2);
-
-			QString sig{ "n.s." };
-			if (p < 0.001) {
-				sig = "***";
-			}
-			else if (p < 0.01) {
-				sig = "**";
-			}
-			else if (p < 0.05) {
-				sig = "*";
-			}
-
-			_CpPatch add_label(draw_area, axis_rect, sig, 2.0, marker_loc,
-				gs.get_scatter_label_font(),
-				Qt::AlignHCenter | Qt::AlignBottom);
-
-			max += 0.2 * val_span;
+			axis_rect->axis(QCPAxis::atBottom)->setRange(0, 2);
+			_Cp set_bottom_title(axis_rect, group, gs, true);
 		}
+		else {
+			auto [m, n] = _CpPatch violin_batch(
+				draw_area,
+				axis_rect,
+				factors,
+				levels,
+				colors,
+				_Cs cast<Eigen::ArrayX>(values),
+				1.0,
+				2.0);
 
-		_CpPatch set_range(axis_rect, QCPRange(0.0, 4.0), _CpUtility get_range(min, max));
+			min = m;
+			max = n;
 
-		_Cp set_bottom_axis_label(
-			axis_rect,
-			_Cs cast<Eigen::ArrayX>(QVector<double>{1.0, 3.0}),
-			levels,
-			6,
-			gs
-		);
+			axis_rect->axis(QCPAxis::atBottom)->setRange(0, 2 * n_level);
+
+			bottom_ind = Eigen::ArrayXd::LinSpaced(n_level, 1, 2 * n_level - 1);
+			_Cp set_bottom_axis_label(
+				axis_rect,
+				bottom_ind,
+				levels,
+				6,
+				gs
+			);
+		}
 	}
 
-	_Cp add_round_legend(draw_area, legend_layout, levels, colors, factor, gs);
+	_Cp set_simple_axis_no_title(axis_rect, gs);
+
+	if (!sigs.isEmpty()) {
+
+		QFont label_font = gs.get_scatter_label_font();
+
+		double sep = (max - min) / 30;
+
+		double anno_start = max + sep;
+		auto [w, h] = this->draw_suite_->current_plot_->size();
+		auto [anno_width, anno_height] = _CpUtility calculate_text_size("n.s.", label_font,
+			axis_rect->axis(QCPAxis::atBottom)->range().size(), max - min, w, h);
+		anno_height *= 2.0;
+		sep = anno_height * 0.3;
+
+		for (auto&& [i1, i2, p] : sigs) {
+			_CpPatch line(
+				draw_area,
+				axis_rect,
+				QVector<double>{bottom_ind[i1], bottom_ind[i1], bottom_ind[i2], bottom_ind[i2]},
+				QVector<double>{anno_start, anno_start + sep, anno_start + sep, anno_start},
+				Qt::black,
+				2
+			);
+
+			QString l{ "n.s." };
+
+			if (p < 0.001) {
+				l = "***";
+			}
+			else if (p < 0.01) {
+				l = "**";
+			}
+			else if (p < 0.05) {
+				l = "*";
+			}
+
+			if (show_p_value) {
+				l += " p = ";
+				l += QString::number(p, 103, 4);
+			}
+
+			_CpPatch add_label(draw_area, axis_rect, l, 
+				(bottom_ind[i1] + bottom_ind[i2]) / 2, anno_start + sep,
+				label_font,
+				Qt::AlignHCenter | Qt::AlignBottom);
+
+			anno_start += anno_height * 2.0; 
+		}
+
+		axis_rect->axis(QCPAxis::atLeft)->setRange(_CpUtility get_range(min, anno_start));
+	}
+	else {
+		axis_rect->axis(QCPAxis::atLeft)->setRange(_CpUtility get_range(min, max));
+	}
+
+	_Cp add_round_legend(draw_area, legend_layout, levels, colors, group, gs);
 	_Cp set_left_title(axis_rect, feature, gs, true);
 	_Cp add_title(draw_area, feature, gs);
 	this->draw_suite_->update(draw_area);
 };
 
-void MetadataItem::s_remove_if_start_with() {
+void MetadataItem::s_remove_prefix() {
 
 	G_GETLOCK;
 
@@ -360,7 +445,7 @@ void MetadataItem::s_remove_if_start_with() {
 	metadata.update(feature_name, data, metadata.data_type_[feature_name]);
 };
 
-void MetadataItem::s_remove_if_end_with() {
+void MetadataItem::s_remove_suffix() {
 
 	G_GETLOCK;
 

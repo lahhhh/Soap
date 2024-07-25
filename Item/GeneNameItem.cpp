@@ -12,6 +12,7 @@
 #include "TextEditWindow.h"
 
 #include "EnrichWorker.h"
+#include "GenomeUtility.h"
 
 void GeneNameItem::__s_update_interface() {
 	
@@ -106,6 +107,7 @@ void GeneNameItem::__set_menu() {
 	ADD_MENU("Edit | Remove Elements", "Remove Elements", "Edit");
 	ADD_ACTION("Empty", "Edit | Remove Elements", s_remove_empty_elements);
 	ADD_ACTION("by Regular Expression", "Edit | Remove Elements", s_remove_elements_by_regular_expression);
+	ADD_ACTION("by Chromosome Location", "Edit | Remove Elements", s_remove_elements_by_chromosome_location);
 
 	ADD_MAIN_MENU("Enrich");
 
@@ -279,4 +281,51 @@ void GeneNameItem::s_receive_enrichment(const CustomMatrix& matrix, QString name
 	this->set_item(item);
 
 	G_LOG("Enrichment finished");
+};
+
+void GeneNameItem::s_remove_elements_by_chromosome_location() {
+
+	G_GETLOCK;
+	G_UNLOCK;
+
+	G_NOTICE("Now only human genome is supported (default).");
+
+	auto settings = CommonDialog::get_response(
+		this->signal_emitter_,
+		"Location Settings",
+		{ "Location" },
+		{ soap::InputStyle::MultipleLineEdit }
+	);
+
+	if (settings.isEmpty()) {
+		return;
+	}
+
+	auto locs = multiple_line_edit_to_list(settings[0]);
+
+	if (locs.isEmpty()) {
+		return;
+	}
+
+	auto hg38 = _Cs get_hg38_gene_location();
+
+	int n_loc = locs.size();
+
+	QStringList to_remove;
+
+	for (int i = 0; i < n_loc; ++i) {
+
+		to_remove << hg38.find_gene(locs[i]);
+		to_remove << hg38.find_chromosome_gene(locs[i]);
+	}
+
+	to_remove = _Cs unique(to_remove);
+
+	QStringList d = this->data()->data_;
+
+	d = _Cs sliced(d, _Cs flip(_Cs in(d, to_remove)));
+
+	this->data()->data_ = d;
+
+	this->__s_update_interface();
 };

@@ -77,30 +77,18 @@ void TssPlotWorker::find_insertion_location_in_tss(
 
 
 	if (this->tss_index_.success(pid1)) {
-		if (poff1 < 0 || poff1 > 5999) {
-			qDebug() << seq_name << start << end << pid1 << poff1 << 1;
-		}
 		++this->tss_matrix_(pid1, poff1);
 	}
 
 	if (this->tss_index_.success(pid2)) {
-		if (poff2 < 0 || poff2 > 5999) {
-			qDebug() << seq_name << start << end << pid2 << poff2 << 2;
-		}
 		++this->tss_matrix_(pid2, poff2);
 	}
 
 	if (this->tss_index_.success(nid1)) {
-		if (noff1 < 0 || noff1 > 5999) {
-			qDebug() << seq_name << start << end << nid1 << noff1 << 3;
-		}
 		++this->tss_matrix_(nid1, noff1);
 	}
 
 	if (this->tss_index_.success(nid2)) {
-		if (noff2 < 0 || noff2 > 5999) {
-			qDebug() << seq_name << start << end << nid2 << noff2 << 4;
-		}
 		++this->tss_matrix_(nid2, noff2);
 	}
 };

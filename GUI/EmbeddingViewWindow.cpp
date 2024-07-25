@@ -6,7 +6,6 @@
 #include "EnrichmentDatabase.h"
 #include "MatrixWindow.h"
 #include "GraphSettingDialog.h"
-#include "mupdf/fitz.h"
 
 #include "SoapGUI.h"
 
@@ -839,7 +838,7 @@ void EmbeddingViewWindow::set_left_top_right_layout() {
 
 
 	G_SET_LABEL(this->gene_name_label_, "Gene Name", soap::MiddleSize);
-	G_SET_LINEEDIT_WITH_COMPLETER(this->gene_line_edit_, "", this->handler_.get_feature_names().completer_names, soap::MiddleSize);
+	G_SET_LINEEDIT_WITH_COMPLETER(this->gene_line_edit_, "", this->handler_.get_feature_names().numeric_names, soap::MiddleSize);
 	G_SET_BUTTON_ICON(this->gene_view_button_, FILE_EYE_ICON_PNG, QSize(30, 30));
 
 	G_SET_BUTTON(this->gene_alternative_button_, "►", QSize(30, 30));
@@ -1096,77 +1095,15 @@ void EmbeddingViewWindow::s_save_pdf_and_png() {
 		G_LOG("PDF saved.");
 	}
 	std::string pdf_file_name = pdf_name.toStdString();
-	const char* input = pdf_file_name.c_str();
 	std::string picture_file_name = picture_name.toStdString();
-	const char* output = picture_file_name.c_str();
 
-	fz_context* ctx;
-	fz_document* doc;
-	fz_pixmap* pix;
-	fz_matrix ctm;
-
-	int page_number = 0, page_count;
-
-	ctx = fz_new_context(NULL, NULL, FZ_STORE_UNLIMITED);
-	if (!ctx)
-	{
-		G_LOG("Picture saving failed");
-		return;
+	if (!_Cs save_pdf_page_as_png(pdf_file_name, 0, picture_file_name)) {
+		G_WARN("PNG Saving Failed.");
+	}
+	else {
+		G_LOG("PNG saved.");
 	}
 
-	fz_try(ctx)
-		fz_register_document_handlers(ctx);
-	fz_catch(ctx)
-	{
-		G_LOG("Picture saving failed");
-		fz_drop_context(ctx);
-		return;
-	}
-
-	fz_try(ctx)
-		doc = fz_open_document(ctx, input);
-	fz_catch(ctx)
-	{
-		G_LOG("Picture saving failed");
-		fz_drop_context(ctx);
-		return;
-	}
-
-	fz_try(ctx)
-		page_count = fz_count_pages(ctx, doc);
-	fz_catch(ctx)
-	{
-		G_LOG("Picture saving failed");
-		fz_drop_document(ctx, doc);
-		fz_drop_context(ctx);
-		return;
-	}
-
-	if (page_number < 0 || page_number >= page_count)
-	{
-		G_LOG("Picture saving failed");
-		fz_drop_document(ctx, doc);
-		fz_drop_context(ctx);
-		return;
-	}
-
-	ctm = fz_scale(4.17, 4.17);
-	ctm = fz_pre_rotate(ctm, 0);
-
-	fz_try(ctx)
-		pix = fz_new_pixmap_from_page_number(ctx, doc, page_number, ctm, fz_device_rgb(ctx), 0);
-	fz_catch(ctx)
-	{
-		G_LOG("Picture saving failed");
-		fz_drop_document(ctx, doc);
-		fz_drop_context(ctx);
-		return;
-	}
-	fz_save_pixmap_as_png(ctx, pix, output);
-	fz_drop_pixmap(ctx, pix);
-	fz_drop_document(ctx, doc);
-	fz_drop_context(ctx);
-	G_LOG("Picture saved.");
 };
 
 void EmbeddingViewWindow::s_save_pdf() {

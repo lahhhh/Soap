@@ -799,7 +799,7 @@ void SingleCellMultiomeItem::s_cicero() {
 		return;
 	}
 
-	auto embedding_names = this->index_tree_->search_type(soap::VariableType::Embedding);
+	auto embedding_names = this->index_tree_->search(soap::VariableType::Embedding);
 	if (embedding_names.isEmpty()) {
 		G_WARN("No Embedding.");
 		G_UNLOCK;
@@ -1261,7 +1261,7 @@ void SingleCellMultiomeItem::s_filter_by_features() {
 		{soap::InputStyle::LogicLayout, soap::InputStyle::SwitchButton},
 		{},
 		{},
-		QList<LogicHandler*>{&lh}
+		{&lh}
 	);
 
 	if (settings.isEmpty()) {
@@ -2139,7 +2139,7 @@ void SingleCellMultiomeItem::s_edit_metadata() {
 		{soap::InputStyle::LogicLayout, soap::InputStyle::ComboBox, soap::InputStyle::StringLineEdit},
 		{metadata.colnames_},
 		{},
-		QList<LogicHandler*>{&lh}
+		{&lh}
 	);
 
 	if (settings.isEmpty()) {

@@ -518,16 +518,33 @@ void MotifPositionItem::s_show_transcriptional_factor_footprinting() {
 		this->signal_emitter_,
 		"Set Transcriptional Factor Name",
 		{ "Transcriptional Factor Name" },
-		{ soap::InputStyle::LineEditWithCompleter},
+		{ soap::InputStyle::MultipleLineEditWithCompleter},
 		{ this->data()->motif_names_}
 	);
 	if (settings.isEmpty()) {
 		G_UNLOCK;
 		return;
 	}
-	QString transcriptional_factor_name = settings[0];
-	if (!this->data()->contains(transcriptional_factor_name)) {
-		G_WARN("Transcriptional factor : " + transcriptional_factor_name + " is not found in database.");
+	QStringList names = multiple_line_edit_with_completer_to_list(settings[0]);
+
+	if (names.isEmpty()) {
+		G_UNLOCK;
+		return;
+	}
+
+	QStringList valid_names;
+
+	for (auto&& n : names) {
+
+		if (this->data()->contains(n)) {
+			valid_names << n;
+		}
+		else {
+			G_WARN("Transcriptional factor : " + n + " is not found in database.");
+		}
+	}
+
+	if (valid_names.isEmpty()) {
 		G_UNLOCK;
 		return;
 	}
@@ -537,7 +554,7 @@ void MotifPositionItem::s_show_transcriptional_factor_footprinting() {
 		bias,
 		species,
 		this->data(),
-		{ transcriptional_factor_name },
+		valid_names,
 		fragments
 	);
 	G_LINK_WORKER_THREAD(TranscriptionalFactorFootprintingWorker, x_footprint_ready, MotifPositionItem, s_receive_transcriptional_factor_footprinting);

@@ -91,7 +91,7 @@ bool FragmentsQualityViewWorker::create_blacklist_index(const QString& bed_file)
 };
 
 void FragmentsQualityViewWorker::run() {
-	qDebug() << 1;
+
 	if (this->species_ == soap::Species::Human) {
 
 		bool success = ItemDatabase::read_item(FILE_HUMAN_GENOME_GENOMIC_RANGE_GCS, this->genome_);
@@ -105,9 +105,9 @@ void FragmentsQualityViewWorker::run() {
 		G_TASK_WARN("Now only human genome is supported.");
 		G_TASK_END;
 	}
-	qDebug() << 2;
+
 	this->get_tss_position();
-	qDebug() << 3;
+
 	GenomicRange upstream_flank = this->genome_.extended(1000, -900, true);
 	GenomicRange downstream_flank = this->genome_.extended(-900, 1000, true);
 	GenomicRange centers = this->genome_.extended(500, 500, true);
@@ -125,13 +125,13 @@ void FragmentsQualityViewWorker::run() {
 	}
 
 	this->get_blacklist_region();
-	qDebug() << 4;
+
 	this->create_index();
-	qDebug() << 5;
+
 	this->calculate_metric();
-	qDebug() << 6;
+
 	this->get_results();
-	qDebug() << 7;
+
 	G_TASK_END;
 }
 

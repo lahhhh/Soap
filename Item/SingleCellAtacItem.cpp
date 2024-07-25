@@ -1449,7 +1449,7 @@ void SingleCellAtacItem::s_filter_by_features() {
 		{soap::InputStyle::LogicLayout, soap::InputStyle::SwitchButton},
 		{},
 		{},
-		QList<LogicHandler*>{&lh}
+		{&lh}
 	);
 
 	if (settings.isEmpty()) {
@@ -2100,7 +2100,7 @@ void SingleCellAtacItem::s_edit_metadata() {
 		{soap::InputStyle::LogicLayout, soap::InputStyle::ComboBox, soap::InputStyle::StringLineEdit},
 		{metadata.colnames_},
 		{},
-		QList<LogicHandler*>{&lh}
+		{&lh}
 	);
 
 	if (settings.isEmpty()) {

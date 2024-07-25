@@ -282,7 +282,7 @@ bool CountMatrixBatchLoadingWorker::load_single_object(SingleCellRna& object, co
 	bool success = true;
 	std::mutex mutex, mutex2;
 	int count{ 0 };
-	int nrow{ 0 };
+	int nrow{ 1 };
 	QStringList cache;
 
 	auto fun = [&cache, &mutex, &mutex2, &success, delimiter, ncol, &row_name_map, &nrow, &triplets](int row_index) {

@@ -194,9 +194,9 @@ void StatisticsDialog::set_layout() {
 	this->setLayout(this->main_layout_);
 
 	auto feature_names = this->handler_.get_feature_names();
-	feature_names.completer_names;
+	feature_names.numeric_names;
 
-	this->feature_lineedit_->setCompleter(new QCompleter(feature_names.completer_names, this));
+	this->feature_lineedit_->setCompleter(new QCompleter(feature_names.numeric_names, this));
 
 	G_SET_ICON;
 	this->setWindowTitle("Statistics");

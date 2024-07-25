@@ -81,7 +81,7 @@ void Monocle3Item::pseudo_time_feature_plot_single_cell_rna() {
 		{ "Feature", "Factor", "Normalized:yes", "Number of row:1" },
 		{ soap::InputStyle::MultipleLineEditWithCompleter, soap::InputStyle::ComboBox, soap::InputStyle::SwitchButton,
 		soap::InputStyle::IntegerLineEdit },
-		{ feature_names.completer_names, feature_names.factor_names }
+		{ feature_names.numeric_names, feature_names.factor_names }
 	);
 	if (settings.isEmpty())return;
 
@@ -157,7 +157,7 @@ void Monocle3Item::pseudo_time_feature_plot_single_cell_multiome() {
 		{ "Feature", "Factor", "Normalized:yes", "Field", "Number of row:1" },
 		{ soap::InputStyle::MultipleLineEditWithCompleter, soap::InputStyle::ComboBox, soap::InputStyle::SwitchButton,
 		soap::InputStyle::ComboBox, soap::InputStyle::IntegerLineEdit },
-		{ feature_names.completer_names, feature_names.factor_names, {"RNA", "ATAC", "Gene Activity"}}
+		{ feature_names.numeric_names, feature_names.factor_names, {"RNA", "ATAC", "Gene Activity"}}
 	);
 	if (settings.isEmpty())return;
 
@@ -253,7 +253,6 @@ void Monocle3Item::s_pseudo_time_graph() {
 	QColor nodes_color = QColor::fromString(settings[5]);
 	bool show_all_cells = switch_to_bool(settings[6]);
 
-	qDebug() << 2;
 	auto& gs = this->draw_suite_->graph_settings_;
 
 	Eigen::ArrayXd x = this->data()->cell_embedding_.row(0);
@@ -265,19 +264,16 @@ void Monocle3Item::s_pseudo_time_graph() {
 		return;
 	}
 
-	qDebug() << 3;
 	auto [draw_area, axis_rect, legend_layout] = _Cp prepare(gs);
-	qDebug() << 3.1;
+
 	_Cp set_scatter_plot_axis_style(draw_area, axis_rect,
 		this->data()->original_embedding_.data_.colnames_[0],
 		this->data()->original_embedding_.data_.colnames_[1], x, y, gs);
-	qDebug() << 3.2;
+
 
 	QColor low_color = gs.get_gradient_low_color(Qt::blue);
 	QColor middle_color = gs.get_gradient_middle_color(Qt::yellow);
 	QColor high_color = gs.get_gradient_high_color(_CpColor darkorchid2);
-
-	qDebug() << x.size() << y.size() << values.size();
 
 	_CpPatch scatter_gradient(
 		draw_area,
@@ -292,7 +288,7 @@ void Monocle3Item::s_pseudo_time_graph() {
 		high_color,
 		gs.get_scatter_point_size()
 	);
-	qDebug() << 3.3;
+
 	_Cp add_gradient_legend(
 		draw_area,
 		legend_layout,
@@ -304,7 +300,6 @@ void Monocle3Item::s_pseudo_time_graph() {
 		middle_color,
 		high_color);
 
-	qDebug() << 4;
 	if (show_trajectory) {
 
 		if (trajectory_width < 1 || trajectory_width > 10) {
@@ -330,7 +325,6 @@ void Monocle3Item::s_pseudo_time_graph() {
 		igraph_vector_int_destroy(&edge_list);
 	}
 
-	qDebug() << 5;
 	if (show_nodes) {
 
 		if (nodes_size < 1 || nodes_size > 10) {
@@ -370,7 +364,6 @@ void Monocle3Item::s_pseudo_time_graph() {
 		}
 	}
 
-	qDebug() << 6;
 	_Cp add_title(draw_area, "Pseudo Time", gs);
 
 	this->draw_suite_->update(draw_area);
@@ -454,7 +447,7 @@ void Monocle3Item::s_feature_plot() {
 			soap::InputStyle::ComboBox, soap::InputStyle::SwitchButton, soap::InputStyle::IntegerLineEdit, 
 			soap::InputStyle::ColorChoice, soap::InputStyle::SwitchButton, soap::InputStyle::IntegerLineEdit,
 			soap::InputStyle::ColorChoice, soap::InputStyle::SwitchButton },
-			{ handler.get_feature_names().completer_names, {"RNA", "ATAC", "Gene Activity"} }
+			{ handler.get_feature_names().numeric_names, {"RNA", "ATAC", "Gene Activity"} }
 		);
 		if (settings.isEmpty())return;
 
@@ -551,7 +544,7 @@ void Monocle3Item::s_feature_plot() {
 			soap::InputStyle::ComboBox, soap::InputStyle::SwitchButton, soap::InputStyle::IntegerLineEdit,
 			soap::InputStyle::ColorChoice, soap::InputStyle::SwitchButton, soap::InputStyle::IntegerLineEdit,
 			soap::InputStyle::ColorChoice, soap::InputStyle::SwitchButton },
-			{ handler.get_feature_names().completer_names }
+			{ handler.get_feature_names().numeric_names }
 		);
 		if (settings.isEmpty())return;
 

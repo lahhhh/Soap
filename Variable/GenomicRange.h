@@ -139,6 +139,7 @@ public:
 	int count_overlap(const GenomicRange& rhs) const;
 
 	QStringList find_gene(const QString& region) const;
+	QStringList find_chromosome_gene(const QString& chromosome) const;
 
 	bool is_empty() const;
 

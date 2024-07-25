@@ -571,7 +571,7 @@ igraph_t connect_tips(
 	std::vector<std::pair<int, int>> added_edges;
 	std::vector<int> vertice_to_keep;
 
-	qDebug() << "p1";
+
 	int n_valid_connection = valid_connections.size();
 	for (int i = 0; i < n_valid_connection; ++i) {
 		auto [v1, v2] = valid_connections[i];
@@ -733,8 +733,6 @@ igraph_t connect_tips(
 		}
 	}
 
-	qDebug() << "ss";
-
 	vertice_to_delete = _Cs unique(vertice_to_delete);
 	vertice_to_delete = _Cs set_difference(vertice_to_delete, vertice_to_keep);
 	
@@ -751,7 +749,6 @@ igraph_t connect_tips(
 
 		igraph_vector_int_destroy(&deleted_vertices);
 	}
-	qDebug() << "ss2";
 
 	igraph_destroy(&mst_g_old);
 
@@ -890,7 +887,7 @@ void Monocle3Worker::learn_graph() {
 		this->l1_sigma_
 		);
 		
-	qDebug() << "22";
+
 	this->pr_graph_ = connect_tips(
 		graph_mat,
 		kmeans_cluster,
@@ -898,24 +895,24 @@ void Monocle3Worker::learn_graph() {
 		this->embedding_,
 		10
 	);
-	qDebug() << 11;
+
 	int n_vertice_remain = igraph_vcount(&this->pr_graph_);
 	QVector<int> remain_id(n_vertice_remain);
 	igraph_vector_t remain_id_i;
 	igraph_vector_init(&remain_id_i, n_vertice_remain);
 	VANV(&this->pr_graph_, "vid", &remain_id_i);
-	qDebug() << igraph_vector_size(&remain_id_i);
+
 	for (int i = 0; i < n_vertice_remain; ++i) {
 		remain_id[i] = VECTOR(remain_id_i)[i];
 	}
 	igraph_vector_destroy(&remain_id_i);
-	qDebug() << 12;
+
 	pr_node_embedding = pr_node_embedding(Eigen::all, remain_id).eval();
 	//probability = probability(Eigen::all, remain_id).eval();
 	//medioids = medioids(Eigen::all, remain_id).eval();
 
 	this->project_to_mst(false, pr_node_embedding);
-	qDebug() << 13;
+
 };
 
 static Eigen::ArrayXd proj_point_to_line_segment(const Eigen::ArrayXd& p, const Eigen::ArrayXd& from, const Eigen::ArrayXd& to) {
@@ -955,7 +952,7 @@ void Monocle3Worker::project_to_mst(
 	bool orthogonal_proj_tip, 
 	const Eigen::MatrixXd& pr_node_embedding) 
 {
-	qDebug() << "ptm";
+
 	auto closest_vertex = _Cs find_nearest(this->embedding_, pr_node_embedding);
 	int n_cell = closest_vertex.size();
 

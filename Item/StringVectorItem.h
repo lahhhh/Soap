@@ -24,6 +24,10 @@ private slots:
 	void s_edit_manually();
 	void s_edit_sort();
 	void s_edit_remove_empty_elements();
+
+	void s_convert_to_genenames();
+
+	void s_intersect_with();
 };
 
 

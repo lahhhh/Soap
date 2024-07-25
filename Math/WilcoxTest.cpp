@@ -15,6 +15,11 @@ double wilcox_test(
 	double correction = 0;
 
 	if (paired) {
+
+		if (x.size() != y.size()) {
+			return 1.0; // should throw exception
+		}
+
 		Eigen::ArrayXd query = x - y - mu;
 
 		Eigen::ArrayX<bool> not_zero = (query != 0);

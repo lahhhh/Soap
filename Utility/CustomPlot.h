@@ -232,7 +232,8 @@ namespace custom_plot {
 		const QStringList& levels,
 		const QList<QColor>& colors,
 		const QString& legend_title,
-		const GraphSettings& gs
+		const GraphSettings& gs,
+		int legend_index = 0
 	);
 
 	std::tuple<QCustomPlot*, QCPAxisRect*, QCPLayoutGrid*> embedding_single_color_plot(

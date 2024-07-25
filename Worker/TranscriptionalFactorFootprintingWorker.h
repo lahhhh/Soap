@@ -53,16 +53,16 @@ public:
 		int width
 	);
 
-	enum class WorkMode{ FragmentsObject, FragmentsObjectBatch, FragmentsObjectGenomicRange};
+	enum class WorkMode{ Object, Batch, GenomicRange};
 
-	WorkMode mode_{ WorkMode::FragmentsObject };
+	WorkMode mode_{ WorkMode::Object };
 
 	const Metadata* metadata_{ nullptr };
 	std::pair<std::vector<std::string>, std::vector<double>> bias_;
 	soap::Species species_;
 	const MotifPosition* motif_position_{ nullptr };
 
-	QStringList transcriptional_factor_names_;
+	std::vector<std::string> transcriptional_factor_names_;
 
 	QString output_directory_;
 	QString picture_name_;

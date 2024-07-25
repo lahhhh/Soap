@@ -40,8 +40,6 @@ void DataFieldItem::__set_menu() {
 
 	ADD_ACTION("Correlation Heatmap Plot", "Visualize", s_correlation_heatmap_plot);
 
-	ADD_ACTION("Facet Violin Plot", "Visualize", s_facet_violin_plot);
-
 	//Normalize
 	ADD_MAIN_MENU("Normalize");
 
@@ -1669,7 +1667,7 @@ void DataFieldItem::s_filter_by_feature() {
 		{soap::InputStyle::LogicLayout, soap::InputStyle::SwitchButton},
 		{},
 		{},
-		QList<LogicHandler*>{&lh}
+		{&lh}
 	);
 
 	if (settings.isEmpty()) {
@@ -2530,7 +2528,7 @@ void DataFieldItem::s_correlation_heatmap_plot() {
 	this->draw_suite_->update(draw_area);
 };
 
-void DataFieldItem::s_facet_violin_plot() {
+void DataFieldItem::s_distribution_plot() {
 
 	if (!this->attached_to(soap::VariableType::SingleCellMultiome)) {
 		G_WARN("This Field is not a part of Single Cell Multiome Data.");
@@ -2544,355 +2542,65 @@ void DataFieldItem::s_facet_violin_plot() {
 	auto factor_info = metadata.get_factor_information(false);
 
 	if (factor_info.isEmpty()) {
-		G_WARN("No Factor has more than one level.");
-		return;
-	}
-
-	QStringList valid_features;
-
-	auto counts = this->data()->counts();
-	auto normalized = this->data()->normalized();
-	if (counts == nullptr) {
-		if (normalized == nullptr) {
-			G_WARN("No Data For Visulization.");
-			return;
-		}
-		else {
-			valid_features = normalized->rownames_;
-		}
-	}
-	else {
-		valid_features = counts->rownames_;
-	}	
-
-	auto settings = CommonDialog::get_response(
-		this->signal_emitter_,
-		"Facet Violin Plot Settings",
-		{ "Features", "Factor", "Normalized:yes", "Show Significance:no"},
-		{soap::InputStyle::MultipleLineEditWithCompleter, soap::InputStyle::FactorChoice,
-		soap::InputStyle::SwitchButton, soap::InputStyle::SwitchButton},
-		{ valid_features},
-		{factor_info}
-	);
-
-	if (settings.isEmpty()) {
-		return;
-	}
-
-	auto features = multiple_line_edit_with_completer_to_list(settings[0]);
-	if (features.isEmpty()) {
-		return;
-	}
-
-	auto filter = _Cs in(features, valid_features);
-	if (filter.count() == 0) {
-		return;
-	}
-
-	features = _Cs sliced(features, filter);
-
-	auto [factor, levels] = factor_choice_to_pair(settings[1]);
-	if (levels.size() != 2) {
-		return;
-	}
-
-	QStringList group = metadata.get_qstring(factor);
-	bool is_normalized = switch_to_bool(settings[2]);	
-	bool show_significance = switch_to_bool(settings[3]);
-
-	auto& gs = this->draw_suite_->graph_settings_;
-	auto colors = gs.palette(levels);
-
-	if (is_normalized) {
-		if (normalized == nullptr) {
-			G_WARN("No Normalized Data.");
-			return;
-		}
-
-		auto [draw_area, axis_rect, legend_layout] = _Cp prepare(gs);
-
-		const int n_feature = features.size();
-		int n_feature_use{ 0 };
-		QStringList feature_use;
-		auto& normalized_gene_names = normalized->rownames_;
-		
-		_Cp set_simple_axis_no_title(axis_rect, gs);
-
-		double min{ 0.0 }, max{ 0.0 };
-
-		for (int i = 0; i < n_feature; ++i) {
-			auto index = normalized_gene_names.indexOf(features[i]);
-
-			if (index == -1) {
-				continue;
-			}
-
-			Eigen::ArrayXd feature_exp = normalized->mat_.row(index);
-			auto [min_val, max_val] = _CpPatch violin_facet(
-				draw_area, 
-				axis_rect, 
-				group, 
-				levels, 
-				colors,
-				feature_exp, 
-				2.0 * n_feature_use + 1.0
-			);
-
-
-			if (show_significance) {
-
-				Eigen::ArrayXd exp1 = _Cs sliced(feature_exp, _Cs equal(group, levels[0]));
-				Eigen::ArrayXd exp2 = _Cs sliced(feature_exp, _Cs equal(group, levels[1]));
-				
-				double p = wilcox_test(exp1, exp2);
-
-				double val_span = max_val - min_val;
-				double marker_loc = max_val + 0.1 * val_span;
-				_CpPatch line(draw_area, axis_rect,
-					QVector<double>{2.0 * n_feature_use + 0.4, 2.0 * n_feature_use + 1.6},
-					QVector<double>{marker_loc, marker_loc}, 
-					Qt::black,
-					2);
-
-				QString sig{"n.s."};
-				if (p < 0.001) {
-					sig = "***";
-				}
-				else if (p < 0.01) {
-					sig = "**";
-				}
-				else if (p < 0.05) {
-					sig = "*";
-				}
-
-				_CpPatch add_label(draw_area, axis_rect, sig, 2.0 * n_feature_use + 1.0, marker_loc,
-					gs.get_scatter_label_font(),
-					Qt::AlignHCenter | Qt::AlignBottom);
-
-				max_val += 0.2 * val_span;
-			}
-
-			if (min_val < min) {
-				min = min_val;
-			}
-			if (max_val > max) {
-				max = max_val;
-			}
-
-			++n_feature_use;
-			feature_use << features[i];
-		}
-
-		double span = max - min;
-		_CpPatch set_range(axis_rect, QCPRange(0.0, 2.0 * n_feature_use), QCPRange(min - 0.05 * span, max + 0.05 * span));
-		_Cp set_bottom_axis_label(
-			axis_rect,
-			Eigen::ArrayXd::LinSpaced(n_feature_use, 1.0, 2.0 * n_feature_use - 1.0),
-			feature_use,
-			6,
-			gs
-		);
-		_Cp add_round_legend(draw_area, legend_layout, levels, colors, factor, gs);
-		_Cp set_left_title(axis_rect, "Normalized Expression", gs, true);
-
-		this->draw_suite_->update(draw_area);
-	}
-	else {
-		if (counts == nullptr) {
-			G_WARN("No Counts Data.");
-			return;
-		}
-
-		auto [draw_area, axis_rect, legend_layout] = _Cp prepare(gs);
-
-		const int n_feature = features.size();
-		int n_feature_use{ 0 };
-		QStringList feature_use;
-		auto& counts_gene_names = counts->rownames_;
-
-		
-		_Cp set_simple_axis_no_title(axis_rect, gs);
-
-		double min{ 0.0 }, max{ 0.0 };
-
-		for (int i = 0; i < n_feature; ++i) {
-			auto index = counts_gene_names.indexOf(features[i]);
-
-			if (index == -1) {
-				continue;
-			}
-
-			Eigen::ArrayXd feature_exp = counts->mat_.row(index).cast<double>();
-			auto [min_val, max_val] = _CpPatch violin_facet(
-				draw_area,
-				axis_rect,
-				group,
-				levels,
-				colors,
-				feature_exp,
-				2.0 * n_feature_use
-			);
-
-			if (show_significance) {
-
-				Eigen::ArrayXd exp1 = _Cs sliced(feature_exp, _Cs equal(group, levels[0]));
-				Eigen::ArrayXd exp2 = _Cs sliced(feature_exp, _Cs equal(group, levels[1]));
-
-				double p = wilcox_test(exp1, exp2);
-
-				double val_span = max_val - min_val;
-				double marker_loc = max_val + 0.1 * val_span;
-				_CpPatch line(draw_area, axis_rect,
-					QVector<double>{2.0 * n_feature_use + 0.4, 2.0 * n_feature_use + 1.6},
-					QVector<double>{marker_loc, marker_loc},
-					Qt::black,
-					2);
-
-				QString sig{ "n.s." };
-				if (p < 0.001) {
-					sig = "***";
-				}
-				else if (p < 0.01) {
-					sig = "**";
-				}
-				else if (p < 0.05) {
-					sig = "*";
-				}
-
-				_CpPatch add_label(draw_area, axis_rect, sig, 2.0 * n_feature_use + 1.0, marker_loc,
-					gs.get_scatter_label_font(),
-					Qt::AlignHCenter | Qt::AlignBottom);
-
-				max_val += 0.2 * val_span;
-			}
-
-			if (min_val < min) {
-				min = min_val;
-			}
-			if (max_val > max) {
-				max = max_val;
-			}
-
-			++n_feature_use;
-			feature_use << features[i];
-		}
-
-		double span = max - min;
-		_CpPatch set_range(axis_rect, QCPRange(0.0, 2.0 * n_feature_use), QCPRange(min - 0.05 * span, max + 0.05 * span));
-		_Cp set_bottom_axis_label(
-			axis_rect,
-			Eigen::ArrayXd::LinSpaced(n_feature_use, 1.0, 2.0 * n_feature_use - 1.0),
-			feature_use,
-			6,
-			gs
-		);
-		_Cp add_round_legend(draw_area, legend_layout, levels, colors, factor, gs);
-		_Cp set_left_title(axis_rect, "Normalized Expression", gs, true);
-
-		this->draw_suite_->update(draw_area);
-	}
-};
-
-void DataFieldItem::s_distribution_plot() {
-
-	if (!this->attached_to(soap::VariableType::SingleCellMultiome)) {
-		G_WARN("This Field is not a part of Single Cell Multiome Data.");
-		return;
-	}
-
-	SingleCellMultiome* single_cell_multiome = this->trace_back<SingleCellMultiome>(1);
-
-	const auto& metadata = single_cell_multiome->metadata()->mat_;
-	QStringList features = metadata.get_factor_name();
-	if (features.isEmpty()) {
 		G_LOG("No suitable metadata detected.");
 		return;
 	}
 
-	features = CommonDialog::get_response(
+	auto settings = CommonDialog::get_response(
 		this->signal_emitter_,
 		"Select Feature",
 		{ "Feature", "Group", "Normalized", "Show Value" },
-		{ soap::InputStyle::MultipleLineEdit, soap::InputStyle::ComboBox,
+		{ soap::InputStyle::MultipleLineEdit, soap::InputStyle::FactorChoice,
 		soap::InputStyle::SwitchButton, soap::InputStyle::SwitchButton},
-		{ features}
+		{},
+		{ factor_info }
 	);
 
-	if (features.isEmpty())return;
+	if (settings.isEmpty())return;
 
-	bool is_normalized = switch_to_bool(features[2]);
-	auto normalized = this->data()->normalized();
-	auto counts = this->data()->counts();
-	if (is_normalized && (normalized == nullptr)) {
-		G_NOTICE("Data has not been normalized.");
-		return;
-	}
-	else if (!is_normalized && (counts == nullptr)) {
-		G_NOTICE("Raw data missed.");
+	bool normalized = switch_to_bool(settings[2]);
+
+	bool show_value = switch_to_bool(settings[3]);
+	auto [factor_name, levels] = factor_choice_to_pair(settings[1]);
+	QStringList factors = metadata.get_qstring(factor_name);
+	
+	if (levels.isEmpty()) {
 		return;
 	}
 
-	bool show_value = switch_to_bool(features[3]);
-	QString group_name = features[1];
-	features = multiple_line_edit_to_list(features[0]);
+	auto features = multiple_line_edit_to_list(settings[0]);
 	if (features.isEmpty()) return;
 
-	QStringList gene_names;
-	if (is_normalized) {
-		gene_names = normalized->rownames_;
-	}
-	else {
-		gene_names = counts->rownames_;
-	}
+	FeatureHandler handler(single_cell_multiome);
 
-	QStringList valid_features;
-	for (auto& feature : features) {
-		if ((metadata.contains(feature) &&
-			(metadata.data_type_.at(feature) == CustomMatrix::DataType::IntegerNumeric ||
-				metadata.data_type_.at(feature) == CustomMatrix::DataType::DoubleNumeric)) ||
-			gene_names.contains(feature))
-			valid_features.append(feature);
+	auto data = _Cs sapply(
+		features,
+		[&handler, normalized, this](auto&& s) {
+		return handler.get_data(QUERY_INFO{ s, normalized, this->data()->data_type_ == DataField::DataType::Trans });
 	}
-	if (valid_features.isEmpty()) {
-		G_LOG("No valid features!");
+	);
+
+	auto filter = _Cs sapply(data, [](auto&& d) {return d.is_continuous(); });
+	data = _Cs sliced(data, filter);
+
+	if (data.isEmpty()) {
+		G_WARN("No valid data.");
 		return;
 	}
 
 	const auto& gs = this->draw_suite_->graph_settings_;
 	QCustomPlot* draw_area = _Cp initialize_plot(gs);
-	QStringList group = metadata.get_qstring(group_name);
-
-	QStringList group_labels;
-	int group_number;
-	if (metadata.data_type_.at(group_name) == CustomMatrix::DataType::QStringFactor) {
-		group_number = metadata.string_factors_.at(group_name).size();
-		group_labels = metadata.string_factors_.at(group_name);
-	}
-	else {
-		group_number = metadata.integer_factors_.at(group_name).size();
-		group_labels = _Cs cast<QString>(_Cs sorted(metadata.integer_factors_.at(group_name)));
-	}
-	auto colors = gs.palette(group_labels);
-
-	Eigen::ArrayXd feature_data;
+	auto colors = gs.palette(levels);
 
 	QCPMarginGroup* margin_group = new QCPMarginGroup(draw_area);
 
-	for (int i = 0; i < valid_features.size(); ++i) {
-		QString feature = valid_features[i];
-		if (metadata.contains(feature) &&
-			(metadata.data_type_.at(feature) == CustomMatrix::DataType::IntegerNumeric ||
-				metadata.data_type_.at(feature) == CustomMatrix::DataType::DoubleNumeric)) {
-			feature_data = _Cs cast<Eigen::ArrayX>(metadata.get_double(feature));
-		}
-		else {
-			if (!normalized) {
-				feature_data = counts->get_row(feature).cast<double>();
-			}
-			else {
-				feature_data = normalized->get_row(feature);
-			}
-		}
+	int n_valid_feature = data.size();
+	int group_number = levels.size();
+
+	for (int i = 0; i < n_valid_feature; ++i) {
+
+		auto feature_data = data[i].get_continuous();
+
 		QCPAxisRect* axis_rect = new QCPAxisRect(draw_area, true);
 		axis_rect->setMarginGroup(QCP::msLeft, margin_group);
 		draw_area->plotLayout()->addElement(i, 0, axis_rect);
@@ -2900,10 +2608,10 @@ void DataFieldItem::s_distribution_plot() {
 		auto [min, max] = _CpPatch violin_batch(
 			draw_area,
 			axis_rect,
-			group,
-			group_labels,
+			factors,
+			levels,
 			colors,
-			feature_data,
+			_Cs cast<Eigen::ArrayX>(feature_data),
 			1.0,
 			2.0,
 			16
@@ -2913,25 +2621,32 @@ void DataFieldItem::s_distribution_plot() {
 		_CpPatch remove_bottom_axis(axis_rect);
 		_CpPatch clear_left_axis(axis_rect);
 		axis_rect->axis(QCPAxis::atLeft)->setBasePen(QPen(Qt::black, 3));
-		_Cp set_left_title(axis_rect, feature, gs);
-		if (!show_value) {
-			axis_rect->axis(QCPAxis::atLeft)->setTicks(false);
-			axis_rect->axis(QCPAxis::atLeft)->setTickLabels(false);
+		_Cp set_left_title(axis_rect, data[i].name, gs);
+		if (show_value) {
+			axis_rect->axis(QCPAxis::atLeft)->setTicks(true);
+			axis_rect->axis(QCPAxis::atLeft)->setTickLabels(true);
 		}
 		axis_rect->axis(QCPAxis::atLeft)->grid()->setVisible(false);
-
-		if (i == valid_features.size() - 1) {
-			axis_rect->axis(QCPAxis::atBottom)->setBasePen(QPen(Qt::black, 3));
-			_Cp set_bottom_axis_label(
-				axis_rect,
-				Eigen::ArrayXd::LinSpaced(group_number, 1, 2 * group_number - 1),
-				group_labels,
-				6,
-				gs
-			);
-		}
-
+		draw_area->plotLayout()->setRowStretchFactor(i, 1.0);
 	}
+
+	QCPAxisRect* axis_rect = new QCPAxisRect(draw_area, true);
+	_CpPatch set_fixed_height(axis_rect, 1);
+	axis_rect->setMarginGroup(QCP::msLeft, margin_group);
+	draw_area->plotLayout()->addElement(n_valid_feature, 0, axis_rect);
+	draw_area->plotLayout()->setRowStretchFactor(n_valid_feature, 0.1);
+	axis_rect->axis(QCPAxis::atBottom)->setRange(QCPRange(0, 2 * group_number));
+	_CpPatch clear_bottom_axis(axis_rect);
+	_CpPatch remove_left_axis(axis_rect);
+	axis_rect->axis(QCPAxis::atBottom)->grid()->setVisible(false);
+	axis_rect->axis(QCPAxis::atBottom)->setBasePen(QPen(Qt::black, 3));
+	_Cp set_bottom_axis_label(
+		axis_rect,
+		Eigen::ArrayXd::LinSpaced(group_number, 1, 2 * group_number - 1),
+		levels,
+		6,
+		gs
+	);
 
 	this->draw_suite_->update(draw_area);
 };
@@ -3347,7 +3062,7 @@ void DataFieldItem::s_bubble_plot() {
 			draw_area,
 			axis_rect,
 			legend_layout,
-			_Cs reversed(levels),
+			levels,
 			feature_names,
 			values,
 			proportion,

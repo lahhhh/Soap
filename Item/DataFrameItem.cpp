@@ -58,8 +58,8 @@ void DataFrameItem::__set_menu() {
 	ADD_ACTION("Remove First", "Edit", s_remove_first);
 	ADD_ACTION("Remove Last", "Edit", s_remove_last);
 	ADD_ACTION("Remove All", "Edit", s_remove_all);
-	ADD_ACTION("Remove If Start With", "Edit", s_remove_if_start_with);
-	ADD_ACTION("Remove If End With", "Edit", s_remove_if_end_with);
+	ADD_ACTION("Remove Prefix", "Edit", s_remove_prefix);
+	ADD_ACTION("Remove Suffix", "Edit", s_remove_suffix);
 	ADD_ACTION("Remove From First", "Edit", s_remove_from_first);
 	ADD_ACTION("Remove From Last", "Edit", s_remove_from_last);
 	ADD_ACTION("Remove Until First", "Edit", s_remove_until_first);
@@ -69,7 +69,7 @@ void DataFrameItem::__set_menu() {
 
 	ADD_MAIN_MENU("Promote to");
 
-	ADD_ACTION("DataFrame", "Promote to", s_promote_to_metadata);
+	ADD_ACTION("Metadata", "Promote to", s_promote_to_metadata);
 
 	ADD_MAIN_MENU("Convert to");
 
@@ -522,7 +522,7 @@ void DataFrameItem::s_promote_to_metadata() {
 	QStringList available_data;
 	for (auto&& [name, info] : this->signal_emitter_->variable_information_) {
 		auto type = info.first;
-		if (type == soap::VariableType::DataFrame) {
+		if (type == soap::VariableType::Metadata) {
 			available_data << name;
 		}
 	}
@@ -566,7 +566,7 @@ void DataFrameItem::s_promote_to_metadata() {
 		type = 2;
 	}
 
-	DataFrame* metadata = static_cast<DataFrame*>(this->signal_emitter_->get_variable(metadata_name));
+	Metadata* metadata = static_cast<Metadata*>(this->signal_emitter_->get_variable(metadata_name));
 
 	if (!this->signal_emitter_->try_lock(this->signal_emitter_->search(metadata))) {
 		G_WARN("Please waiting for computation in progress.");
@@ -735,7 +735,7 @@ void DataFrameItem::s_filter_by_feature() {
 		{soap::InputStyle::LogicLayout, soap::InputStyle::SwitchButton},
 		{},
 		{},
-		QList<LogicHandler*>{&lh}
+		{&lh}
 	);
 
 	if (settings.isEmpty()) {
@@ -795,7 +795,7 @@ void DataFrameItem::s_first_row_as_colname() {
 };
 
 
-void DataFrameItem::s_remove_if_start_with() {
+void DataFrameItem::s_remove_prefix() {
 
 	G_GETLOCK;
 
@@ -843,7 +843,7 @@ void DataFrameItem::s_remove_if_start_with() {
 	metadata.update(feature_name, data, metadata.data_type_[feature_name]);
 };
 
-void DataFrameItem::s_remove_if_end_with() {
+void DataFrameItem::s_remove_suffix() {
 
 	G_GETLOCK;
 

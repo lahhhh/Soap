@@ -73,7 +73,7 @@ GLM_RES glm_gaussian(
 
 	if (fit.rank < nvars) {
 		for (int i = fit.rank; i < nvars; ++i) {
-			coef[fit.pivot[i]] = std::nan(0);
+			coef[fit.pivot[i]] = std::nan("0");
 		}
 	}
 

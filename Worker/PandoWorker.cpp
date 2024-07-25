@@ -179,7 +179,6 @@ bool PandoWorker::infer_grn() {
 		gene_to_peak[i] = this->peak_index_.find_overlap_ranges(seq_name, start, end);
 	}
 
-	qDebug() << 3.5;
 
 	auto& peak_index = this->peaks_.metadata_.get_const_integer_reference(METADATA_GENOMIC_RANGE_PEAK_INDEX);
 

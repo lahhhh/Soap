@@ -8,6 +8,7 @@ MotifPosition::MotifPosition(
 };
 
 bool MotifPosition::contains(const QString& motif_name) const {
+
 	return this->motifs_.contains(motif_name) && this->motif_names_.contains(motif_name);
 };
 

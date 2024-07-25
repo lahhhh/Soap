@@ -247,5 +247,11 @@ namespace custom {
 	Eigen::MatrixXd norm2(const Eigen::MatrixXd& mat, bool by_column = true);
 
 	Eigen::ArrayXd cumsum(const Eigen::ArrayXd& vec);
+
+	bool save_pdf_page_as_png(
+		const std::string& pdf_filename,
+		int page_number,
+		const std::string& png_filename);
+
 }
 

@@ -1,6 +1,4 @@
 #include "YesOrNoDialog.h"
-#include "Identifier.h"
-
 #include "SoapGUI.h"
 
 YesOrNoDialog::YesOrNoDialog(const QString &title, const QString &message) : QDialog()
@@ -12,11 +10,11 @@ YesOrNoDialog::YesOrNoDialog(const QString &title, const QString &message) : QDi
 
     this->main_layout_->addWidget(this->message_label_);
 
-    G_SET_BUTTON_FINISH_STYLE(this->yes_button_,"Yes")
+	G_SET_BUTTON_FINISH_STYLE(this->yes_button_, "Yes");
 
-    G_SET_BUTTON_CANCEL_STYLE(this->no_button_,"No")
-    
-    G_DOUBLE_ITEM_ROWLAYOUT(this->bottom_layout_,this->yes_button_,this->no_button_)
+	G_SET_BUTTON_CANCEL_STYLE(this->no_button_, "No");
+
+	G_DOUBLE_ITEM_ROWLAYOUT(this->bottom_layout_, this->yes_button_, this->no_button_);
 
     this->main_layout_->addLayout(this->bottom_layout_);
 

@@ -24,6 +24,17 @@ void GenomicRange::clear() {
 	this->metadata_.clear();
 };
 
+QStringList GenomicRange::find_chromosome_gene(const QString& chromosome) const {
+
+	if (!this->metadata_.contains(METADATA_GENOMIC_RANGE_GENE_NAME, CustomMatrix::DataType::QString)) {
+		return {};
+	}
+
+	auto filter = this->sequence_names_ == _Cs standardize_chromosome_name(chromosome);
+
+	return _Cs sliced(this->metadata_.get_const_qstring_reference(METADATA_GENOMIC_RANGE_GENE_NAME), filter);
+};
+
 QStringList GenomicRange::find_gene(const QString& region) const {
 
 	if (!this->metadata_.contains(METADATA_GENOMIC_RANGE_GENE_NAME, CustomMatrix::DataType::QString)) {

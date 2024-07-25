@@ -41,7 +41,7 @@ void VelocityEstimateItem::s_show_embedding_velocity_by_grid() {
 
 void VelocityEstimateItem::show_embedding_velocity(int mode) {
 
-	QStringList embedding_names = this->index_tree_->search_type(soap::VariableType::Embedding);
+	QStringList embedding_names = this->index_tree_->search(soap::VariableType::Embedding);
 
 	if (embedding_names.isEmpty()) {
 		G_NOTICE("No embedding for velocity analysis.");

@@ -41,6 +41,11 @@ void CiceroItem::__check_data() {
 	this->check_variable(DATA_SUBMODULES(DifferentialAnalysis));
 };
 
+void CiceroItem::__s_update_interface() {
+
+	this->setText(2, "[ " + QString::number(this->data()->regulation_groups_.size()) + " ]");
+};
+
 void CiceroItem::s_show_ccan_coverage() {
 
 
@@ -623,7 +628,7 @@ void CiceroItem::s_reset_threshold() {
 
 void CiceroItem::s_ccan_embedding_feature_plot() {
 
-	auto emb_names = this->index_tree_->search_type(soap::VariableType::Embedding);
+	auto emb_names = this->index_tree_->search(soap::VariableType::Embedding);
 
 	if (emb_names.isEmpty()) {
 		G_WARN("No Embedding for visualisation.");

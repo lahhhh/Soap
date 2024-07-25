@@ -20,6 +20,8 @@ public:
 
 	void __check_data() override;
 
+	void __s_update_interface() override;
+
 private slots:
 
 	void s_differential_analysis();

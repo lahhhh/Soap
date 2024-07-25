@@ -5,6 +5,7 @@
 #include <iostream>
 #include <zlib.h>
 #include <QRegularExpression>
+#include "mupdf/fitz.h"
 
 #include "CustomTemplates.h"
 
@@ -2717,6 +2718,54 @@ namespace custom {
 				}
 			}
 		}
+	}
+
+	bool save_pdf_page_as_png(
+		const std::string& pdf_filename, 
+		int page_number, 
+		const std::string& png_filename) 
+	{
+		const char* input = pdf_filename.c_str();
+		const char* output = png_filename.c_str();
+
+		fz_context* ctx = nullptr;
+		fz_document* doc = nullptr;
+		fz_pixmap* pix = nullptr;
+		fz_matrix ctm;
+		int page_count;
+
+		ctx = fz_new_context(nullptr, nullptr, FZ_STORE_UNLIMITED);
+		if (!ctx) {
+			return false;
+		}
+
+		fz_try(ctx) {
+			fz_register_document_handlers(ctx);
+			doc = fz_open_document(ctx, input);
+			page_count = fz_count_pages(ctx, doc);
+
+			if (page_number < 0 || page_number >= page_count) {
+				return false;
+			}
+
+			ctm = fz_scale(4.17, 4.17);
+			ctm = fz_pre_rotate(ctm, 0);
+
+			pix = fz_new_pixmap_from_page_number(ctx, doc, page_number, ctm, fz_device_rgb(ctx), 0);
+			fz_save_pixmap_as_png(ctx, pix, output);
+		}
+		fz_catch(ctx) {
+			if (pix) fz_drop_pixmap(ctx, pix);
+			if (doc) fz_drop_document(ctx, doc);
+			fz_drop_context(ctx);
+			return false;
+		}
+
+		fz_drop_pixmap(ctx, pix);
+		fz_drop_document(ctx, doc);
+		fz_drop_context(ctx);
+
+		return true;
 	}
 
 }

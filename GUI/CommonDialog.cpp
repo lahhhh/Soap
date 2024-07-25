@@ -14,7 +14,7 @@ CommonDialog::CommonDialog(
 	const QList<soap::InputStyle>& input_style,
 	const QList<QStringList>& qstring_list_items,
 	const QList<QMap<QString, QStringList> >& qstring_map_items,
-	const QList<LogicHandler*>& logic_handlers
+	const QList<void*>& ptrs
 )
 	:
 	signal_emitter_(signal_emitter)
@@ -22,7 +22,7 @@ CommonDialog::CommonDialog(
 	this->main_layout_ = new QHBoxLayout;
 	this->all_layout_ = new QVBoxLayout;
 
-	int list_count{ 0 }, map_count{ 0 }, logic_handler_count{ 0 };
+	int list_count{ 0 }, map_count{ 0 }, ptr_count{ 0 };
 	const int size = labels.size();
 	int ncol = size / 10 + 1;
 	const int row_per_column = ceil((double)size / ncol);
@@ -232,7 +232,7 @@ CommonDialog::CommonDialog(
 				this->choose_save_file_layouts_ << cfl;
 			}
 			else if (this_input_style == soap::InputStyle::LogicLayout) {
-				LogicLayout* ll = new LogicLayout(logic_handlers[logic_handler_count++], this);
+				LogicLayout* ll = new LogicLayout(static_cast<LogicHandler*>(ptrs[ptr_count++]), this);
 				grid_layout->addWidget(ll, i, 1);
 				this->logic_layouts_ << ll;
 			}
@@ -275,7 +275,7 @@ QStringList CommonDialog::get_response(
 	const QList<soap::InputStyle>& input_style,
 	const QList<QStringList>& qstring_list_items,
 	const QList<QMap<QString, QStringList> >& qstring_map_items,
-	const QList<LogicHandler*>& logic_handlers
+	const QList<void*>& ptrs
 ) {
 	CommonDialog dlg(
 		signal_emitter,
@@ -284,7 +284,7 @@ QStringList CommonDialog::get_response(
 		input_style,
 		qstring_list_items,
 		qstring_map_items,
-		logic_handlers
+		ptrs
 	);
 	if (!dlg.is_accepted_)return QStringList();
 
@@ -385,4 +385,200 @@ void CommonDialog::accept() {
 
 void CommonDialog::reject() {
 	QDialog::reject();
+}
+
+QStringList compare_layouts_to_list(const QString& cl) {
+	return cl.split(SOAP_DELIMITER);
+}
+
+bool switch_to_bool(const QString& sw) {
+	return sw == SWITCH_ACCEPT;
+};
+
+QStringList multiple_file_to_list(const QString& mf) {
+	QStringList ret = mf.split(SOAP_DELIMITER);
+	const qsizetype size = ret.size();
+
+	if (size > 1) {
+		return ret.sliced(1, size - 1);
+	}
+	else {
+		return {};
+	}
+}
+
+QStringList multiple_line_edit_to_list(const QString& al) {
+	QStringList ret = al.split(SOAP_DELIMITER);
+	const qsizetype size = ret.size();
+
+	if (size > 1) {
+		return ret.sliced(1, size - 1);
+	}
+	else {
+		return {};
+	}
+}
+
+QStringList multiple_line_edit_with_completer_to_list(const QString& al) {
+	QStringList ret = al.split(SOAP_DELIMITER);
+	const qsizetype size = ret.size();
+
+	if (size > 1) {
+		return ret.sliced(1, size - 1);
+	}
+	else {
+		return {};
+	}
+}
+
+QPair<QStringList, QStringList> multiple_double_line_edit_with_completer_layout_to_pair(const QString& mdl) {
+	if (mdl.isEmpty()) {
+		return QPair<QStringList, QStringList>();
+	}
+
+	QStringList tmp = mdl.split(SOAP_DELIMITER), ret1, ret2;
+	const qsizetype size = (tmp.size() - 1) / 2;
+
+	for (qsizetype i = 0; i < size; ++i) {
+		ret1 << tmp[i * 2 + 1];
+		ret2 << tmp[i * 2 + 2];
+	}
+	return qMakePair(ret1, ret2);
+}
+
+QStringList simple_choice_to_list(const QString& sc) {
+	QStringList ret = sc.split(SOAP_DELIMITER);
+
+	const qsizetype size = ret.size();
+	if (size > 1) {
+		return ret.sliced(1, ret.size() - 1);
+	}
+	else {
+		return {};
+	}
+}
+
+QPair<QString, QStringList> factor_choice_to_pair(const QString& fc) {
+	QStringList ret = fc.split(SOAP_DELIMITER);
+
+	if (ret.size() == 1) {
+		return { ret[0], {} };
+	}
+	else {
+		return { ret[0], ret.sliced(1, ret.size() - 1) };
+	}
+}
+
+QPair<QPair<QString, QStringList>, QPair<QString, QStringList>> factor_choice_with_line_edit_to_pair(const QString& fcw) {
+	QStringList ret = fcw.split(SOAP_DELIMITER);
+
+	const qsizetype size = ret.size() / 2 - 1;
+	QPair<QString, QStringList> ret1, ret2;
+	ret1.first = ret[0];
+	ret2.first = ret[1];
+
+	for (qsizetype i = 0; i < size; ++i) {
+		ret1.second << ret[i * 2 + 2];
+		ret2.second << ret[i * 2 + 3];
+	}
+	return qMakePair(ret1, ret2);
+}
+
+QPair<QPair<QString, QStringList>, QPair<QString, QStringList>> factor_double_line_edit_with_completer_to_pair(const QString& fcw) {
+	QStringList ret = fcw.split(SOAP_DELIMITER);
+
+	const qsizetype size = ret.size() / 2 - 1;
+
+	QPair<QString, QStringList> ret1, ret2;
+	ret1.first = ret[0];
+	ret2.first = ret[1];
+
+	for (qsizetype i = 0; i < size; ++i) {
+		ret1.second << ret[i * 2 + 2];
+		ret2.second << ret[i * 2 + 3];
+	}
+	return qMakePair(ret1, ret2);
+}
+
+QPair<QStringList, QStringList> simple_choice_with_line_edit_layout_to_pair(const QString& scw) {
+
+	QPair<QStringList, QStringList> ret;
+
+	if (scw.isEmpty()) {
+		return ret;
+	}
+
+	QStringList tmp = scw.split(SOAP_DELIMITER);
+
+	const qsizetype size = (tmp.size() - 1) / 2;
+
+	for (qsizetype i = 0; i < size; ++i) {
+		ret.first << tmp[i * 2 + 1];
+		ret.second << tmp[i * 2 + 2];
+	}
+
+	return ret;
+}
+
+std::tuple<QStringList, QStringList, QList<QColor>> simple_choice_with_line_edit_and_color_choice_layout_to_tuple(const QString& slc) {
+	if (slc.isEmpty()) {
+		return std::tuple<QStringList, QStringList, QList<QColor>>();
+	}
+	QStringList tmp = slc.split(SOAP_DELIMITER);
+
+	const qsizetype size = (tmp.size() - 1) / 3;
+
+	QStringList ret1, ret2;
+	ret1.reserve(size);
+	ret2.reserve(size);
+
+	QList<QColor> ret3;
+	ret3.reserve(size);
+
+	for (qsizetype i = 0; i < size; ++i) {
+		ret1 << tmp[i * 3 + 1];
+		ret2 << tmp[i * 3 + 2];
+		ret3 << QColor(tmp[i * 3 + 3]);
+	}
+
+	return std::make_tuple(ret1, ret2, ret3);
+}
+
+std::pair<QStringList, QList<QColor>> multi_line_edit_with_color_choice_layout_to_pair(const QString& mlc) {
+
+	if (mlc.isEmpty()) {
+		return std::pair<QStringList, QList<QColor>>();
+	}
+	QStringList tmp = mlc.split(SOAP_DELIMITER);
+
+	const qsizetype size = (tmp.size() - 1) / 2;
+
+	QStringList factors;
+	factors.reserve(size);
+
+	QList<QColor> colors;
+	colors.reserve(size);
+
+	for (qsizetype i = 0; i < size; ++i) {
+		factors << tmp[i * 2 + 1];
+		colors << QColor(tmp[i * 2 + 2]);
+	}
+
+	return { factors, colors };
+}
+
+QStringList multi_check_box_to_list(const QString& mcb) {
+
+	if (mcb.isEmpty()) {
+		return {};
+	}
+
+	QStringList tmp = mcb.split(SOAP_DELIMITER);
+
+	if (tmp.size() > 1) {
+		return tmp.sliced(1);
+	}
+	else {
+		return {};
+	}
 }
