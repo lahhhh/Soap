@@ -6,7 +6,9 @@
 #include "GenomeIndex.h"
 
 /*
-	modified from r package Pando
+* modified from r package Pando
+* Fleck, Jonas Simon et al. ¡°Inferring and perturbing cell fate regulomes in human brain organoids.¡± 
+* Nature vol. 621,7978 (2023): 365-372. doi:10.1038/s41586-022-05279-8
 */
 
 class PandoWorker

@@ -4,6 +4,12 @@
 
 #include "SingleCellRna.h"
 
+/*
+* modified from scvelo package
+* Bergen, Volker et al. ¡°Generalizing RNA velocity to transient cell states through dynamical modeling.¡±
+* Nature biotechnology vol. 38,12 (2020): 1408-1414. doi:10.1038/s41587-020-0591-3
+*/
+
 class ScveloWorker
 	: public QObject
 {

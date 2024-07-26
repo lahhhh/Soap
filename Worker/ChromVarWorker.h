@@ -5,6 +5,13 @@
 #include "SingleCellMultiome.h"
 #include "TwoBitFileProcessor.h"
 
+/*
+* Modified from ChromVAR software package :
+* Schep AN, Wu B, Buenrostro JD and Greenleaf WJ (2017). 
+* ¡°chromVAR: inferring transcription-factor-associated accessibility from single-cell epigenomic data.¡± 
+* Nature Methods. doi: 10.1038/nmeth.4401.
+*/
+
 class ChromVARWorker :
 	public QObject
 {

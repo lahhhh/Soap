@@ -242,9 +242,12 @@ void MetadataViewWindow::s_save_png() {
 	if (picture_name.isEmpty())return;
 
 	bool success = this->draw_area_->savePng(picture_name, picture_size[1].toInt(), picture_size[0].toInt());
-	if (success)
-		G_LOG("Picture saved.")
-	else G_LOG("Picture saving failed")
+	if (success) {
+		G_LOG("Picture saved.");
+	}
+	else {
+		G_LOG("Picture saving failed");
+	}
 };
 
 void MetadataViewWindow::s_save_bmp() {
@@ -261,9 +264,12 @@ void MetadataViewWindow::s_save_bmp() {
 	if (picture_name.isEmpty())return;
 
 	bool success = this->draw_area_->saveBmp(picture_name, picture_size[1].toInt(), picture_size[0].toInt());
-	if (success)
-		G_LOG("Picture saved.")
-	else G_LOG("Picture saving failed")
+	if (success) {
+		G_LOG("Picture saved.");
+	}
+	else {
+		G_LOG("Picture saving failed");
+	}
 };
 
 void MetadataViewWindow::s_save_jpg() {
@@ -280,9 +286,12 @@ void MetadataViewWindow::s_save_jpg() {
 	if (picture_name.isEmpty())return;
 
 	bool success = this->draw_area_->saveJpg(picture_name, picture_size[1].toInt(), picture_size[0].toInt());
-	if (success)
-		G_LOG("Picture saved.")
-	else G_LOG("Picture saving failed")
+	if (success) {
+		G_LOG("Picture saved.");
+	}
+	else {
+		G_LOG("Picture saving failed");
+	}
 };
 
 void MetadataViewWindow::s_save_pdf_and_png() {
@@ -334,9 +343,12 @@ void MetadataViewWindow::s_save_pdf() {
 	if (picture_name.isEmpty())return;
 
 	bool success = this->draw_area_->savePdf(picture_name, picture_size[1].toInt(), picture_size[0].toInt());
-	if (success)
-		G_LOG("Picture saved.")
-	else G_LOG("Picture saving failed");
+	if (success) {
+		G_LOG("Picture saved.");
+	}
+	else {
+		G_LOG("Picture saving failed");
+	}
 };
 
 void MetadataViewWindow::s_previous_plot() {

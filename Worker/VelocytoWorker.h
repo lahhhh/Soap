@@ -8,6 +8,13 @@
 #include "SingleCellMultiome.h"
 #include "TranscriptModel.h"
 
+
+/*
+* modified from velocyto package
+* La Manno, Gioele et al. ¡°RNA velocity of single cells.¡± 
+* Nature vol. 560,7719 (2018): 494-498. doi:10.1038/s41586-018-0414-6
+*/
+
 class VelocytoWorker
 	: public QObject
 {

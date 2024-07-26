@@ -129,7 +129,7 @@ void PaletteSettingDialog::s_choose_color() {
 
 	QColor color = QColorDialog::getColor(
 		QColor(this->color_view_labels_[index]->text()), 
-		nullptr, 
+		this, 
 		"Choose Color");
 
 	if (color.isValid()) {

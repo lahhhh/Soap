@@ -89,7 +89,7 @@ MarkerGeneWindow::MarkerGeneWindow(
 	}
 
 	this->setAttribute(Qt::WA_DeleteOnClose);
-	this->setWindowIcon(QIcon(":/soap/Image/mainwindowicon.jpg"));
+	G_SET_ICON;
 	this->resize(300, 600);
 	this->setWindowTitle("Markers of " + cell_type);
 	this->show();

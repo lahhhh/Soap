@@ -5,7 +5,7 @@
 #include "CustomMatrix.h"
 #include "MotifPosition.h"
 
-class EnrichWorker : 
+class EnrichWorker :
 	public QObject
 {
 	Q_OBJECT

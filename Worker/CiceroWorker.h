@@ -4,6 +4,13 @@
 
 #include "SingleCellMultiome.h"
 
+/*
+* Modified from Cicero software package :
+* Pliner, Hannah A et al. 
+* ¡°Cicero Predicts cis-Regulatory DNA Interactions from Single-Cell Chromatin Accessibility Data.¡± 
+* Molecular cell vol. 71,5 (2018): 858-871.e8. doi:10.1016/j.molcel.2018.06.044
+*/
+
 class CiceroWorker :
 	public QObject
 {

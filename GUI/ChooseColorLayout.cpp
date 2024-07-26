@@ -37,7 +37,7 @@ QString ChooseColorLayout::current_value() {
 
 void ChooseColorLayout::s_choose_color() {
 
-	QColor color = QColorDialog::getColor(QColor(this->color_name_), nullptr, "Choose Color");
+	QColor color = QColorDialog::getColor(QColor(this->color_name_), this, "Choose Color");
 
 	if (color.isValid()) {
 

@@ -43,6 +43,12 @@ namespace std
 
 } // namespace std
 
+/*
+* modified from MACS software package
+* Zhang, Yong et al. ¡°Model-based analysis of ChIP-Seq (MACS).¡± 
+* Genome biology vol. 9,9 (2008): R137. doi:10.1186/gb-2008-9-9-r137
+*/
+
 class MacsCallPeakWorker 
 	: public QObject
 {
@@ -132,7 +138,7 @@ private:
 	std::tuple<QVector<int>, QVector<double>, QVector<double>>& make_pair(const QString& chromosome, const QVector<int>& treat_position,
 		const QVector<double>& treat_value, const QVector<int>& control_position, const QVector<double>& control_value);
 
-	double get_p_score(const QPair<int, double>& lo);
+	double get_p_score(const std::pair<int, double>& lo);
 
 	void calculate_p_q_map();
 

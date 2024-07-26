@@ -3,11 +3,12 @@
 #include "PlotWindow.h"
 #include "CellMarkerDatabase.h"
 #include "CustomPlot.h"
-#include "EnrichmentDatabase.h"
 #include "MatrixWindow.h"
 #include "GraphSettingDialog.h"
 
 #include "SoapGUI.h"
+
+#include "EnrichmentUtility.h"
 
 inline bool is_in_triangle(double x, double y, double x1, double y1, double x2, double y2, double x3, double y3) {
 	if ((x2 - x1) * (y3 - y1) - (y2 - y1) * (x3 - x1) < 0) {
@@ -297,8 +298,7 @@ void EmbeddingViewWindow::preload() {
 
 	this->cell_marker_tree_widget_->set_types(types);
 
-	EnrichmentDatabase endb;
-	this->pathway_content_ = endb.get_pathway_information(this->handler_.get_species());
+	this->pathway_content_ = get_pathway_information(this->handler_.get_species());
 
 	QStringList pathways;
 	for (const auto& database : this->pathway_content_) {
@@ -1027,9 +1027,12 @@ void EmbeddingViewWindow::s_save_png() {
 	if (picture_name.isEmpty())return;
 
 	bool success = this->draw_area_->savePng(picture_name, picture_size[1].toInt(), picture_size[0].toInt());
-	if (success)
-		G_LOG("Picture saved.")
-	else G_LOG("Picture saving failed");
+	if (success) {
+		G_LOG("Picture saved.");
+	}
+	else {
+		G_LOG("Picture saving failed");
+	}
 };
 
 void EmbeddingViewWindow::s_save_bmp() {
@@ -1046,9 +1049,12 @@ void EmbeddingViewWindow::s_save_bmp() {
 	if (picture_name.isEmpty())return;
 
 	bool success = this->draw_area_->saveBmp(picture_name, picture_size[1].toInt(), picture_size[0].toInt());
-	if (success)
-		G_LOG("Picture saved.")
-	else G_LOG("Picture saving failed");
+	if (success) {
+		G_LOG("Picture saved.");
+	}
+	else {
+		G_LOG("Picture saving failed");
+	}
 };
 
 void EmbeddingViewWindow::s_save_jpg() {
@@ -1065,9 +1071,12 @@ void EmbeddingViewWindow::s_save_jpg() {
 	if (picture_name.isEmpty())return;
 
 	bool success = this->draw_area_->saveJpg(picture_name, picture_size[1].toInt(), picture_size[0].toInt());
-	if (success)
-		G_LOG("Picture saved.")
-	else G_LOG("Picture saving failed");
+	if (success) {
+		G_LOG("Picture saved.");
+	}
+	else {
+		G_LOG("Picture saving failed");
+	}
 };
 
 void EmbeddingViewWindow::s_save_pdf_and_png() {
@@ -1121,9 +1130,12 @@ void EmbeddingViewWindow::s_save_pdf() {
 
 	bool success = this->draw_area_->savePdf(picture_name, picture_size[1].toInt(), picture_size[0].toInt());
 
-	if (success)
-		G_LOG("Picture saved.")
-	else G_LOG("Picture saving failed");
+	if (success) {
+		G_LOG("Picture saved.");
+	}
+	else {
+		G_LOG("Picture saving failed");
+	}
 };
 
 void EmbeddingViewWindow::s_previous_plot() {

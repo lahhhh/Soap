@@ -621,32 +621,32 @@ void MainWindow::s_load_10X_scRNA()
 
 		QFileInfo f1(barcodes_file_path);
 		if (!f1.isFile()) {
-			G_WARN("Barcodes File (barcodes.tsv.gz) did not exist. If it was renamed before, please rename it [barcodes.tsv.gz].")
+			G_WARN("Barcodes File (barcodes.tsv.gz) did not exist. If it was renamed before, please rename it [barcodes.tsv.gz].");
 				return;
 		}
 		else if (!f1.isReadable()) {
-			G_WARN("Barcodes File is not readable.")
+			G_WARN("Barcodes File is not readable.");
 				return;
 		}
 
 		QFileInfo f2(features_file_path);
 
 		if (!f2.isFile()) {
-			G_WARN("Features File (features.tsv.gz) did not exist. If it was renamed before, please rename it [features.tsv.gz].")
+			G_WARN("Features File (features.tsv.gz) did not exist. If it was renamed before, please rename it [features.tsv.gz].");
 				return;
 		}
 		else if (!f2.isReadable()) {
-			G_WARN("Features File is not readable.")
+			G_WARN("Features File is not readable.");
 				return;
 		}
 		QFileInfo f3(matrix_file_path);
 
 		if (!f3.isFile()) {
-			G_WARN("Matrix File (matrix.mtx.gz) did not exist. If it was renamed before, please rename it [matrix.mtx.gz].")
+			G_WARN("Matrix File (matrix.mtx.gz) did not exist. If it was renamed before, please rename it [matrix.mtx.gz].");
 				return;
 		}
 		else if (!f3.isReadable()) {
-			G_WARN("Matrix File is not readable.")
+			G_WARN("Matrix File is not readable.");
 				return;
 		}
 
@@ -694,9 +694,12 @@ void MainWindow::s_save_png() {
 	if (picture_name.isEmpty())return;
 
 	bool success = this->draw_area_->savePng(picture_name, picture_size[1].toInt(), picture_size[0].toInt());
-	if (success)
-		G_LOG("Picture saved.")
-	else G_LOG("Picture saving failed");
+	if (success) {
+		G_LOG("Picture saved.");
+	}
+	else {
+		G_LOG("Picture saving failed");
+	}
 };
 
 void MainWindow::s_save_bmp() {
@@ -712,9 +715,12 @@ void MainWindow::s_save_bmp() {
 	if (picture_name.isEmpty())return;
 
 	bool success = this->draw_area_->saveBmp(picture_name, picture_size[1].toInt(), picture_size[0].toInt());
-	if (success)
-		G_LOG("Picture saved.")
-	else G_LOG("Picture saving failed");
+	if (success) {
+		G_LOG("Picture saved.");
+	}
+	else {
+		G_LOG("Picture saving failed");
+	}
 };
 
 void MainWindow::s_save_jpg() {
@@ -730,9 +736,12 @@ void MainWindow::s_save_jpg() {
 	if (picture_name.isEmpty())return;
 
 	bool success = this->draw_area_->saveJpg(picture_name, picture_size[1].toInt(), picture_size[0].toInt());
-	if (success)
-		G_LOG("Picture saved.")
-	else G_LOG("Picture saving failed");
+	if (success) {
+		G_LOG("Picture saved.");
+	}
+	else {
+		G_LOG("Picture saving failed");
+	}
 };
 
 void MainWindow::s_save_pdf_and_png() {
@@ -783,9 +792,12 @@ void MainWindow::s_save_pdf() {
 	if (picture_name.isEmpty())return;
 
 	bool success = this->draw_area_->savePdf(picture_name, picture_size[1].toInt(), picture_size[0].toInt());
-	if (success)
-		G_LOG("Picture saved.")
-	else G_LOG("Picture saving failed");
+	if (success) {
+		G_LOG("Picture saved.");
+	}
+	else {
+		G_LOG("Picture saving failed");
+	}
 };
 
 void MainWindow::s_previous_plot() {

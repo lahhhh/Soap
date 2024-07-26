@@ -2,7 +2,14 @@
 
 #include "Identifier.h"
 
-class ScrubletWorker : public QObject
+/*
+* modified from Scrublet package
+* Wolock, Samuel L et al. ¡°Scrublet: Computational Identification of Cell Doublets in Single-Cell Transcriptomic Data.¡± 
+* Cell systems vol. 8,4 (2019): 281-291.e9. doi:10.1016/j.cels.2018.11.005
+*/
+
+class ScrubletWorker 
+    : public QObject
 {
     Q_OBJECT
 public:
@@ -48,9 +55,9 @@ public:
 signals:
 
     void x_message(QString, int);
+
     void x_results_ready();
 
     void x_scrublet_ready(Eigen::ArrayXd, Eigen::ArrayXd);
-
     
 };

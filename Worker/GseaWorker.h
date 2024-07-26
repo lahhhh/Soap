@@ -7,6 +7,13 @@
 #include "SparseDouble.h"
 #include "Gsea.h"
 
+/*
+* Modified from GSEA software package :
+* Subramanian, Aravind et al. 
+* ¡°Gene set enrichment analysis: a knowledge-based approach for interpreting genome-wide expression profiles.¡± 
+* Proceedings of the National Academy of Sciences of the United States of America vol. 102,43 (2005): 15545-50. doi:10.1073/pnas.0506580102
+*/
+
 class GseaWorker 
 	: public QObject
 {

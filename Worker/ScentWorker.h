@@ -6,6 +6,12 @@
 #include "DenseInt.h"
 #include "DenseDouble.h"
 
+/*
+* modified from SCENT package
+* Chen, Weiyan, and Andrew E Teschendorff. ¡°Estimating Differentiation Potency of Single Cells Using Single-Cell Entropy (SCENT).¡± 
+* Methods in molecular biology (Clifton, N.J.) vol. 1935 (2019): 125-139. doi:10.1007/978-1-4939-9057-3_9
+*/
+
 class ScentWorker
     : public QObject
 {

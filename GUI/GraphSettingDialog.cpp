@@ -381,7 +381,7 @@ void GraphSettingDialog::refresh_interface() {
 };
 
 void GraphSettingDialog::s_set_gradient_low_color() {
-	QColor color = QColorDialog::getColor(QColor(this->gradient_low_color_view_label_->text()), nullptr, "Choose Color for Gradient Lower End");
+	QColor color = QColorDialog::getColor(QColor(this->gradient_low_color_view_label_->text()), this, "Choose Color for Gradient Lower End");
 	if (color.isValid()) {
 		gradient_low_color_view_label_->setText(color.name());
 		gradient_low_color_view_label_->setStyleSheet("QLabel{color:" + color.name() + "}");
@@ -389,7 +389,7 @@ void GraphSettingDialog::s_set_gradient_low_color() {
 };
 
 void GraphSettingDialog::s_set_gradient_middle_color() {
-	QColor color = QColorDialog::getColor(QColor(this->gradient_middle_color_view_label_->text()), nullptr, "Choose Color for Gradient Middle End");
+	QColor color = QColorDialog::getColor(QColor(this->gradient_middle_color_view_label_->text()), this, "Choose Color for Gradient Middle End");
 	if (color.isValid()) {
 		gradient_middle_color_view_label_->setText(color.name());
 		gradient_middle_color_view_label_->setStyleSheet("QLabel{color:" + color.name() + "}");
@@ -397,7 +397,7 @@ void GraphSettingDialog::s_set_gradient_middle_color() {
 };
 
 void GraphSettingDialog::s_set_gradient_high_color() {
-	QColor color = QColorDialog::getColor(QColor(this->gradient_high_color_view_label_->text()), nullptr, "Choose Color for Gradient Higher End");
+	QColor color = QColorDialog::getColor(QColor(this->gradient_high_color_view_label_->text()), this, "Choose Color for Gradient Higher End");
 	if (color.isValid()) {
 		gradient_high_color_view_label_->setText(color.name());
 		gradient_high_color_view_label_->setStyleSheet("QLabel{color:" + color.name() + "}");

@@ -6,6 +6,15 @@
 #include "Custom.h"
 #include "SparseDouble.h"
 
+/*
+* Modified from CellChat software package :
+* Jin S, Guerrero-Juarez CF, Zhang L, Chang I, Ramos R, Kuan CH, Myung P, Plikus MV, Nie Q.
+* Inference and analysis of cell-cell communication using CellChat.
+* Nat Commun. 2021 Feb 17;12(1):1088. doi: 10.1038/s41467-021-21246-9. PMID: 33597522; PMCID: PMC7889871.
+*/
+
+// deprecated
+
 class CellChatWorker :
 	public QObject
 {

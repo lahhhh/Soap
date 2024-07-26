@@ -33,7 +33,7 @@ EnrichmentGroupLayout::EnrichmentGroupLayout(
 };
 
 void EnrichmentGroupLayout::s_choose_color() {
-	QColor color = QColorDialog::getColor(QColor(this->legend_color_label_->text()), nullptr, "Choose Color for Legend");
+	QColor color = QColorDialog::getColor(QColor(this->legend_color_label_->text()), this, "Choose Color for Legend");
 	if (color.isValid()) {
 		this->legend_color_label_->setText(color.name());
 		this->legend_color_label_->setStyleSheet("QLabel{color:" + color.name() + "}");

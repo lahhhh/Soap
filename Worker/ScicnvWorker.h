@@ -5,6 +5,12 @@
 #include "SparseDouble.h"
 #include "Cnv.h"
 
+/*
+* modified from sciCNV package
+* Mahdipour-Shirayeh, Ali et al. ¡°sciCNV: high-throughput paired profiling of transcriptomes and DNA copy number variations at single-cell resolution.¡± 
+* Briefings in bioinformatics vol. 23,1 (2022): bbab413. doi:10.1093/bib/bbab413
+*/
+
 class ScicnvWorker 
 	: public QObject
 {

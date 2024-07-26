@@ -314,7 +314,7 @@ QVector<double> MacsCallPeakWorker::calculate_q_score(const QVector<double>& tre
 	QVector<double> ret(size);
 
 	for (int i = 0; i < size; ++i) {
-		ret[i] = this->p_q_map_[get_p_score(qMakePair(int(treat[i]), control[i]))];
+		ret[i] = this->p_q_map_[get_p_score({ int(treat[i]), control[i] })];
 	}
 
 	return ret;
@@ -480,7 +480,7 @@ void MacsCallPeakWorker::calculate_p_q_map() {
 		previous_position = 0;
 		qsizetype size = position.size();
 		for (qsizetype i = 0; i < size; ++i) {
-			double this_value = get_p_score(qMakePair((int)(*ptr_treat), *ptr_control));
+			double this_value = get_p_score(std::make_pair((int)(*ptr_treat), *ptr_control));
 			double this_length = *pointer_to_position - previous_position;
 			auto iter = p_score_stat.find(this_value);
 

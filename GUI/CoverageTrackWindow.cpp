@@ -377,9 +377,12 @@ void CoverageTrackWindow::s_save_pdf() {
 
 	bool success = this->draw_area_->savePdf(picture_name, picture_size[1].toInt(), picture_size[0].toInt());
 
-	if (success)
-		G_LOG("Picture saved.")
-	else G_LOG("Picture saving failed");
+	if (success) {
+		G_LOG("Picture saved.");
+	}
+	else {
+		G_LOG("Picture saving failed");
+	}
 };
 
 void CoverageTrackWindow::s_previous_plot() {

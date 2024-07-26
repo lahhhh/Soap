@@ -7,6 +7,12 @@
 
 #include <igraph.h>
 
+/*
+* modified from Monocle3 software package
+* Qiu, Xiaojie et al.¡°Reversed graph embedding resolves complex single - cell trajectories.¡± 
+* Nature methods vol. 14, 10 (2017) : 979 - 982. doi : 10.1038 / nmeth.4402
+*/
+
 class Monocle3Worker
 	: public QObject
 {

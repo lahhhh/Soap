@@ -53,7 +53,7 @@ void MultiLineEditWithColorChoiceLayout::s_choose_color() {
 	QPushButton* button = dynamic_cast<QPushButton*>(QObject::sender());
 	int index = this->color_buttons_.indexOf(button);
 
-	QColor color = QColorDialog::getColor(QColor(this->color_labels_[index]->text()), nullptr, "Choose Color for Legend");
+	QColor color = QColorDialog::getColor(QColor(this->color_labels_[index]->text()), this, "Choose Color for Legend");
 
 	if (color.isValid()) {
 		this->color_labels_[index]->setText(color.name());

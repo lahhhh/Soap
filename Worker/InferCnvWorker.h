@@ -6,6 +6,10 @@
 #include "SparseDouble.h"
 #include "Cnv.h"
 
+/*
+* modified from inferCNV of the Trinity CTAT Project.  https://github.com/broadinstitute/inferCNV
+*/
+
 class InferCnvWorker 
     : public QObject
 {
