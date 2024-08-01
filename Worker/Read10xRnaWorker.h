@@ -9,7 +9,7 @@ class Read10XRnaWorker : public QObject
     Q_OBJECT
 public:
 
-    explicit Read10XRnaWorker(const QString& path_10X);
+    explicit Read10XRnaWorker(const QString& path_10X) : path_10X_(path_10X) {}
 
     QString path_10X_;
 

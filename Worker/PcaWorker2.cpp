@@ -5,7 +5,7 @@
 /*
 Modified from R package Seurat : FindVariableFeatures.
 */
-Eigen::ArrayX<bool> find_variable_features(
+static Eigen::ArrayX<bool> find_variable_features(
 	const Eigen::MatrixXd& mat,
 	int n_variable_feature)
 {

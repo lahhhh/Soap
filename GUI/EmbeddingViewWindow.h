@@ -66,13 +66,9 @@ private:
 
 	void set_left_layout();
 
+	void set_middle_layout();
+
 	void set_right_layout();
-
-	void set_left_top_left_layout();
-
-	void set_left_top_right_layout();
-
-	void set_left_bottom_right_layout();
 
 	Eigen::ArrayX<bool> get_selected();
 
@@ -104,12 +100,9 @@ private:
 	QWidget* main_interface_{ nullptr };
 
 	QHBoxLayout* main_layout_{ nullptr };
-	QGridLayout* left_layout_{ nullptr };
+	QWidget* left_layout_{ nullptr };
+	QWidget* middle_layout_{ nullptr };
 	QVBoxLayout* right_layout_{ nullptr };
-
-	QVBoxLayout* left_top_left_layout_{ nullptr };
-	QVBoxLayout* left_top_right_layout_{ nullptr };
-	QVBoxLayout* left_bottom_right_layout_{ nullptr };
 
 	QLabel* cell_marker_area_label_{ nullptr };
 	QLabel* cell_marker_database_label_{ nullptr };

@@ -264,6 +264,10 @@ void MainWindow::set_utility_menu() {
 	menu_create_string_vector->addAction("From Input", this, &MainWindow::s_create_string_vector_from_input);
 
 	menu_utility->addAction("Test", this, &MainWindow::s_test);
+
+	auto menu_developer = menu_utility->addMenu("Developer");
+	
+	menu_developer->addAction("Generate Wix File", this, &MainWindow::s_generate_wix);
 };
 
 void MainWindow::s_create_string_vector_from_input() {
@@ -554,9 +558,9 @@ void MainWindow::s_load_10X_scMultiome() {
 
 	if (!directory_name.isEmpty()) {
 
-		G_LOG("Start loading 10X scMultiome...")
+		G_LOG("Start loading 10X scMultiome...");
 
-			QString barcodes_file_path = directory_name + "/" + BARCODES_FILE_NAME_10X;
+		QString barcodes_file_path = directory_name + "/" + BARCODES_FILE_NAME_10X;
 		QString features_file_path = directory_name + "/" + FEATURE_FILE_NAME_10X;
 		QString matrix_file_path = directory_name + "/" + MATRIX_FILE_NAME_10X;
 
@@ -1250,4 +1254,112 @@ void MainWindow::s_multiple_group_enrichment_plot_select_pathway() {
 	_Cp add_title(draw_area, "Enrichment Results", gs);
 
 	this->draw_suite_->update(draw_area);
+};
+
+std::pair<QString, int> listFilesRecursively(const QString& currentDir, int tab_count) {
+
+	QString res;
+
+	QDirIterator it(currentDir, QDir::NoDotAndDotDot | QDir::AllEntries, QDirIterator::NoIteratorFlags);
+
+	static int dircount{ 0 };
+	static int compcount{ 0 };
+
+	while (it.hasNext()) {
+		it.next();
+		QFileInfo fileInfo = it.fileInfo();
+		QString fn = fileInfo.fileName();
+
+		if (fileInfo.isFile()) {
+
+			QString compid = "Component_" + QString::number(compcount++);
+			QString fileid = fn;
+			QString filename = fn;
+			QString Source = fileInfo.absoluteFilePath();
+			Source.replace("/", "\\\\");
+
+			for (int i = 0; i < tab_count; ++i) {
+				res += "\t";
+			}
+
+			res += "<Component Id=\"" + compid + "\" Guid=\"*\" >\n";
+
+			for (int i = 0; i < tab_count + 1; ++i) {
+				res += "\t";
+			}
+
+			res += "<File Id=\"" + fileid + "\" Name=\"" + filename + "\" Source=\"" + Source + "\" />\n";
+			
+			for (int i = 0; i < tab_count; ++i) {
+				res += "\t";
+			}
+				
+			res += "</Component>\n\n";
+		}
+
+		if (fileInfo.isDir()) {
+
+			QString dirid = "dir" + QString::number(dircount++);
+			QString dirname = fn;
+
+			for (int i = 0; i < tab_count; ++i) {
+				res += "\t";
+			}
+
+			res += "<Directory Id=\"" + dirid + "\" Name=\"" + dirname + "\" >\n";
+
+			res += listFilesRecursively(fileInfo.absoluteFilePath(), tab_count + 1).first;
+
+			for (int i = 0; i < tab_count; ++i) {
+				res += "\t";
+			}
+
+			res += "</Directory>\n\n";
+		}
+	}
+
+	return { res, compcount };
+}
+
+void MainWindow::s_generate_wix() {
+
+	auto dir = QFileDialog::getExistingDirectory(this);
+	if (dir.isEmpty()) {
+		return;
+	}
+
+	QString ori = "\t<Directory Id=\"ProgramFiles64Folder\" Name=\"package\">\n"
+		"\t\t<Directory Id=\'INSTALLDIR\'>\n"
+		"\t\t\t<Directory Id=\'SoapOmics\' Name=\'SoapOmics\'>\n";
+
+	auto [res, cnt] = listFilesRecursively(dir, 3);
+
+	QString res2 = "\t<Feature Id=\"Main\">\n";
+	for (int i = 0; i < cnt; ++i) {
+
+		QString compid = "Component_" + QString::number(i);
+
+		res2 += "\t\t<ComponentRef Id=\"" + compid + "\" />\n";
+	}
+	res2 += "\t</Feature>\n";
+
+	ori += res;
+
+	ori += "\t\t\t</Directory>\n"
+		"\t\t</Directory>\n"
+		"\t</Directory>\n";
+
+	auto f = QFileDialog::getSaveFileName(this);
+
+	QFile file(f);
+	if (!file.open(QIODevice::WriteOnly | QIODevice::Text)) {
+		G_WARN("Cannot open create file.");
+		return;
+	}
+
+	QTextStream stream(&file);
+
+	stream << ori << res2;
+
+	file.close();
 };

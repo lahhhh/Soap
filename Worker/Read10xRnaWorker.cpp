@@ -1,14 +1,11 @@
 #include "Read10xRnaWorker.h"
 
 #include <zlib.h>
+#include <QFile>
 #include "Custom.h"
-#include "Identifier.h"
-
-Read10XRnaWorker::Read10XRnaWorker(const QString& path_10X) : path_10X_(path_10X)
-{}
-
 
 bool Read10XRnaWorker::read_barcodes() {
+
 	QString barcodes_file_path = this->path_10X_ + "/" + BARCODES_FILE_NAME_10X;
 	auto file = barcodes_file_path.toUtf8();
 
@@ -17,6 +14,7 @@ bool Read10XRnaWorker::read_barcodes() {
 	gzFile barcodes = gzopen(file.data(), "rb");
 
 	if (barcodes == NULL) {
+		G_TASK_WARN("Please check if the path contains illegal characters.");
 		return false;
 	}
 

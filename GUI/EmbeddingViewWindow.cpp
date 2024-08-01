@@ -145,9 +145,13 @@ void EmbeddingViewWindow::set_layout() {
 
 	this->set_left_layout();
 
+	this->set_middle_layout();
+
 	this->set_right_layout();
 
 	this->final_connect();
+
+	this->main_layout_->setSpacing(10);
 
 	this->draw_suite_ = new PlotsSuite();
 
@@ -163,7 +167,7 @@ void EmbeddingViewWindow::set_property() {
 
 	G_SET_ICON;
 
-	this->resize(1200, 800);
+	this->resize(1800, 800);
 
 	this->setWindowTitle("Embedding View");
 
@@ -343,18 +347,169 @@ void EmbeddingViewWindow::s_explore_pathway() {
 	MatrixWindow::show_matrix(&tmp, "Pathway of " + database_name, this->signal_emitter_);
 };
 
+void EmbeddingViewWindow::set_middle_layout() {
+
+	this->middle_layout_ = new QWidget(this);
+
+	auto layout = new QVBoxLayout();
+
+	auto middle_top_layout = new QVBoxLayout;
+
+	G_SET_LABEL_PRECISE(this->gene_label_, "Gene", soap::LargeSize, QColor("#20b2aa"), QFont("Arial", 20, QFont::Bold));
+	middle_top_layout->addWidget(this->gene_label_);
+
+
+	G_SET_LABEL(this->gene_name_label_, "Gene Name", soap::MiddleSize);
+	G_SET_LINEEDIT_WITH_COMPLETER(this->gene_line_edit_, "", this->handler_.get_feature_names().numeric_names, soap::MiddleSize);
+	G_SET_BUTTON_ICON(this->gene_view_button_, FILE_EYE_ICON_PNG, QSize(30, 30));
+
+	G_SET_BUTTON(this->gene_alternative_button_, "►", QSize(30, 30));
+	G_SET_BUTTON(this->gene_active_button_, "▼", QSize(30, 30));
+
+	G_ADD_NEW_FIVE_ITEM_ROWLAYOUT_LEFT_ALIGN_NO_STRETCH(middle_top_layout, row_layout, this->gene_name_label_,
+		this->gene_line_edit_, this->gene_view_button_, this->gene_alternative_button_, this->gene_active_button_);
+
+	connect(this->gene_view_button_, &QPushButton::clicked, this, &EmbeddingViewWindow::s_view_gene);
+	connect(this->gene_alternative_button_, &QPushButton::clicked, this, &EmbeddingViewWindow::s_alternative_gene);
+	connect(this->gene_active_button_, &QPushButton::clicked, this, &EmbeddingViewWindow::s_active_gene);
+
+	G_SET_LABEL_PRECISE(this->metadata_label_, "Metadata", soap::LargeSize, QColor("#20b2aa"), QFont("Arial", 20, QFont::Bold));
+	middle_top_layout->addWidget(this->metadata_label_);
+
+	G_SET_LABEL(this->metadata_name_label_, "Metadata Name", soap::MiddleSize);
+	this->metadata_box_ = new QComboBox(this);
+	this->metadata_box_->addItems(this->handler_.get_metadata_names());
+	this->metadata_box_->adjustSize();
+	this->metadata_box_->setFixedHeight(30);
+
+	G_SET_BUTTON_ICON(this->metadata_view_button_, FILE_EYE_ICON_PNG, QSize(30, 30));
+
+	G_ADD_TRIPLE_ITEM_ROWLAYOUT_LEFT_ALIGN_NO_STRETCH(middle_top_layout, row_layout, this->metadata_name_label_, this->metadata_box_, this->metadata_view_button_);
+	connect(this->metadata_view_button_, &QPushButton::clicked, this, &EmbeddingViewWindow::s_view_metadata);
+
+	G_SET_LABEL_PRECISE(this->pathway_label_, "Pathway", soap::LargeSize, QColor("#20b2aa"), QFont("Arial", 20, QFont::Bold));
+	middle_top_layout->addWidget(this->pathway_label_);
+
+	G_SET_LABEL(this->database_label_, "Database", soap::MiddleSize);
+	this->database_box_ = new QComboBox(this);
+	G_SET_BUTTON(this->database_show_button_, "View", soap::MiddleSize);
+
+	G_ADD_TRIPLE_ITEM_ROWLAYOUT_LEFT_ALIGN_NO_STRETCH(middle_top_layout, row_layout, this->database_label_, this->database_box_, this->database_show_button_);
+	connect(this->database_show_button_, &QPushButton::clicked, this, &EmbeddingViewWindow::s_explore_pathway);
+
+	G_SET_LABEL(this->pathway_name_label_, "Pathway", soap::MiddleSize);
+	G_SET_LINEEDIT(this->pathway_line_edit_, "", soap::MiddleSize);
+	G_SET_BUTTON_ICON(this->pathway_view_button_, FILE_EYE_ICON_PNG, QSize(30, 30));
+	G_SET_BUTTON(this->pathway_alternative_button_, "►", QSize(30, 30));
+	G_SET_BUTTON(this->pathway_active_button_, "▼", QSize(30, 30));
+
+	G_ADD_FIVE_ITEM_ROWLAYOUT_LEFT_ALIGN_NO_STRETCH(middle_top_layout, row_layout, this->pathway_name_label_, this->pathway_line_edit_,
+		this->pathway_view_button_, this->pathway_alternative_button_, this->pathway_active_button_);
+
+	connect(this->pathway_view_button_, &QPushButton::clicked, this, &EmbeddingViewWindow::s_view_pathway);
+	connect(this->pathway_alternative_button_, &QPushButton::clicked, this, &EmbeddingViewWindow::s_pathway_to_alternative);
+	connect(this->pathway_active_button_, &QPushButton::clicked, this, &EmbeddingViewWindow::s_pathway_to_active);
+
+
+	G_SET_LABEL_PRECISE(this->data_source_label_, "Data Source", soap::LargeSize, QColor("#20b2aa"), QFont("Arial", 20, QFont::Bold));
+	middle_top_layout->addWidget(this->data_source_label_);
+
+	G_SET_LABEL(this->normalize_label_, "Normalize", soap::MiddleSize);
+	G_SET_SWITCH(this->normalize_switch_, true, this->normalize_label_, soap::MiddleSize);
+
+	G_ADD_DOUBLE_ITEM_ROWLAYOUT_LEFT_ALIGN_NO_STRETCH(middle_top_layout, row_layout, this->normalize_label_, this->normalize_switch_);
+
+	if (this->handler_.type_ == FeatureHandler::DataType::SingleCellMultiome || this->handler_.type_ == FeatureHandler::DataType::SingleCellAtac) {
+		G_SET_LABEL(this->gene_activity_label_, "Gene Activity", soap::MiddleSize);
+		G_SET_SWITCH(this->gene_activity_switch_, false, this->gene_activity_label_, soap::MiddleSize);
+		G_ADD_DOUBLE_ITEM_ROWLAYOUT_LEFT_ALIGN_NO_STRETCH(middle_top_layout, row_layout, this->gene_activity_label_, this->gene_activity_switch_);
+	}
+
+	G_SET_LABEL_PRECISE(this->alternative_label_, "Alternative Items", soap::LargeSize, QColor("#20b2aa"), QFont("Arial", 20, QFont::Bold));
+	middle_top_layout->addWidget(this->alternative_label_);
+
+	this->alternative_tree_widget_ = new CellMarkerTreeWidget(CellMarkerTreeWidget::MarkerWidgetType::AlternativeWidget, this);
+	middle_top_layout->addWidget(this->alternative_tree_widget_);
+
+	layout->addLayout(middle_top_layout);
+
+	connect(this->alternative_tree_widget_, &CellMarkerTreeWidget::x_show_gene, this, &EmbeddingViewWindow::s_show_gene);
+	connect(this->alternative_tree_widget_, &CellMarkerTreeWidget::x_show_type, this, &EmbeddingViewWindow::s_show_type);
+
+	auto middle_bottom_layout = new QVBoxLayout;
+
+	row_layout = new QHBoxLayout;
+
+	G_SET_LABEL_PRECISE(this->active_label_, "Active Items", soap::LargeSize, QColor("#20b2aa"), QFont("Arial", 20, QFont::Bold));
+
+	G_SET_BUTTON(this->active_clear_button_, "Clear", soap::MiddleSize);
+	G_SET_BUTTON(this->active_refresh_button_, "Refresh", soap::MiddleSize);
+
+	row_layout->addWidget(this->active_label_);
+	row_layout->addStretch();
+	row_layout->addWidget(this->active_clear_button_);
+	row_layout->addWidget(this->active_refresh_button_);
+	middle_bottom_layout->addLayout(row_layout);
+
+	this->active_tree_widget_ = new CellMarkerTreeWidget(CellMarkerTreeWidget::MarkerWidgetType::ActiveWidget, this);
+	middle_bottom_layout->addWidget(this->active_tree_widget_);
+
+	layout->addLayout(middle_bottom_layout);
+
+	connect(this->active_tree_widget_, &CellMarkerTreeWidget::x_show_gene, this, &EmbeddingViewWindow::s_show_gene);
+	connect(this->active_tree_widget_, &CellMarkerTreeWidget::x_show_type, this, &EmbeddingViewWindow::s_show_type);
+
+	connect(this->active_clear_button_, &QPushButton::clicked, this, &EmbeddingViewWindow::s_clear_active_items);
+	connect(this->active_refresh_button_, &QPushButton::clicked, this, &EmbeddingViewWindow::s_refresh_active_items);
+
+	this->middle_layout_->setLayout(layout);
+
+	this->middle_layout_->setFixedWidth(500);
+
+	this->main_layout_->addWidget(this->middle_layout_);
+};
+
 void EmbeddingViewWindow::set_left_layout() {
 
-	this->left_layout_ = new QGridLayout();
+	this->left_layout_ = new QWidget(this);
 
-	set_left_top_left_layout();
-	set_left_top_right_layout();
-	set_left_bottom_right_layout();
+	auto layout = new QVBoxLayout();
+
+	auto left_top_layout = new QVBoxLayout();
+
+	G_SET_LABEL_PRECISE(this->cell_marker_area_label_, "Cell Markers", soap::LargeSize, QColor("#20b2aa"), QFont("Arial", 20, QFont::Bold));
+	left_top_layout->addWidget(this->cell_marker_area_label_);
+
+	G_SET_LABEL(this->cell_marker_database_label_, "Database", soap::MiddleSize);
+	this->cell_marker_database_box_ = new QComboBox(this);
+
+	G_ADD_NEW_DOUBLE_ITEM_ROWLAYOUT_LEFT_ALIGN_NO_STRETCH(left_top_layout, row_layout, this->cell_marker_database_label_, this->cell_marker_database_box_);
+
+	G_SET_LABEL(this->cell_marker_tissue_label_, "Tissue", soap::MiddleSize);
+	this->cell_marker_tissue_box_ = new QComboBox(this);
+
+	G_ADD_DOUBLE_ITEM_ROWLAYOUT_LEFT_ALIGN_NO_STRETCH(left_top_layout, row_layout, this->cell_marker_tissue_label_, this->cell_marker_tissue_box_);
+
+	this->cell_marker_tree_widget_ = new CellMarkerTreeWidget(CellMarkerTreeWidget::MarkerWidgetType::MarkerWidget, this);
+	left_top_layout->addWidget(this->cell_marker_tree_widget_);
+
+	layout->addLayout(left_top_layout);
+
+	connect(this->cell_marker_database_box_, &QComboBox::currentIndexChanged, this, &EmbeddingViewWindow::s_update_tissue);
+	connect(this->cell_marker_tissue_box_, &QComboBox::currentIndexChanged, this, &EmbeddingViewWindow::s_update_cell_marker);
+
+	connect(this->cell_marker_tree_widget_, &CellMarkerTreeWidget::x_show_gene, this, &EmbeddingViewWindow::s_show_gene);
+	connect(this->cell_marker_tree_widget_, &CellMarkerTreeWidget::x_show_type, this, &EmbeddingViewWindow::s_show_type);
 
 	this->information_area_ = new InformationTextBrowser(this);
-	this->left_layout_->addWidget(this->information_area_, 1, 0);
+	layout->addWidget(this->information_area_);
 
-	this->main_layout_->addLayout(this->left_layout_);
+	this->left_layout_->setLayout(layout);
+
+	this->left_layout_->setFixedWidth(400);
+
+	this->main_layout_->addWidget(this->left_layout_);
+
 };
 
 void EmbeddingViewWindow::s_clear_active_items() {
@@ -724,34 +879,6 @@ void EmbeddingViewWindow::set_right_layout() {
 	connect(this->clear_picture_button_, &QPushButton::clicked, this, &EmbeddingViewWindow::s_clear_plot);
 };
 
-void EmbeddingViewWindow::set_left_top_left_layout() {
-	this->left_top_left_layout_ = new QVBoxLayout;
-
-	G_SET_LABEL_PRECISE(this->cell_marker_area_label_, "Cell Markers", soap::LargeSize, QColor("#20b2aa"), QFont("Arial", 20, QFont::Bold));
-	this->left_top_left_layout_->addWidget(this->cell_marker_area_label_);
-
-	G_SET_LABEL(this->cell_marker_database_label_, "Database", soap::MiddleSize);
-	this->cell_marker_database_box_ = new QComboBox(this);
-
-	G_ADD_NEW_DOUBLE_ITEM_ROWLAYOUT_LEFT_ALIGN_NO_STRETCH(this->left_top_left_layout_, row_layout, this->cell_marker_database_label_, this->cell_marker_database_box_);
-
-	G_SET_LABEL(this->cell_marker_tissue_label_, "Tissue", soap::MiddleSize);
-	this->cell_marker_tissue_box_ = new QComboBox(this);
-
-	G_ADD_DOUBLE_ITEM_ROWLAYOUT_LEFT_ALIGN_NO_STRETCH(this->left_top_left_layout_, row_layout, this->cell_marker_tissue_label_, this->cell_marker_tissue_box_);
-
-	this->cell_marker_tree_widget_ = new CellMarkerTreeWidget(CellMarkerTreeWidget::MarkerWidgetType::MarkerWidget, this);
-	this->left_top_left_layout_->addWidget(this->cell_marker_tree_widget_);
-
-	this->left_layout_->addLayout(this->left_top_left_layout_, 0, 0);
-
-	connect(this->cell_marker_database_box_, &QComboBox::currentIndexChanged, this, &EmbeddingViewWindow::s_update_tissue);
-	connect(this->cell_marker_tissue_box_, &QComboBox::currentIndexChanged, this, &EmbeddingViewWindow::s_update_cell_marker);
-
-	connect(this->cell_marker_tree_widget_, &CellMarkerTreeWidget::x_show_gene, this, &EmbeddingViewWindow::s_show_gene);
-	connect(this->cell_marker_tree_widget_, &CellMarkerTreeWidget::x_show_type, this, &EmbeddingViewWindow::s_show_type);
-};
-
 void EmbeddingViewWindow::s_update_tissue() {
 	this->cell_marker_tissue_box_->blockSignals(true);
 
@@ -829,91 +956,6 @@ void EmbeddingViewWindow::s_active_gene() {
 	emit x_gene_to_active(gene_name);
 };
 
-void EmbeddingViewWindow::set_left_top_right_layout() {
-
-	this->left_top_right_layout_ = new QVBoxLayout;
-
-	G_SET_LABEL_PRECISE(this->gene_label_, "Gene", soap::LargeSize, QColor("#20b2aa"), QFont("Arial", 20, QFont::Bold));
-	this->left_top_right_layout_->addWidget(this->gene_label_);
-
-
-	G_SET_LABEL(this->gene_name_label_, "Gene Name", soap::MiddleSize);
-	G_SET_LINEEDIT_WITH_COMPLETER(this->gene_line_edit_, "", this->handler_.get_feature_names().numeric_names, soap::MiddleSize);
-	G_SET_BUTTON_ICON(this->gene_view_button_, FILE_EYE_ICON_PNG, QSize(30, 30));
-
-	G_SET_BUTTON(this->gene_alternative_button_, "►", QSize(30, 30));
-	G_SET_BUTTON(this->gene_active_button_, "▼", QSize(30, 30));
-
-	G_ADD_NEW_FIVE_ITEM_ROWLAYOUT_LEFT_ALIGN_NO_STRETCH(this->left_top_right_layout_, row_layout, this->gene_name_label_,
-		this->gene_line_edit_, this->gene_view_button_, this->gene_alternative_button_, this->gene_active_button_);
-
-	connect(this->gene_view_button_, &QPushButton::clicked, this, &EmbeddingViewWindow::s_view_gene);
-	connect(this->gene_alternative_button_, &QPushButton::clicked, this, &EmbeddingViewWindow::s_alternative_gene);
-	connect(this->gene_active_button_, &QPushButton::clicked, this, &EmbeddingViewWindow::s_active_gene);
-
-	G_SET_LABEL_PRECISE(this->metadata_label_, "Metadata", soap::LargeSize, QColor("#20b2aa"), QFont("Arial", 20, QFont::Bold));
-	this->left_top_right_layout_->addWidget(this->metadata_label_);
-
-	G_SET_LABEL(this->metadata_name_label_, "Metadata Name", soap::MiddleSize);
-	this->metadata_box_ = new QComboBox(this);
-	this->metadata_box_->addItems(this->handler_.get_metadata_names());
-	this->metadata_box_->adjustSize();
-	this->metadata_box_->setFixedHeight(30);
-
-	G_SET_BUTTON_ICON(this->metadata_view_button_, FILE_EYE_ICON_PNG, QSize(30, 30));
-
-	G_ADD_TRIPLE_ITEM_ROWLAYOUT_LEFT_ALIGN_NO_STRETCH(this->left_top_right_layout_, row_layout, this->metadata_name_label_, this->metadata_box_, this->metadata_view_button_);
-	connect(this->metadata_view_button_, &QPushButton::clicked, this, &EmbeddingViewWindow::s_view_metadata);
-
-	G_SET_LABEL_PRECISE(this->pathway_label_, "Pathway", soap::LargeSize, QColor("#20b2aa"), QFont("Arial", 20, QFont::Bold));
-	this->left_top_right_layout_->addWidget(this->pathway_label_);
-
-	G_SET_LABEL(this->database_label_, "Database", soap::MiddleSize);
-	this->database_box_ = new QComboBox(this);
-	G_SET_BUTTON(this->database_show_button_, "View", soap::MiddleSize);
-
-	G_ADD_TRIPLE_ITEM_ROWLAYOUT_LEFT_ALIGN_NO_STRETCH(this->left_top_right_layout_, row_layout, this->database_label_, this->database_box_, this->database_show_button_);
-	connect(this->database_show_button_, &QPushButton::clicked, this, &EmbeddingViewWindow::s_explore_pathway);
-
-	G_SET_LABEL(this->pathway_name_label_, "Pathway", soap::MiddleSize);
-	G_SET_LINEEDIT(this->pathway_line_edit_, "", soap::MiddleSize);
-	G_SET_BUTTON_ICON(this->pathway_view_button_, FILE_EYE_ICON_PNG, QSize(30, 30));
-	G_SET_BUTTON(this->pathway_alternative_button_, "►", QSize(30, 30));
-	G_SET_BUTTON(this->pathway_active_button_, "▼", QSize(30, 30));
-
-	G_ADD_FIVE_ITEM_ROWLAYOUT_LEFT_ALIGN_NO_STRETCH(this->left_top_right_layout_, row_layout, this->pathway_name_label_, this->pathway_line_edit_,
-		this->pathway_view_button_, this->pathway_alternative_button_, this->pathway_active_button_);
-
-	connect(this->pathway_view_button_, &QPushButton::clicked, this, &EmbeddingViewWindow::s_view_pathway);
-	connect(this->pathway_alternative_button_, &QPushButton::clicked, this, &EmbeddingViewWindow::s_pathway_to_alternative);
-	connect(this->pathway_active_button_, &QPushButton::clicked, this, &EmbeddingViewWindow::s_pathway_to_active);
-
-
-	G_SET_LABEL_PRECISE(this->data_source_label_, "Data Source", soap::LargeSize, QColor("#20b2aa"), QFont("Arial", 20, QFont::Bold));
-	this->left_top_right_layout_->addWidget(this->data_source_label_);
-
-	G_SET_LABEL(this->normalize_label_, "Normalize", soap::MiddleSize);
-	G_SET_SWITCH(this->normalize_switch_, true, this->normalize_label_, soap::MiddleSize);
-
-	G_ADD_DOUBLE_ITEM_ROWLAYOUT_LEFT_ALIGN_NO_STRETCH(this->left_top_right_layout_, row_layout, this->normalize_label_, this->normalize_switch_);
-
-	if (this->handler_.type_ == FeatureHandler::DataType::SingleCellMultiome || this->handler_.type_ == FeatureHandler::DataType::SingleCellAtac) {
-		G_SET_LABEL(this->gene_activity_label_, "Gene Activity", soap::MiddleSize);
-		G_SET_SWITCH(this->gene_activity_switch_, false, this->gene_activity_label_, soap::MiddleSize);
-		G_ADD_DOUBLE_ITEM_ROWLAYOUT_LEFT_ALIGN_NO_STRETCH(this->left_top_right_layout_, row_layout, this->gene_activity_label_, this->gene_activity_switch_);
-	}
-
-	G_SET_LABEL_PRECISE(this->alternative_label_, "Alternative Items", soap::LargeSize, QColor("#20b2aa"), QFont("Arial", 20, QFont::Bold));
-	this->left_top_right_layout_->addWidget(this->alternative_label_);
-
-	this->alternative_tree_widget_ = new CellMarkerTreeWidget(CellMarkerTreeWidget::MarkerWidgetType::AlternativeWidget, this);
-	this->left_top_right_layout_->addWidget(this->alternative_tree_widget_);
-
-	this->left_layout_->addLayout(this->left_top_right_layout_, 0, 1);
-
-	connect(this->alternative_tree_widget_, &CellMarkerTreeWidget::x_show_gene, this, &EmbeddingViewWindow::s_show_gene);
-	connect(this->alternative_tree_widget_, &CellMarkerTreeWidget::x_show_type, this, &EmbeddingViewWindow::s_show_type);
-}
 
 void EmbeddingViewWindow::s_pathway_to_alternative() {
 
@@ -960,34 +1002,6 @@ void EmbeddingViewWindow::s_pathway_to_active() {
 
 	emit x_type_to_active(pathway_name, gene_list);
 };
-
-void EmbeddingViewWindow::set_left_bottom_right_layout() {
-	this->left_bottom_right_layout_ = new QVBoxLayout;
-
-	QHBoxLayout* row_layout = new QHBoxLayout;
-
-	G_SET_LABEL_PRECISE(this->active_label_, "Active Items", soap::LargeSize, QColor("#20b2aa"), QFont("Arial", 20, QFont::Bold));
-
-	G_SET_BUTTON(this->active_clear_button_, "Clear", soap::MiddleSize);
-	G_SET_BUTTON(this->active_refresh_button_, "Refresh", soap::MiddleSize);
-
-	row_layout->addWidget(this->active_label_);
-	row_layout->addStretch();
-	row_layout->addWidget(this->active_clear_button_);
-	row_layout->addWidget(this->active_refresh_button_);
-	this->left_bottom_right_layout_->addLayout(row_layout);
-
-	this->active_tree_widget_ = new CellMarkerTreeWidget(CellMarkerTreeWidget::MarkerWidgetType::ActiveWidget, this);
-	this->left_bottom_right_layout_->addWidget(this->active_tree_widget_);
-
-	this->left_layout_->addLayout(this->left_bottom_right_layout_, 1, 1);
-
-	connect(this->active_tree_widget_, &CellMarkerTreeWidget::x_show_gene, this, &EmbeddingViewWindow::s_show_gene);
-	connect(this->active_tree_widget_, &CellMarkerTreeWidget::x_show_type, this, &EmbeddingViewWindow::s_show_type);
-
-	connect(this->active_clear_button_, &QPushButton::clicked, this, &EmbeddingViewWindow::s_clear_active_items);
-	connect(this->active_refresh_button_, &QPushButton::clicked, this, &EmbeddingViewWindow::s_refresh_active_items);
-}
 
 void EmbeddingViewWindow::s_set_graph_settings() {
 

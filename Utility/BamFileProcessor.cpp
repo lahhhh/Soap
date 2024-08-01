@@ -84,7 +84,7 @@ bool BamFileProcessor::read_block() {
 	this->stream_.next_out = (z_const Bytef*)(this->uncompressed_ + buffer_left_size);
 	this->stream_.avail_out = input_size;
 
-	inflateInit2(&this->stream_, 32);
+	inflateInit2(&this->stream_, 16 + MAX_WBITS);
 
 	inflate(&this->stream_, Z_NO_FLUSH);
 

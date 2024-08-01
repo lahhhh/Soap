@@ -4,7 +4,7 @@
 
 #define SOAP_RESOURCE_DIR qApp->applicationDirPath() + "/Resources/"
 
-#define FILE_SINGLE_CELL_RNA_PIPELINE SOAP_RESOURCE_DIR "single-cell-rna-pipeline.txt"
+#define FILE_SINGLE_CELL_RNA_PIPELINE SOAP_RESOURCE_DIR "single_cell_rna_pipeline.txt"
 
 #define FILE_FAQ SOAP_RESOURCE_DIR "SOAP_GUIDE" 
 
