@@ -497,6 +497,8 @@ void EmbeddingItem::s_highlight() {
 		gs.get_legend_label_font()
 	);
 
+	_Cp add_title(draw_area, factor_name, gs);
+
 	this->draw_suite_->update(draw_area);
 };
 

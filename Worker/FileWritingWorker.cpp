@@ -5,6 +5,7 @@
 #include "FileIO.h"
 #include "SingleCellRna.h"
 #include "DataFrame.h"
+#include "StringVector.h"
 
 FileWritingWorker::FileWritingWorker(
 	void* data,
@@ -83,6 +84,26 @@ void FileWritingWorker::run() {
 		}
 		else if (this->file_type_ == soap::FileType::TSV) {
 			write_tsv(embedding->data_, out, this->settings_);
+		}
+	}
+	else if (this->data_type_ == soap::VariableType::StringVector) {
+		auto* d = (StringVector*)this->data_;
+
+		if (this->file_type_ == soap::FileType::CSV) {
+			write_csv(d->data_, out, this->settings_);
+		}
+		else if (this->file_type_ == soap::FileType::TSV) {
+
+			write_tsv(d->data_, out, this->settings_);
+		}
+	}
+	else if (this->data_type_ == soap::VariableType::GeneName) {
+		auto* d = (GeneName*)this->data_;
+		if (this->file_type_ == soap::FileType::CSV) {
+			write_csv(d->data_, out, this->settings_);
+		}
+		else if (this->file_type_ == soap::FileType::TSV) {
+			write_tsv(d->data_, out, this->settings_);
 		}
 	}
 	else {

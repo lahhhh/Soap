@@ -50,6 +50,7 @@ void DataFrameItem::__set_menu() {
 	ADD_ACTION("Delete First Column", "Edit | Adjust Shape", s_delete_first_column);
 	ADD_ACTION("Delete First Row", "Edit | Adjust Shape", s_delete_first_row);
 	ADD_ACTION("Column as Row Names", "Edit | Adjust Shape", s_column_as_rowname);
+	ADD_ACTION("Row Names as Column", "Edit | Adjust Shape", s_rownames_as_column);
 	ADD_ACTION("Delete Column", "Edit | Adjust Shape", s_delete_column);
 
 	ADD_ACTION("Change Data Type", "Edit", s_change_data_type);
@@ -69,7 +70,9 @@ void DataFrameItem::__set_menu() {
 
 	ADD_MAIN_MENU("Promote to");
 
-	ADD_ACTION("Metadata", "Promote to", s_promote_to_metadata);
+	ADD_MENU("Promote to | Metadata", "Metadata", "Promote to");
+	ADD_ACTION("by Row Name", "Promote to | Metadata", s_promote_to_metadata_by_rowname);
+	ADD_ACTION("by Metadata", "Promote to | Metadata", s_promote_to_metadata_by_metadata);
 
 	ADD_MAIN_MENU("Convert to");
 
@@ -90,12 +93,6 @@ void DataFrameItem::__set_menu() {
 void DataFrameItem::s_view() {
 
 	MetadataViewWindow::view(this->data(), this->signal_emitter_);
-};
-
-void DataFrameItem::update_shape() {
-
-	this->setText(2, "[ " + QString::number(this->data()->mat_.rows()) + " | " + 
-		QString::number(this->data()->mat_.cols()) + " ]");
 };
 
 void DataFrameItem::s_change_data_name() {
@@ -396,14 +393,16 @@ QString DataFrameItem::metadata_insert(
 	const CustomMatrix& from,
 	CustomMatrix& to,
 	int style,
-	int type
+	int type,
+	const QStringList& from_index,
+	const QStringList& to_index
 ) {
 	int match{ 0 };
 	if (style == 0) {
-		match = _Cs intersect_length(from.rownames_, to.rownames_);
+		match = _Cs intersect_length(from_index, to_index);
 
 		if (match == 0) {
-			return "No Row Name Matched!";
+			return "No Content Matched!";
 		}
 	}
 	else {
@@ -414,7 +413,7 @@ QString DataFrameItem::metadata_insert(
 
 		if (style == 0) {
 
-			auto order = _Cs index_of(to.rownames_, from.rownames_);
+			auto order = _Cs index_of(to_index, from_index);
 			for (auto&& [name, data_type] : from.data_type_) {
 				if (data_type == CustomMatrix::DataType::IntegerNumeric) {
 					to.update(name, _Cs reordered(from.get_const_integer_reference(name), order), CustomMatrix::DataType::IntegerNumeric);
@@ -462,7 +461,7 @@ QString DataFrameItem::metadata_insert(
 	QVector<int> order, from_order;
 	int nrow = to.rows();
 	if (style == 0) {
-		order = _Cs index_of(from.rownames_, to.rownames_);
+		order = _Cs index_of(from_index, to_index);
 		from_order = _Cs match(order, [](auto t) {return t >= 0; });
 		order.removeAll(-1);
 	}
@@ -516,7 +515,90 @@ QString DataFrameItem::metadata_insert(
 	return "Finished.";
 };
 
-void DataFrameItem::s_promote_to_metadata() {
+void DataFrameItem::s_promote_to_metadata_by_metadata() {
+
+	G_GETLOCK;
+
+	QMap<QString, QStringList> choices;
+	QMap<QString, Metadata*> metadatas;
+	QStringList available_data;
+	for (auto&& [name, info] : this->signal_emitter_->variable_information_) {
+		auto type = info.first;
+		if (type == soap::VariableType::Metadata) {
+			Metadata* d = static_cast<Metadata*>(info.second);
+			auto string_names = d->mat_.get_type_names(CustomMatrix::DataType::QString);
+			if (!string_names.isEmpty()) {
+				choices[name] = string_names;
+				metadatas[name] = d;
+			}
+		}
+	}
+	if (choices.isEmpty()) {
+		G_NOTICE("No suitable data found.");
+		G_UNLOCK;
+		return;
+	}
+	QStringList promote_settings = CommonDialog::get_response(
+		this->signal_emitter_,
+		"Choose the data attached",
+		{ "Data", "(if)Missing Value"},
+		{ soap::InputStyle::FactorChoice, soap::InputStyle::ComboBox },
+		{  { "Stop", "Fill", "Fill if No Original Value" } },
+		{choices}
+	);
+
+	if (promote_settings.isEmpty()) {
+		G_UNLOCK;
+		return;
+	}
+
+	auto [data_name, level] = factor_choice_to_pair(promote_settings[0]);
+
+	if (level.size() != 1) {
+		G_UNLOCK;
+		return;
+	}
+
+	auto* metadata = metadatas[data_name];
+	auto& d = metadata->mat_;
+
+	QString factor_name = level[0];
+
+	auto factor = d.get_qstring(level[0]);
+
+	if (!_Cs is_unique(factor)) {
+		G_WARN("Choosed Metadata is not unique for mapping");
+		G_UNLOCK;
+		return;
+	}
+
+	QString missing = promote_settings[1];
+	int type{ 0 };
+
+	if (missing == "Stop") {
+		type = 0;
+	}
+	else if (missing == "Fill") {
+		type = 1;
+	}
+	else {
+		type = 2;
+	}
+
+	if (!this->signal_emitter_->try_lock(this->signal_emitter_->search(metadata))) {
+		G_WARN("Please waiting for computation in progress.");
+		G_UNLOCK;
+		return;
+	}
+
+	G_LOG(metadata_insert(this->data()->mat_, d, 0, type, this->data()->mat_.rownames_, factor));
+
+	this->signal_emitter_->unlock(this->signal_emitter_->search(metadata));
+	this->signal_emitter_->x_update_interface();
+	G_UNLOCK;
+}
+
+void DataFrameItem::s_promote_to_metadata_by_rowname() {
 	G_GETLOCK;
 
 	QStringList available_data;
@@ -574,7 +656,7 @@ void DataFrameItem::s_promote_to_metadata() {
 		return;
 	}
 
-	G_LOG(metadata_insert(this->data()->mat_, metadata->mat_, style, type));
+	G_LOG(metadata_insert(this->data()->mat_, metadata->mat_, style, type, this->data()->mat_.rownames_, metadata->mat_.rownames_));
 
 	this->signal_emitter_->unlock(this->signal_emitter_->search(metadata));
 	this->signal_emitter_->x_update_interface();
@@ -582,39 +664,51 @@ void DataFrameItem::s_promote_to_metadata() {
 };
 
 void DataFrameItem::s_delete_first_row() {
+
 	G_GETLOCK;
+	G_UNLOCK;
+
+	this->__data_delete_soon();
+
 	Eigen::ArrayX<bool> filter = Eigen::ArrayX<bool>::Constant(this->data()->mat_.rows(), true);
 	filter[0] = false;
 	this->data()->mat_.row_slice(filter);
 
-	G_UNLOCK;
-
-	update_shape();
+	this->__s_update_interface();
 }
 
 void DataFrameItem::s_delete_first_column() {
+	
 	G_GETLOCK;
+	G_UNLOCK;
+
+	this->__data_delete_soon();
+
 	auto& mat = this->data()->mat_;
 	mat.remove(mat.colnames_[0]);
 
-	G_UNLOCK;
-
-	update_shape();
+	this->__s_update_interface();
 };
 
 void DataFrameItem::s_first_column_as_rowname() {
+
 	G_GETLOCK;
+	G_UNLOCK;
+
+	this->__data_delete_soon();
 
 	auto& mat = this->data()->mat_;
 	mat.rownames_ = _Cs make_unique(mat.get_qstring(mat.colnames_[0]));
 
-	G_UNLOCK;
-
-	update_shape();
+	this->__s_update_interface();
 };
 
 void DataFrameItem::s_choose_columns_remained() {
+	
 	G_GETLOCK;
+	G_UNLOCK;
+
+	this->__data_delete_soon();
 
 	QStringList settings = CommonDialog::get_response(
 		this->signal_emitter_,
@@ -625,7 +719,6 @@ void DataFrameItem::s_choose_columns_remained() {
 	);
 
 	if (settings.isEmpty()) {
-		G_UNLOCK;
 		return;
 	}
 
@@ -633,19 +726,21 @@ void DataFrameItem::s_choose_columns_remained() {
 
 	if (columns_remained.isEmpty()) {
 		G_WARN("No Column is selected.");
-		G_UNLOCK;
 		return;
 	}
 
 	this->data()->mat_.reserve(columns_remained);
 
-	G_UNLOCK;
-	this->update_shape();
+	this->__s_update_interface();
 
 };
 
 void DataFrameItem::s_delete_column() {
+
 	G_GETLOCK;
+	G_UNLOCK;
+
+	this->__data_delete_soon();
 
 	QStringList setting = CommonDialog::get_response(
 		this->signal_emitter_, 
@@ -656,19 +751,46 @@ void DataFrameItem::s_delete_column() {
 	);
 
 	if (setting.isEmpty()) {
-		G_UNLOCK;
 		return;
 	}
 
 	this->data()->mat_.remove(setting[0]);
 
+	this->__s_update_interface();
+};
+
+void DataFrameItem::s_rownames_as_column() {
+
+	G_GETLOCK;
 	G_UNLOCK;
-	update_shape();
+
+	this->__data_delete_soon();
+
+	auto settings = CommonDialog::get_response(
+		this->signal_emitter_,
+		"Set Name",
+		{ "Name" },
+		{ soap::InputStyle::StringLineEdit }
+	);
+
+	if (settings.isEmpty()) {
+		return;
+	}
+
+	auto& mat = this->data()->mat_;
+	mat.update(settings[0], mat.rownames_);
+
+	this->__s_update_interface();
 };
 
 void DataFrameItem::s_column_as_rowname() {
+
 	G_GETLOCK;
-	QStringList setting = CommonDialog::get_response(
+	G_UNLOCK;
+
+	this->__data_delete_soon();
+
+	auto settings = CommonDialog::get_response(
 		this->signal_emitter_, 
 		"Choose Column",
 		{ "Column" },
@@ -676,15 +798,14 @@ void DataFrameItem::s_column_as_rowname() {
 		{ this->data()->mat_.colnames_}
 	);
 
-	if (setting.isEmpty()) {
-		G_UNLOCK;
+	if (settings.isEmpty()) {
 		return;
 	}
-	auto& mat = this->data()->mat_;
-	mat.rownames_ = _Cs make_unique(mat.get_qstring(setting[0]));
 
-	G_UNLOCK;
-	update_shape();
+	auto& mat = this->data()->mat_;
+	mat.rownames_ = _Cs make_unique(mat.get_qstring(settings[0]));
+
+	this->__s_update_interface();
 };
 
 void DataFrameItem::col_slice(const Eigen::ArrayX<bool>& filter, bool in_place) {
@@ -692,7 +813,7 @@ void DataFrameItem::col_slice(const Eigen::ArrayX<bool>& filter, bool in_place) 
 	if (in_place) {
 		this->data()->mat_.col_slice(filter);
 
-		this->update_shape();
+		this->__s_update_interface();
 	}
 	else {
 
@@ -710,7 +831,7 @@ void DataFrameItem::row_slice(const Eigen::ArrayX<bool>& filter, bool in_place) 
 	if (in_place) {
 		this->data()->mat_.row_slice(filter);
 
-		this->update_shape();
+		this->__s_update_interface();
 	}
 	else {
 
@@ -724,7 +845,9 @@ void DataFrameItem::row_slice(const Eigen::ArrayX<bool>& filter, bool in_place) 
 };
 
 void DataFrameItem::s_filter_by_feature() {
+
 	G_GETLOCK;
+	G_UNLOCK;
 
 	LogicHandler lh(&this->data()->mat_);
 
@@ -739,7 +862,6 @@ void DataFrameItem::s_filter_by_feature() {
 	);
 
 	if (settings.isEmpty()) {
-		G_UNLOCK;
 		return;
 	}
 
@@ -748,22 +870,23 @@ void DataFrameItem::s_filter_by_feature() {
 
 	if (filter.count() == 0) {
 		G_WARN("No Data Meets Requirements.");
-		G_UNLOCK;
 		return;
 	}
 	if (filter.count() == filter.size()) {
 		G_WARN("No Data is Excluded.");
-		G_UNLOCK;
 		return;
 	}
 
 	this->row_slice(filter, in_place);
 
-	G_UNLOCK;
+	this->__s_update_interface();
 };
 
 void DataFrameItem::s_first_row_as_colname() {
+
 	G_GETLOCK;
+	G_UNLOCK;
+
 	auto& mat = this->data()->mat_;
 	QStringList row1 = mat.get_row(0), column_names = mat.colnames_;
 	row1 = _Cs make_unique(row1);
@@ -790,15 +913,13 @@ void DataFrameItem::s_first_row_as_colname() {
 		}
 	}
 
-	G_UNLOCK;
-	update_shape();
+	this->__s_update_interface();
 };
 
 
 void DataFrameItem::s_remove_prefix() {
 
 	G_GETLOCK;
-
 	G_UNLOCK;
 
 	this->__data_delete_soon();
@@ -846,7 +967,6 @@ void DataFrameItem::s_remove_prefix() {
 void DataFrameItem::s_remove_suffix() {
 
 	G_GETLOCK;
-
 	G_UNLOCK;
 
 	this->__data_delete_soon();
@@ -894,7 +1014,6 @@ void DataFrameItem::s_remove_suffix() {
 void DataFrameItem::s_remove_until_first() {
 
 	G_GETLOCK;
-
 	G_UNLOCK;
 
 	this->__data_delete_soon();
@@ -992,7 +1111,6 @@ void DataFrameItem::s_remove_from_first() {
 void DataFrameItem::s_remove_until_last() {
 
 	G_GETLOCK;
-
 	G_UNLOCK;
 
 	this->__data_delete_soon();
@@ -1041,7 +1159,6 @@ void DataFrameItem::s_remove_until_last() {
 void DataFrameItem::s_remove_from_last() {
 
 	G_GETLOCK;
-
 	G_UNLOCK;
 
 	this->__data_delete_soon();
@@ -1090,7 +1207,6 @@ void DataFrameItem::s_remove_from_last() {
 void DataFrameItem::s_remove_all() {
 
 	G_GETLOCK;
-
 	G_UNLOCK;
 
 	this->__data_delete_soon();
@@ -1135,7 +1251,6 @@ void DataFrameItem::s_remove_all() {
 void DataFrameItem::s_remove_first() {
 
 	G_GETLOCK;
-
 	G_UNLOCK;
 
 	auto&& metadata = this->data()->mat_;
@@ -1184,7 +1299,6 @@ void DataFrameItem::s_remove_first() {
 void DataFrameItem::s_add_suffix() {
 
 	G_GETLOCK;
-
 	G_UNLOCK;
 
 	this->__data_delete_soon();
@@ -1229,7 +1343,6 @@ void DataFrameItem::s_add_suffix() {
 void DataFrameItem::s_add_prefix() {
 
 	G_GETLOCK;
-
 	G_UNLOCK;
 
 	this->__data_delete_soon();
@@ -1274,7 +1387,6 @@ void DataFrameItem::s_add_prefix() {
 void DataFrameItem::s_remove_last() {
 
 	G_GETLOCK;
-
 	G_UNLOCK;
 
 	this->__data_delete_soon();
@@ -1325,7 +1437,6 @@ void DataFrameItem::s_remove_last() {
 void DataFrameItem::s_slice_data() {
 
 	G_GETLOCK;
-
 	G_UNLOCK;
 
 	this->__data_delete_soon();

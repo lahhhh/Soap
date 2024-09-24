@@ -10,8 +10,6 @@
 
 #include "Serialization.h"
 
-#include "windows.h"
-
 class ItemDatabase
 {
 public:

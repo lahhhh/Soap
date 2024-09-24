@@ -1,5 +1,7 @@
-#include "MainWindow.h"
+#include <WinSock2.h>
+#include <boost/process.hpp>
 
+#include "MainWindow.h"
 #include <iostream>
 
 #include <QFileDialog>
@@ -181,76 +183,7 @@ void MainWindow::set_left_layout() {
 	this->left_layout_->setStretchFactor(this->information_area_, 5);
 };
 
-
-#include "ItemDatabase.h"
-#include "GenomeUtility.h"
-#include "FileIO.h"
 void MainWindow::s_test() {
-	GenomicRange genome;
-	bool success = ItemDatabase::read_item(FILE_HUMAN_GENOME_GENOMIC_RANGE_GCS, genome);
-
-	if (!success) {
-		return;
-	}
-
-	auto settings = CommonDialog::get_response(
-		nullptr,
-		"settings",
-		{ "f" },
-		{ soap::InputStyle::ChooseOpenFile }
-	);
-
-	if (settings.isEmpty()) {
-		return;
-	}
-
-	std::unique_ptr<CustomMatrix> mat(read_table(settings[0]));
-
-	if (mat == nullptr) {
-		return;
-	}
-
-	int nrow = mat->rows();
-
-	if (nrow > 100) {
-		Eigen::ArrayX<bool> ff = Eigen::ArrayX<bool>::Constant(nrow, false);
-
-		ff.segment(0, 100) = true;
-
-		mat->row_slice(ff);
-	}
-
-	if (!mat->contains("regionname", CustomMatrix::DataType::QString)) {
-		return;
-	}
-
-	QStringList gene_names = _Cs sapply(mat->get_const_qstring_reference("regionname"), [&genome](auto&& r) {
-		return _Cs merge_to_string(genome.find_gene(r), ",");
-	});
-
-	mat->update("genename", gene_names);
-
-	settings = CommonDialog::get_response(
-		nullptr,
-		"settings",
-		{ "outf" },
-		{ soap::InputStyle::ChooseSaveFile }
-	);
-
-	if (settings.isEmpty()) {
-		return;
-	}
-
-	QFile file(settings[0]);
-
-	if (!file.open(QIODevice::WriteOnly | QIODevice::Text)) {
-		G_WARN("Fi");
-		return;
-	}
-
-	QTextStream st(&file);
-
-	write_csv(*mat, st, {});
 };
 
 void MainWindow::set_utility_menu() {
@@ -263,11 +196,11 @@ void MainWindow::set_utility_menu() {
 
 	menu_create_string_vector->addAction("From Input", this, &MainWindow::s_create_string_vector_from_input);
 
-	menu_utility->addAction("Test", this, &MainWindow::s_test);
+	//menu_utility->addAction("Test", this, &MainWindow::s_test);
 
-	auto menu_developer = menu_utility->addMenu("Developer");
+	//auto menu_developer = menu_utility->addMenu("Developer");
 	
-	menu_developer->addAction("Generate Wix File", this, &MainWindow::s_generate_wix);
+	//menu_developer->addAction("Generate Wix File", this, &MainWindow::s_generate_wix);
 };
 
 void MainWindow::s_create_string_vector_from_input() {

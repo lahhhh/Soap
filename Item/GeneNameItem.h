@@ -35,6 +35,8 @@ private slots:
 	void s_remove_empty_elements();
 	void s_remove_elements_by_regular_expression();
 	void s_remove_elements_by_chromosome_location();
+
+	void s_convert_to_string_vector();
 };
 
 

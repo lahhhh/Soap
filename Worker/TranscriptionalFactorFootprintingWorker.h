@@ -62,7 +62,7 @@ public:
 	soap::Species species_;
 	const MotifPosition* motif_position_{ nullptr };
 
-	std::vector<std::string> transcriptional_factor_names_;
+	QStringList transcriptional_factor_names_;
 
 	QString output_directory_;
 	QString picture_name_;

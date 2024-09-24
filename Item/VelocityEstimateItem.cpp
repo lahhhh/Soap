@@ -18,7 +18,7 @@ void VelocityEstimateItem::__set_menu() {
 
 	ADD_MAIN_ACTION("Rename", __s_rename);
 
-	ADD_MAIN_MENU("Show Embedding Velocity");
+	ADD_MAIN_MENU("Show Embedding Velocity [Very Slow]");
 
 	ADD_ACTION("by grid", "Show Embedding Velocity", s_show_embedding_velocity_by_grid);
 	ADD_ACTION("by stream", "Show Embedding Velocity", s_show_embedding_velocity_by_stream);

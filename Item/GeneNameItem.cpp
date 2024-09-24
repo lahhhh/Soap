@@ -13,6 +13,7 @@
 
 #include "EnrichWorker.h"
 #include "GenomeUtility.h"
+#include "StringVector.h"
 
 void GeneNameItem::__s_update_interface() {
 	
@@ -114,8 +115,14 @@ void GeneNameItem::__set_menu() {
 	ADD_ACTION("GO", "Enrich", s_enrich_go);
 	ADD_ACTION("KEGG", "Enrich", s_enrich_kegg);
 
+	ADD_MAIN_MENU("Convert");
+
+	ADD_ACTION("String Vector", "Convert", s_convert_to_string_vector);
+
 	ADD_MAIN_MENU("Export");
 	ADD_ACTION("as Item", "Export", __s_export_as_item);
+	ADD_ACTION("as CSV", "Export", __s_export_as_csv);
+	ADD_ACTION("as TSV", "Export", __s_export_as_tsv);
 
 	ADD_MAIN_ACTION("Delete", __s_delete_this);
 
@@ -328,4 +335,11 @@ void GeneNameItem::s_remove_elements_by_chromosome_location() {
 	this->data()->data_ = d;
 
 	this->__s_update_interface();
+};
+
+void GeneNameItem::s_convert_to_string_vector() {
+
+	StringVector* sv = new StringVector(this->data()->data_);
+
+	this->signal_emitter_->x_data_create_soon(sv, soap::VariableType::StringVector, "Converted From " + this->title_);
 };

@@ -524,7 +524,7 @@ void CustomMatrix::remove(const QString& name) {
 QStringList CustomMatrix::get_qstring(const QString& name) const {
 
 	if (!this->data_.contains(name)) {
-		return QStringList();
+		return {};
 	}
 
 	auto type = this->data_type_.at(name);
@@ -540,7 +540,7 @@ QStringList CustomMatrix::get_qstring(const QString& name) const {
 		return *static_cast<QStringList *>(ptr);
 	}
 	else {
-		return QStringList();
+		return {};
 	}
 }
 

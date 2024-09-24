@@ -20,15 +20,15 @@ public:
 
 	void __s_update_interface() override;
 
-	void update_shape();
-
-	// style : 0 - by row name, 1 - by row order
+	// style : 0 - by content, 1 - by order
 	// type : 0 - stop, 1 - fill, 2 - fill if no original
 	static QString metadata_insert(
 		const CustomMatrix& from,
 		CustomMatrix& to,
 		int style,
-		int type = 0
+		int type,
+		const QStringList& from_index,
+		const QStringList& to_index
 	);
 
 	void col_slice(const Eigen::ArrayX<bool>& filter, bool in_place);
@@ -44,6 +44,7 @@ private slots:
 	void s_choose_columns_remained();
 	void s_delete_column();
 
+	void s_rownames_as_column();
 	void s_column_as_rowname();
 	void s_first_row_as_colname();
 	void s_first_column_as_rowname();
@@ -63,7 +64,8 @@ private slots:
 	void s_add_prefix();
 	void s_add_suffix();
 
-	void s_promote_to_metadata();
+	void s_promote_to_metadata_by_rowname();
+	void s_promote_to_metadata_by_metadata();
 
 	void s_convert_to_genome_annotation();
 	void s_convert_to_numeric_matrix();

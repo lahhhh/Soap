@@ -35,4 +35,6 @@ private slots:
 	void s_show_selected();
 
 	void s_mountain_plot();
+
+	void s_extract_pathway_names();
 };

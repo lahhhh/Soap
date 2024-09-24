@@ -45,6 +45,7 @@ void MetadataItem::__set_menu() {
 	ADD_ACTION("Remove From Last", "Edit", s_remove_from_last);
 	ADD_ACTION("Remove Until First", "Edit", s_remove_until_first);
 	ADD_ACTION("Remove Until Last", "Edit", s_remove_until_last);
+	ADD_ACTION("Row Name as Column", "Edit", s_rownames_as_column);
 	ADD_ACTION("Add Prefix", "Edit", s_add_prefix);
 	ADD_ACTION("Add Suffix", "Edit", s_add_suffix);
 
@@ -58,11 +59,38 @@ void MetadataItem::__set_menu() {
 
 }
 
+
+void MetadataItem::s_rownames_as_column() {
+
+	G_GETLOCK;
+	G_UNLOCK;
+
+	this->__data_delete_soon();
+
+	auto settings = CommonDialog::get_response(
+		this->signal_emitter_,
+		"Set Name",
+		{ "Name" },
+		{ soap::InputStyle::StringLineEdit }
+	);
+
+	if (settings.isEmpty()) {
+		return;
+	}
+
+	auto& mat = this->data()->mat_;
+	mat.update(settings[0], mat.rownames_);
+
+	this->__s_update_interface();
+};
+
 void MetadataItem::s_delete_metadata() {
 
 	G_GETLOCK;
 
 	G_UNLOCK;
+
+	this->__data_delete_soon();
 
 	QStringList settings = CommonDialog::get_response(
 		this->signal_emitter_,

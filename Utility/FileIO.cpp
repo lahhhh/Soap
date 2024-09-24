@@ -87,10 +87,20 @@ void write_sv(
 	QTextStream& out,
 	const QChar delimiter,
 	bool quote,
+	bool keep_rownames,
+	bool keep_colnames) {
+
+	write_sv(s, out, delimiter, quote);
+};
+
+void write_sv(
+	const QStringList& s,
+	QTextStream& out,
+	const QChar delimiter,
+	bool quote,
 	const QStringList& rownames,
 	const QStringList& colnames)
 {
-
 	const int nrow = s.size();
 	const int ncol{ 1 };
 

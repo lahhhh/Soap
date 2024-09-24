@@ -29,6 +29,7 @@ private slots:
 
 	void s_extract();
 
+	void s_rownames_as_column();
 	void s_delete_metadata();
 	void s_change_data_type();
 	void s_change_data_name();

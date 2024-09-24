@@ -26,7 +26,7 @@ void VelocytoBaseItem::__set_menu() {
 	ADD_MAIN_MENU("Export");
 	ADD_ACTION("as Item", "Export", __s_export_as_item);
 
-	ADD_MAIN_ACTION("Estimate Velocity", s_estimate_velocity);
+	ADD_MAIN_ACTION("Estimate Velocity [Very Slow]", s_estimate_velocity);
 	ADD_MAIN_ACTION("Estimate Scvelo", s_estimate_scvelo);
 
 	ADD_MAIN_ACTION("Delete", __s_delete_this);

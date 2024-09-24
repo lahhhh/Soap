@@ -6,6 +6,8 @@
 #include <QStringList>
 #include <QMap>
 
+// deprecated
+
 class CellChat
 {
 public:

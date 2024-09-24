@@ -45,7 +45,6 @@ GSEA::GSEA(
 		QColor(69, 0, 173, 221) 
 	};
 
-	
 	this->bar_points_ = QVector<double>(length2);
 	this->bar_points_[0] = 0;
 	this->bar_points_[length2 - 1] = length - 1;
@@ -67,10 +66,12 @@ GSEA::GSEA(
 			this->bar_colors_ << negative_color[std::max(std::min((int)(-color_degree), 5), 0)];
 		}
 	}
+
 	this->mat_.set_rownames(this->pathways_);
 	QVector<double> enrichment_score, normalized_enrichment_score, p_value, family_wise_error_rate, false_discovery_rate;
 	QVector<int> pathway_size;
 	for (const auto& path : this->pathways_) {
+
 		enrichment_score << es[path];
 		normalized_enrichment_score << nes[path];
 		p_value << p[path];
@@ -78,6 +79,7 @@ GSEA::GSEA(
 		family_wise_error_rate << fwer[path];
 		false_discovery_rate << fdr[path];
 	}
+
 	this->mat_.update(METADATA_GSEA_ENRICHMENT_SCORE, enrichment_score);
 	this->mat_.update(METADATA_GSEA_NORMALIZED_ENRICHMENT_SCORE, normalized_enrichment_score);
 	this->mat_.update(METADATA_GSEA_P_VALUE, p_value);
@@ -85,6 +87,7 @@ GSEA::GSEA(
 	this->mat_.update(METADATA_GSEA_FALSE_DISCOVERY_RATE, false_discovery_rate);
 	this->mat_.update(METADATA_GSEA_FAMILY_WISE_ERROR_RATE, family_wise_error_rate);
 	this->mat_.row_reorder(_Cs order(this->mat_.get_const_double_reference(METADATA_GSEA_P_VALUE)));
+
 }
 
 bool GSEA::is_empty() const {

@@ -28,6 +28,8 @@ void StringVectorItem::__set_menu() {
 
 	ADD_MAIN_MENU("Export");
 	ADD_ACTION("as Item", "Export", __s_export_as_item);
+	ADD_ACTION("as CSV", "Export", __s_export_as_csv);
+	ADD_ACTION("as TSV", "Export", __s_export_as_tsv);
 
 	ADD_MAIN_ACTION("Delete", __s_delete_this);
 

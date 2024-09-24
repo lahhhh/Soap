@@ -131,9 +131,6 @@ private slots:
 	void s_gsea();
 	void s_receive_gsea(GSEA gsea);
 
-	void s_cellchat_default();
-	void s_receive_cellchat(CellChat cellchat);
-
 	void s_scicnv();
 	void s_receive_scicnv(CNV* cnv);
 

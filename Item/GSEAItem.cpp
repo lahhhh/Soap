@@ -6,6 +6,8 @@
 #include "CustomPlot.h"
 #include "FileWritingWorker.h"
 
+#include "StringVector.h"
+
 void GSEAItem::__s_update_interface() {
 
 	this->setText(2, "[ " + QString::number(this->data()->mat_.rows()) + " ]");
@@ -32,6 +34,8 @@ void GSEAItem::__set_menu() {
 
 	ADD_MAIN_ACTION("Show Selected Pathway", s_show_selected);
 
+	ADD_MAIN_ACTION("Extract Pathway Names", s_extract_pathway_names);
+
 	ADD_MAIN_MENU("Export");
 	ADD_ACTION("as Item", "Export", __s_export_as_item);
 	ADD_ACTION("as CSV", "Export", __s_export_as_csv);
@@ -39,6 +43,54 @@ void GSEAItem::__set_menu() {
 
 	ADD_MAIN_ACTION("Delete", __s_delete_this);
 }
+
+void GSEAItem::s_extract_pathway_names() {
+	QStringList settings = CommonDialog::get_response(
+		this->signal_emitter_,
+		"Significance Setting",
+		{ "P Threshold(<):0.05", "P Type", "Regulation Type" },
+		{ soap::InputStyle::NumericLineEdit, soap::InputStyle::ComboBox, soap::InputStyle::ComboBox },
+		{ { "Nominal", "FDR", "FWER" }, { "All", "Upregulated", "Downregulated" } }
+	);
+
+	if (settings.isEmpty())return;
+
+	double threshold = settings[0].toDouble();
+	if (threshold <= 0 || threshold > 1) {
+		G_LOG("Invalid p threshold. Reset to 0.05");
+		threshold = 0.05;
+	}
+
+	Eigen::ArrayX<bool> filter;
+	if (settings[1] == "Nominal") {
+		filter = _Cs less_than(this->data()->mat_.get_const_double_reference(METADATA_GSEA_P_VALUE), threshold);
+	}
+	else if (settings[1] == "FDR") {
+		filter = _Cs less_than(this->data()->mat_.get_const_double_reference(METADATA_GSEA_FALSE_DISCOVERY_RATE), threshold);
+	}
+	else {
+		filter = _Cs less_than(this->data()->mat_.get_const_double_reference(METADATA_GSEA_FAMILY_WISE_ERROR_RATE), threshold);
+	}
+
+	QString regulate_type = settings[2];
+	if (regulate_type == "Upregulated") {
+		filter *= _Cs greater_than(this->data()->mat_.get_const_double_reference(METADATA_GSEA_ENRICHMENT_SCORE), 0.);
+	}
+	else if (regulate_type == "Downregulated") {
+		filter *= _Cs less_than(this->data()->mat_.get_const_double_reference(METADATA_GSEA_ENRICHMENT_SCORE), 0.);
+	}
+
+	if (filter.count() == 0) {
+		G_NOTICE("No Result.");
+		return;
+	}
+
+	QStringList pathway_names = _Cs sliced(this->data()->mat_.rownames_, filter);
+
+	StringVector* sv = new StringVector(pathway_names);
+
+	this->signal_emitter_->x_data_create_soon(sv, soap::VariableType::StringVector, "Extracted Feature Names");
+};
 
 void GSEAItem::s_show_significant() {
 	QStringList settings = CommonDialog::get_response(

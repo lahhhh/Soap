@@ -1,5 +1,8 @@
 #include "Nls.h"
 
+constexpr double DERIV_STEP = 1e-5;
+constexpr int MAX_ITER = 100;
+
 double derive(double (*func)(double, const Eigen::ArrayXd&), double input, Eigen::ArrayXd params, int n) {
 	Eigen::ArrayXd params1 = params;
 	params[n] -= DERIV_STEP;

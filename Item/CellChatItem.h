@@ -15,14 +15,4 @@ public:
 	void __set_menu() override;
 
 private slots:
-
-	void s_show_interaction_numbers();
-
-	void s_show_interaction_weights();
-
-	void s_show_interaction_probability();
-
-	void s_show_interaction_p_value();
-
-	void s_show_pathway_probability();
 };

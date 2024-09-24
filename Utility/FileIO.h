@@ -104,6 +104,14 @@ void write_sv(
 	const QStringList& rownames = {},
 	const QStringList& colnames = {});
 
+void write_sv(
+	const QStringList& s,
+	QTextStream& out,
+	const QChar delimiter,
+	bool quote,
+	bool keep_rownames,
+	bool keep_colnames);
+
 
 std::map<QString, PatternWeightMatrix> read_motif_database(const QString& file_name);
 

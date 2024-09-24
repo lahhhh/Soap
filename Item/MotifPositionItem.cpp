@@ -221,6 +221,8 @@ void MotifPositionItem::s_show_typical_binding_sequence() {
 
 	int count{ 0 };
 
+	QStringList res;
+
 	for (int i = 0; i < n_loc; ++i) {
 
 		if (count > 9) {
@@ -235,9 +237,15 @@ void MotifPositionItem::s_show_typical_binding_sequence() {
 
 		auto [name, start, end, strand] = loc.at(i);
 
-		G_LOG("Sequence [" + QString::number(count) + "] " + name + ":" + QString::number(start) + "-" + QString::number(end)
-			+ " " + strand + " " + seqs[i]);
+		res << name + ":" + QString::number(start) + "-" + QString::number(end)
+			+ " | " + strand + " | " + seqs[i];
 	}
+
+	if (res.isEmpty()) {
+		return;
+	}
+
+	MatrixWindow::show_matrix(&res, "Binding Sequence of " + tf_name, this->signal_emitter_);
 
 };
 
