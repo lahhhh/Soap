@@ -1,5 +1,8 @@
 #include "BamFileProcessor.h"
 
+#define STORAGE_CAPACITY 800000
+#define BUFFER_CAPACITY 65536
+
 #define NEED_BYTES(n_bytes) \
 	if(!this->need_bytes(n_bytes)){ return false; }
 
@@ -9,9 +12,9 @@
 BamFileProcessor::BamFileProcessor(const std::string& bam_file_name) :
 	bam_file_name_(bam_file_name)
 {
-	this->uncompressed_ = new char[131073];
+	this->uncompressed_ = new char[STORAGE_CAPACITY];
 
-	this->buffer_ = new char[65536];
+	this->buffer_ = new char[BUFFER_CAPACITY];
 
 	this->stream_.zalloc = Z_NULL;
 	this->stream_.zfree = Z_NULL;
@@ -26,12 +29,10 @@ BamFileProcessor::~BamFileProcessor() {
 
 bool BamFileProcessor::read_block() {
 
+	auto buffer_left_size = this->uncompressed_end_ - this->reading_location_;
 
-	auto buffer_left_size = this->left_content();
-
-
-	// unprocessed content size should be less than 65536 bytes 
-	if (buffer_left_size > 65536) {
+	// no enough space 
+	if (STORAGE_CAPACITY - buffer_left_size < 65536) {
 		return false;
 	}
 
@@ -600,7 +601,7 @@ int32_t BamFileProcessor::get_ref_id() {
 
 bool BamFileProcessor::need_bytes(std::size_t n_bytes)
 {
-	while (this->left_content() < n_bytes) {
+	while (this->uncompressed_end_ - this->reading_location_ < n_bytes) {
 		if (!this->read_block()) {
 			return false;
 		}
@@ -615,11 +616,8 @@ void BamFileProcessor::read(void* dest, std::size_t length) {
 	this->reading_location_ += length;
 }
 
-std::ptrdiff_t BamFileProcessor::left_content() {
-	return this->uncompressed_end_ - this->reading_location_;
-}
-
 bool BamFileProcessor::process_header() {
+
 	if (!this->open_file()) {
 		return false;
 	}

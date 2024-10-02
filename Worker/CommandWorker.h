@@ -10,9 +10,9 @@ class CommandWorker
 	Q_OBJECT
 public:
 
-	CommandWorker(const QStringList& cmd) : command_(cmd) {};
+	CommandWorker(const QString& cmd) : command_(cmd) {};
 
-	QStringList command_;
+	QString command_;
 
 	QProcess* p_{ nullptr };
 

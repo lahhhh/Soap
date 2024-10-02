@@ -1,7 +1,7 @@
 #include "CountMatrixReadingWorker.h"
 
 #include "Custom.h"
-#include <QtConcurrent/QtConcurrent>
+#include <QtConcurrent>
 
 CountMatrixReadingWorker::CountMatrixReadingWorker(const QString& file_path, const QString& delimiter) :
 	file_path_(file_path),

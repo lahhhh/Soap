@@ -1,7 +1,7 @@
 #include "TranscriptionalFactorFootprintingWorker.h"
 
 #include <zlib.h>
-#include <QtConcurrent/QtConcurrent>
+#include <QtConcurrent>
 
 #include "GenomeUtility.h"
 #include "Custom.h"

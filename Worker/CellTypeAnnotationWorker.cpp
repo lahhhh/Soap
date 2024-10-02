@@ -97,7 +97,6 @@ void CellTypeAnnotationWorker::assign_type() {
 
 		int n_level = levels.size();
 
-	#pragma omp parallel for
 		for (int i = 0; i < n_level; ++i) {
 			auto cluster_index = _Cs match(this->cluster_, levels[i]);
 			Eigen::ArrayXd cluster_exp = this->query_expression_(Eigen::all, cluster_index).rowwise().mean();

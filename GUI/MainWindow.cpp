@@ -184,6 +184,82 @@ void MainWindow::set_left_layout() {
 };
 
 void MainWindow::s_test() {
+
+	//QString cmd = qApp->applicationDirPath() + "/Resources/External/java/jdk-17.0.12/bin/java.exe";
+
+	////cmd += " -jar E:/novelgene/gatk-4.6.0.0/gatk-package-4.6.0.0-local.jar";
+
+	//cmd += " -jar E:/novelgene/picard.jar SortSam -CREATE_INDEX true -INPUT E:/novelgene/bn1/BN1_bwa.bam "
+	//	"-OUTPUT E:/novelgene/bn1/BN1_bwa.sorted.bam -SORT_ORDER coordinate -VALIDATION_STRINGENCY STRICT";
+
+	//QString cmd = qApp->applicationDirPath() + "/Resources/External/samtools/samtools.exe view -Shb -@ 10 E:/novelgene/bn1/BN1_bwa.sam > E:/novelgene/bn1/BN1_bwa.bam";
+
+	//cmd += " -jar E:/novelgene/picard.jar MarkDuplicates -CREATE_INDEX true -REMOVE_DUPLICATES false -INPUT E:/novelgene/bn1/BN1_bwa.sorted.bam "
+	//	"-OUTPUT E:/novelgene/bn1/BN1_bwa.rp.bam -METRICS_FILE BN1_bwa.bam.metrics";
+
+	//cmd += " -jar E:\\novelgene\\picard.jar CreateSequenceDictionary -R E:\\dataSpace\\gatk_human_genome\\Homo_sapiens_assembly38.fasta"
+	//	" -O E:\\dataSpace\\gatk_human_genome\\Homo_sapiens_assembly38.dict";
+
+	//cmd += " -jar E:\\novelgene\\gatk-4.6.0.0\\gatk-package-4.6.0.0-local.jar BaseRecalibrator"
+	//	" -R E:\\dataSpace\\gatk_human_genome\\Homo_sapiens_assembly38.fasta"
+	//	" --known-sites E:\\dataSpace\\gatk_db\\Mills_and_1000G_gold_standard.indels.hg38.vcf.gz"
+	//	" --known-sites E:\\dataSpace\\gatk_db\\Homo_sapiens_assembly38.dbsnp138.vcf"
+	//	" --known-sites E:\\dataSpace\\gatk_db\\1000G_phase1.snps.high_confidence.hg38.vcf.gz"
+	//	" -I E:\\novelgene\\bn1\\BN1_bwa.rp.bam -O E:\\novelgene\\bn1\\BN1_bwa.bqsr.grp";
+
+	//cmd += " -jar E:\\novelgene\\gatk-4.6.0.0\\gatk-package-4.6.0.0-local.jar ApplyBQSR"
+	//	" -R E:\\dataSpace\\gatk_human_genome\\Homo_sapiens_assembly38.fasta --bqsr-recal-file E:\\novelgene\\bn1\\BN1_bwa.bqsr.grp"
+	//	" -I E:\\novelgene\\bn1\\BN1_bwa.rp.bam -O E:\\novelgene\\bn1\\BN1_bwa.bqsr.bam";
+
+	//cmd += " -jar E:\\novelgene\\gatk-4.6.0.0\\gatk-package-4.6.0.0-local.jar HaplotypeCaller"
+	//	" -R E:\\dataSpace\\gatk_human_genome\\Homo_sapiens_assembly38.fasta"
+	//	" -I E:\\novelgene\\bn1\\BN1_bwa.bqsr.bam -O E:\\novelgene\\bn1\\BN1_bwa.HC.vcf"
+	//	" -D E:\\dataSpace\\gatk_db\\dbsnp_146.hg38.vcf.gz"
+	//	" -stand-call-conf 50 -A QualByDepth -A RMSMappingQuality -A MappingQualityRankSumTest -A ReadPosRankSumTest -A FisherStrand -A StrandOddsRatio -A Coverage";
+
+	//cmd += " -jar E:\\novelgene\\gatk-4.6.0.0\\gatk-package-4.6.0.0-local.jar VariantRecalibrator"
+	//	" -R E:\\dataSpace\\gatk_human_genome\\Homo_sapiens_assembly38.fasta"
+	//	" --variant E:\\novelgene\\bn1\\BN1_bwa.HC.vcf"
+	//	" --resource:hapmap,known=false,training=true,truth=true,prior=15.0 E:\\dataSpace\\gatk_db\\hapmap_3.3.hg38.vcf.gz"
+	//	" --resource:omini,known=false,training=true,truth=false,prior=12.0 E:\\dataSpace\\gatk_db\\1000G_omni2.5.hg38.vcf.gz"
+	//	" --resource:1000G,known=false,training=true,truth=false,prior=10.0 E:\\dataSpace\\gatk_db\\1000G_phase1.snps.high_confidence.hg38.vcf.gz"
+	//	" --resource:dbsnp,known=true,training=false,truth=false,prior=6.0 E:\\dataSpace\\gatk_db\\dbsnp_146.hg38.vcf.gz"
+	//	" -an QD -an MQ -an MQRankSum -an ReadPosRankSum -an FS -an SOR -an DP "
+	//	" -mode SNP"
+	//	" -O E:\\novelgene\\bn1\\BN1_bwa.HC.snps.recal"
+	//	" --tranches-file E:\\novelgene\\bn1\\BN1_bwa.HC.snps.tranches"
+	//	" --rscript-file E:\\novelgene\\bn1\\BN1_bwa.HC.snps.plots.R --dont-run-rscript";
+
+	//cmd += " -jar E:\\novelgene\\gatk-4.6.0.0\\gatk-package-4.6.0.0-local.jar ApplyVQSR"
+	//	" -R E:\\dataSpace\\gatk_human_genome\\Homo_sapiens_assembly38.fasta"
+	//	" --variant E:\\novelgene\\bn1\\BN1_bwa.HC.vcf"
+	//	" --tranches-file E:\\novelgene\\bn1\\BN1_bwa.HC.snps.tranches"
+	//	" --recal-file E:\\novelgene\\bn1\\BN1_bwa.HC.snps.recal"
+	//	" -mode SNP"
+	//	" -O E:\\novelgene\\bn1\\BN1_bwa.HC.snps.VQSR.vcf";
+
+	//cmd += " -jar E:\\novelgene\\gatk-4.6.0.0\\gatk-package-4.6.0.0-local.jar VariantRecalibrator"
+	//	" -R E:\\dataSpace\\gatk_human_genome\\Homo_sapiens_assembly38.fasta"
+	//	" --variant E:\\novelgene\\bn1\\BN1_bwa.HC.snps.VQSR.vcf"
+	//	" --resource:mills,known=false,training=true,truth=true,prior=15.0 E:\\dataSpace\\gatk_db\\Mills_and_1000G_gold_standard.indels.hg38.vcf.gz"
+	//	" -an QD -an MQRankSum -an ReadPosRankSum -an FS -an SOR -an DP "
+	//	" -mode INDEL"
+	//	" -O E:\\novelgene\\bn1\\BN1_bwa.HC.indels.recal"
+	//	" --tranches-file E:\\novelgene\\bn1\\BN1_bwa.HC.indels.tranches"
+	//	" --rscript-file E:\\novelgene\\bn1\\BN1_bwa.HC.indels.plots.R --dont-run-rscript";
+
+	//cmd += " -jar E:\\novelgene\\gatk-4.6.0.0\\gatk-package-4.6.0.0-local.jar ApplyVQSR"
+	//	" -R E:\\dataSpace\\gatk_human_genome\\Homo_sapiens_assembly38.fasta"
+	//	" --variant E:\\novelgene\\bn1\\BN1_bwa.HC.snps.VQSR.vcf"
+	//	" --tranches-file E:\\novelgene\\bn1\\BN1_bwa.HC.indels.tranches"
+	//	" --recal-file E:\\novelgene\\bn1\\BN1_bwa.HC.indels.recal"
+	//	" -mode INDEL"
+	//	" -O E:\\novelgene\\bn1\\BN1_bwa.HC.snps.indels.VQSR.vcf";
+
+
+	//CommandWorker* worker = new CommandWorker(cmd);
+
+	//G_LINK_WORKER_THREAD_NO_RESPONSE(CommandWorker, MainWindow);
 };
 
 void MainWindow::set_utility_menu() {

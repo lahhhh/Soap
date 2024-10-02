@@ -1,7 +1,7 @@
 #include "GseaWorker.h"
 
 #include "Custom.h"
-#include <QtConcurrent/QtConcurrent>
+#include <QtConcurrent>
 
 GseaWorker::GseaWorker(
 	const SparseDouble& sd,

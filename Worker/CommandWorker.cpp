@@ -1,17 +1,12 @@
 #include "CommandWorker.h"
 
+#include <QRegularExpression>
+
 void CommandWorker::run() {
 
     if (this->command_.isEmpty()) {
         G_TASK_WARN("Illegal Command.");
         G_TASK_END;
-    }
-
-    QString program = this->command_[0];
-
-    QStringList params;
-    if (this->command_.size() > 1) {
-        params = this->command_.sliced(1);
     }
 
     this->p_ = new QProcess();
@@ -21,12 +16,12 @@ void CommandWorker::run() {
     connect(this->p_, QOverload<int, QProcess::ExitStatus>::of(&QProcess::finished),
         this, &CommandWorker::finished);
 
-    this->p_->start(program, params);
+    this->p_->start("cmd.exe", QStringList{"/C", this->command_});
 };
 
 void CommandWorker::finished(int exit_code, QProcess::ExitStatus exit_status) {
 
-    G_TASK_LOG("Process [" + this->command_.join(" ") + "] finished. Exit code : " + QString::number(exit_code) + ".");
+    G_TASK_LOG("Process [" + this->command_ + "] finished. Exit code : " + QString::number(exit_code) + ".");
 
     this->p_->close();
     this->p_->deleteLater();
@@ -38,6 +33,7 @@ void CommandWorker::output() {
 
     QByteArray data = this->p_->readAllStandardOutput();
     QString text = QString::fromLocal8Bit(data);
+    text.remove(QRegularExpression("\x1B\\[[0-9;]*[A-Za-z]"));
 
     G_TASK_LOG(text);
 };
@@ -46,6 +42,7 @@ void CommandWorker::error() {
 
     QByteArray data = this->p_->readAllStandardError();
     QString text = QString::fromLocal8Bit(data);
+    text.remove(QRegularExpression("\x1B\\[[0-9;]*[A-Za-z]"));
 
     G_TASK_WARN(text);
 };

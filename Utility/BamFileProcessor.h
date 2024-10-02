@@ -70,8 +70,6 @@ public:
 
 	bool process_header();
 
-	std::ptrdiff_t left_content();
-
 	// no check
 	void read(void* dest, std::size_t length);
 

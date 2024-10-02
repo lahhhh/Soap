@@ -1,7 +1,7 @@
 #include "CountMatrixBatchLoadingWorker.h"
 
 #include <QFile>
-#include <QtConcurrent/QtConcurrent>
+#include <QtConcurrent>
 
 void CountMatrixBatchLoadingWorker::run() {
 
