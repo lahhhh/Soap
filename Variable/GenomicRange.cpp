@@ -30,9 +30,9 @@ QStringList GenomicRange::find_chromosome_gene(const QString& chromosome) const 
 		return {};
 	}
 
-	auto filter = this->sequence_names_ == _Cs standardize_chromosome_name(chromosome);
+	auto filter = this->sequence_names_ == custom::standardize_chromosome_name(chromosome);
 
-	return _Cs sliced(this->metadata_.get_const_qstring_reference(METADATA_GENOMIC_RANGE_GENE_NAME), filter);
+	return custom::sliced(this->metadata_.get_const_qstring_reference(METADATA_GENOMIC_RANGE_GENE_NAME), filter);
 };
 
 QStringList GenomicRange::find_gene(const QString& region) const {
@@ -41,7 +41,7 @@ QStringList GenomicRange::find_gene(const QString& region) const {
 		return {};
 	}
 
-	auto [seq_name, start, end, success] = _Cs string_to_peak(region);
+	auto [seq_name, start, end, success] = custom::string_to_peak(region);
 
 	if (!success) {
 		return {};
@@ -52,10 +52,10 @@ QStringList GenomicRange::find_gene(const QString& region) const {
 		return {};
 	}
 
-	auto g_start = _Cs sliced(this->ranges_.start_, sequence_filter);
-	auto g_end = _Cs sliced(_Cs add(this->ranges_.start_, this->ranges_.width_), sequence_filter);
+	auto g_start = custom::sliced(this->ranges_.start_, sequence_filter);
+	auto g_end = custom::sliced(custom::add(this->ranges_.start_, this->ranges_.width_), sequence_filter);
 
-	QStringList gene_name = _Cs sliced(this->metadata_.get_const_qstring_reference(METADATA_GENOMIC_RANGE_GENE_NAME), sequence_filter);
+	QStringList gene_name = custom::sliced(this->metadata_.get_const_qstring_reference(METADATA_GENOMIC_RANGE_GENE_NAME), sequence_filter);
 	QStringList res;
 	const qsizetype sequence_size = g_start.size();
 	for (qsizetype i = 0; i < sequence_size; ++i) {
@@ -66,7 +66,7 @@ QStringList GenomicRange::find_gene(const QString& region) const {
 
 	}
 
-	return _Cs unique(res);
+	return custom::unique(res);
 };
 
 bool GenomicRange::is_empty() const {
@@ -99,16 +99,16 @@ void GenomicRange::extend(int upstream, int downstream, bool from_midpoint) {
 	Eigen::ArrayX<bool> direction = this->strand_ == '+' || this->strand_ == '*';
 
 	if (from_midpoint) {
-		auto midpoints = _Cs add(this->ranges_.start_, _Cs integer_divide(this->ranges_.width_, 2));
-		this->ranges_.start_ = _Cs minus(midpoints, _Cs ifelse<QVector<int>>(direction, upstream, downstream));
-		auto new_end = _Cs add(midpoints, _Cs ifelse<QVector<int>>(direction, downstream, upstream));
-		this->ranges_.width_ = _Cs minus(new_end, this->ranges_.start_);
+		auto midpoints = custom::add(this->ranges_.start_, custom::integer_divide(this->ranges_.width_, 2));
+		this->ranges_.start_ = custom::minus(midpoints, custom::ifelse<QVector<int>>(direction, upstream, downstream));
+		auto new_end = custom::add(midpoints, custom::ifelse<QVector<int>>(direction, downstream, upstream));
+		this->ranges_.width_ = custom::minus(new_end, this->ranges_.start_);
 	}
 	else {
 		auto end = this->get_sequence_end();
-		this->ranges_.start_ = _Cs minus(this->ranges_.start_, _Cs ifelse<QVector<int>>(direction, upstream, downstream));
-		end = _Cs add(end, _Cs ifelse<QVector<int>>(direction, downstream, upstream));
-		this->ranges_.width_ = _Cs minus(end, this->ranges_.start_);
+		this->ranges_.start_ = custom::minus(this->ranges_.start_, custom::ifelse<QVector<int>>(direction, upstream, downstream));
+		end = custom::add(end, custom::ifelse<QVector<int>>(direction, downstream, upstream));
+		this->ranges_.width_ = custom::minus(end, this->ranges_.start_);
 	}
 
 	this->finalize();
@@ -147,22 +147,22 @@ GenomicRange::at(qsizetype index) const {
 int GenomicRange::count_overlap(const GenomicRange& rhs) const {
 	auto seq_names = this->sequence_names_.unique();
 	auto seq_names2 = rhs.sequence_names_.unique();
-	seq_names = _Cs intersect(seq_names, seq_names2);
+	seq_names = custom::intersect(seq_names, seq_names2);
 
 	int c{ 0 };
 
 	for (auto&& seq_name : seq_names) {
 
 		auto this_filter = this->sequence_names_ == seq_name;
-		auto this_index = _Cs which(this_filter);
-		auto this_start = _Cs sliced(this->ranges_.start_, this_filter);
-		auto this_width = _Cs sliced(this->ranges_.width_, this_filter);
-		auto this_end = _Cs add(this_start, this_width);
+		auto this_index = custom::which(this_filter);
+		auto this_start = custom::sliced(this->ranges_.start_, this_filter);
+		auto this_width = custom::sliced(this->ranges_.width_, this_filter);
+		auto this_end = custom::add(this_start, this_width);
 
 		auto sub_filter = rhs.sequence_names_ == seq_name;
-		auto sub_start = _Cs sliced(rhs.ranges_.start_, sub_filter);
-		auto sub_width = _Cs sliced(rhs.ranges_.width_, sub_filter);
-		auto sub_end = _Cs add(sub_start, sub_width);
+		auto sub_start = custom::sliced(rhs.ranges_.start_, sub_filter);
+		auto sub_width = custom::sliced(rhs.ranges_.width_, sub_filter);
+		auto sub_end = custom::add(sub_start, sub_width);
 
 		int n_sub = sub_start.size();
 		int n_this = this_index.size();
@@ -199,7 +199,7 @@ void GenomicRange::subtract(const GenomicRange& rhs) {
 
 	auto seq_names = this->sequence_names_.unique(); 
 	auto sub_seq_names = rhs.sequence_names_.unique();
-	seq_names = _Cs intersect(seq_names, sub_seq_names);
+	seq_names = custom::intersect(seq_names, sub_seq_names);
 
 	const int n_range = this->sequence_names_.size();
 	Eigen::ArrayX<bool> filter = Eigen::ArrayX<bool>::Constant(n_range, true);
@@ -207,15 +207,15 @@ void GenomicRange::subtract(const GenomicRange& rhs) {
 	for (auto&& seq_name : seq_names) {
 
 		auto this_filter = this->sequence_names_ == seq_name;
-		auto this_index = _Cs which(this_filter);
-		auto this_start = _Cs sliced(this->ranges_.start_, this_filter);
-		auto this_width = _Cs sliced(this->ranges_.width_, this_filter);
-		auto this_end = _Cs add(this_start, this_width);
+		auto this_index = custom::which(this_filter);
+		auto this_start = custom::sliced(this->ranges_.start_, this_filter);
+		auto this_width = custom::sliced(this->ranges_.width_, this_filter);
+		auto this_end = custom::add(this_start, this_width);
 
 		auto sub_filter = rhs.sequence_names_ == seq_name;
-		auto sub_start = _Cs sliced(rhs.ranges_.start_, sub_filter);
-		auto sub_width = _Cs sliced(rhs.ranges_.width_, sub_filter);
-		auto sub_end = _Cs add(sub_start, sub_width);
+		auto sub_start = custom::sliced(rhs.ranges_.start_, sub_filter);
+		auto sub_width = custom::sliced(rhs.ranges_.width_, sub_filter);
+		auto sub_end = custom::add(sub_start, sub_width);
 
 		int n_sub = sub_start.size();
 		int n_this = this_index.size();
@@ -260,9 +260,9 @@ void GenomicRange::merge_nearby_range() {
 
 	for (auto&& seq_name : seq_names) {
 		auto filter = this->sequence_names_ == seq_name;
-		auto start = _Cs sliced(this->ranges_.start_, filter);
-		auto width = _Cs sliced(this->ranges_.width_, filter);
-		auto end = _Cs add(start, width);
+		auto start = custom::sliced(this->ranges_.start_, filter);
+		auto width = custom::sliced(this->ranges_.width_, filter);
+		auto end = custom::add(start, width);
 
 		int n_range = start.size(), new_n_range{ 0 };
 		int now_start = start[0], now_end = end[0];
@@ -293,7 +293,7 @@ void GenomicRange::merge_nearby_range() {
 
 	this->sequence_names_ = new_sequence_names;
 	this->ranges_.start_ = new_start;
-	this->ranges_.width_ = _Cs minus(new_end, new_start);
+	this->ranges_.width_ = custom::minus(new_end, new_start);
 	this->strand_ = new_strand;
 };
 
@@ -335,7 +335,7 @@ void GenomicRange::append(const GenomicRange& genomic_range) {
 };
 
 QVector<int> GenomicRange::get_sequence_end() const {
-	return _Cs add(this->ranges_.start_, this->ranges_.width_);
+	return custom::add(this->ranges_.start_, this->ranges_.width_);
 };
 
 std::size_t GenomicRange::size() const {
@@ -350,7 +350,7 @@ QString GenomicRange::get_range_name(int row) {
 
 QStringList GenomicRange::get_range_names() {
 	QVector<int>& start_position = this->ranges_.start_;
-	QVector<int> end_position = _Cs add(start_position, this->ranges_.width_);
+	QVector<int> end_position = custom::add(start_position, this->ranges_.width_);
 
 	qsizetype size = start_position.size();
 
@@ -409,18 +409,18 @@ void GenomicRange::finalize() {
 
 		auto order = this->sequence_names_.match(seq);
 
-		QVector<int> start = _Cs reordered(this->ranges_.start_, order);
-		QVector<int> width = _Cs reordered(this->ranges_.width_, order);
+		QVector<int> start = custom::reordered(this->ranges_.start_, order);
+		QVector<int> width = custom::reordered(this->ranges_.width_, order);
 		
-		auto filter = _Cs greater_than(width, 0);
+		auto filter = custom::greater_than(width, 0);
 		if (filter.count() < filter.size()) {
-			order = _Cs sliced(order, filter);
-			start = _Cs sliced(start, filter);
-			// width = _Cs sliced(width, filter);
+			order = custom::sliced(order, filter);
+			start = custom::sliced(start, filter);
+			// width = custom::sliced(width, filter);
 		}
 		
-		auto seq_order = _Cs order(start);
-		order = _Cs reordered(order, seq_order);
+		auto seq_order = custom::order(start);
+		order = custom::reordered(order, seq_order);
 		final_order << order;
 	}
 

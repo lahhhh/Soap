@@ -28,7 +28,7 @@ Eigen::ArrayXi DenseInt::get_row(const QString& name) const {
 };
 
 Eigen::MatrixXi DenseInt::get_rows(const QStringList& names) const {
-    return this->mat_(_Cs index_of(names, this->rownames_), Eigen::all);
+    return this->mat_(custom::index_of(names, this->rownames_), Eigen::all);
 };
 
 Eigen::ArrayXXi DenseInt::get_rows_array(const QStringList& names) const {

@@ -51,7 +51,7 @@ void SparseIntItem::s_search_row() {
 
 	quest = multiple_line_edit_to_list(quest[0]);
 
-	QVector<int> row_index = _Cs valid_index_of(quest, this->data()->rownames_);
+	QVector<int> row_index = custom::valid_index_of(quest, this->data()->rownames_);
 
 	if (row_index.isEmpty()) {
 		G_NOTICE("Feature Not Found.");
@@ -77,7 +77,7 @@ void SparseIntItem::s_search_column() {
 
 	quest = multiple_line_edit_to_list(quest[0]);
 
-	QVector<int> column_index = _Cs valid_index_of(quest, this->data()->colnames_);
+	QVector<int> column_index = custom::valid_index_of(quest, this->data()->colnames_);
 
 	if (column_index.isEmpty()) {
 		G_NOTICE("Column Not Found.");
@@ -102,8 +102,8 @@ void SparseIntItem::s_search_block() {
 	QStringList row_quests = multiple_line_edit_to_list(quest[0]);
 	QStringList col_quests = multiple_line_edit_to_list(quest[1]);
 
-	QVector<int> row_index = _Cs valid_index_of(row_quests, this->data()->rownames_);
-	QVector<int> column_index = _Cs valid_index_of(col_quests, this->data()->colnames_);
+	QVector<int> row_index = custom::valid_index_of(row_quests, this->data()->rownames_);
+	QVector<int> column_index = custom::valid_index_of(col_quests, this->data()->colnames_);
 	if (column_index.isEmpty() || row_index.isEmpty()) {
 		G_NOTICE("Data Not Found.");
 		return;

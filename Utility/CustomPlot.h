@@ -13,8 +13,6 @@
 
 #include "FeatureHandler.h"
 
-#define _Cp ::custom_plot::
-
 namespace custom_plot {
 
 	std::tuple<QCustomPlot*, QCPAxisRect*, QCPLayoutGrid*> prepare(const GraphSettings& gs);

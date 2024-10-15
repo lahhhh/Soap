@@ -35,7 +35,7 @@ public:
 	G_QUICK_ACCESS(VelocytoBase, velocyto_base);
 
 	template <typename SliceType>
-		requires _Cs is_slice_container<SliceType>
+		requires custom::is_slice_container<SliceType>
 	void row_slice(const SliceType& slice) {
 
 		for (auto& [name, data] : SUBMODULES(*this, SparseInt)) {
@@ -58,7 +58,7 @@ public:
 	}
 
 	template <typename SliceType>
-		requires _Cs is_slice_container<SliceType>
+		requires custom::is_slice_container<SliceType>
 	[[nodiscard]] SingleCellRna* row_sliced(const SliceType& slice) const {
 
 		SingleCellRna* ret = new SingleCellRna(*this);
@@ -69,7 +69,7 @@ public:
 	}
 
 	template <typename SliceType>
-		requires _Cs is_slice_container<SliceType>
+		requires custom::is_slice_container<SliceType>
 	void col_slice(const SliceType& slice) {
 
 		for (auto& [name, data] : SUBMODULES(*this, Metadata)) {
@@ -100,7 +100,7 @@ public:
 	}
 
 	template <typename SliceType>
-		requires _Cs is_slice_container<SliceType>
+		requires custom::is_slice_container<SliceType>
 	[[nodiscard]] SingleCellRna* col_sliced(const SliceType& slice) const {
 
 		SingleCellRna* ret = new SingleCellRna(*this);
@@ -111,7 +111,7 @@ public:
 	}
 
 	template <typename OrderType>
-		requires _Cs is_order_container<OrderType>
+		requires custom::is_order_container<OrderType>
 	void col_reorder(const OrderType& order) {
 
 		for (auto& [name, data] : SUBMODULES(*this, Metadata)) {
@@ -142,7 +142,7 @@ public:
 	}
 
 	template <typename OrderType>
-		requires _Cs is_order_container<OrderType>
+		requires custom::is_order_container<OrderType>
 	[[nodiscard]] SingleCellRna* col_reordered(const OrderType& order) const {
 
 		SingleCellRna* ret = new SingleCellRna(*this);
@@ -153,7 +153,7 @@ public:
 	}
 
 	template <typename SliceType, typename SliceType2>
-		requires _Cs is_slice_container<SliceType>
+		requires custom::is_slice_container<SliceType>
 	void slice(const SliceType& row_slice, const SliceType2& col_slice) {
 
 		this->row_slice(row_slice);
@@ -162,7 +162,7 @@ public:
 	}
 
 	template <typename SliceType, typename SliceType2>
-		requires _Cs is_slice_container<SliceType>
+		requires custom::is_slice_container<SliceType>
 	[[nodiscard]] SingleCellRna* sliced(const SliceType& row_slice, const SliceType2& col_slice) const {
 
 		SingleCellRna* ret = new SingleCellRna(*this);

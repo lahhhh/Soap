@@ -86,7 +86,7 @@ GSEA::GSEA(
 	this->mat_.update(METADATA_GSEA_PATHWAY_SIZE, pathway_size);
 	this->mat_.update(METADATA_GSEA_FALSE_DISCOVERY_RATE, false_discovery_rate);
 	this->mat_.update(METADATA_GSEA_FAMILY_WISE_ERROR_RATE, family_wise_error_rate);
-	this->mat_.row_reorder(_Cs order(this->mat_.get_const_double_reference(METADATA_GSEA_P_VALUE)));
+	this->mat_.row_reorder(custom::order(this->mat_.get_const_double_reference(METADATA_GSEA_P_VALUE)));
 
 }
 
@@ -96,7 +96,7 @@ bool GSEA::is_empty() const {
 
 QVector<double> GSEA::get_nes(const QStringList& pathways, const QString& filter_type, double threshold) const {
 	int size = pathways.size();
-	auto index = _Cs index_of(pathways, this->mat_.rownames_);
+	auto index = custom::index_of(pathways, this->mat_.rownames_);
 	const QVector<double>& nes = this->mat_.get_const_double_reference(METADATA_GSEA_NORMALIZED_ENRICHMENT_SCORE);
 	QVector<double> ret(size, 0);
 	for (int i = 0; i < size; ++i) {

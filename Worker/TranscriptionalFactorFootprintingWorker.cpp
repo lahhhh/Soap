@@ -160,7 +160,7 @@ std::pair<bool, Eigen::MatrixXi> TranscriptionalFactorFootprintingWorker::get_in
 	bool filter_cell{ false };
 	if (this->mode_ == WorkMode::Batch) {
 		for (auto&& level : this->levels_) {
-			cell_filter += _Cs equal(this->factors_, level);
+			cell_filter += custom::equal(this->factors_, level);
 		}
 
 		filter_cell = true;
@@ -198,21 +198,21 @@ TranscriptionalFactorFootprintingWorker::find_expected_insertions(const std::vec
 	for (std::size_t i = 0; i < sequence_size; ++i) {
 		const char* data = motif_sequence[i].data();
 		for (std::size_t j = 0; j < insertion_width; ++j) {
-			int loc = _Cs get_hexamer_loc(data + j);
+			int loc = custom::get_hexamer_loc(data + j);
 			if (loc > -1) {
 				++frequency(loc, j);
 			}
 		}
 	}
-	auto bias = _Cs cast<Eigen::ArrayX>(this->bias_.second);
+	auto bias = custom::cast<Eigen::ArrayX>(this->bias_.second);
 
 	QVector<double> expected_insertions(insertion_width);
 
 	for (int i = 0; i < insertion_width; ++i) {
 		expected_insertions[i] = (frequency.col(i).array() * bias).sum();
 	}
-	double flank = (_Cs mean(expected_insertions.sliced(0, 50)) + _Cs mean(expected_insertions.sliced(insertion_width - 50))) / 2;
-	expected_insertions = _Cs divide(expected_insertions, flank);
+	double flank = (custom::mean(expected_insertions.sliced(0, 50)) + custom::mean(expected_insertions.sliced(insertion_width - 50))) / 2;
+	expected_insertions = custom::divide(expected_insertions, flank);
 
 	return expected_insertions;
 };
@@ -226,16 +226,16 @@ bool TranscriptionalFactorFootprintingWorker::calculate_insertion_bias() {
 
 	std::string	sequence = this->genome_.get_std_whole_sequence("1");
 
-	auto genome_frequency = _Cs get_6_nucleotide_frequency(sequence);
+	auto genome_frequency = custom::get_6_nucleotide_frequency(sequence);
 
-	auto insertion_frequency = _Cs get_6_nucleotide_insertion_frequency("1", sequence, *this->fragments_object_);
+	auto insertion_frequency = custom::get_6_nucleotide_insertion_frequency("1", sequence, *this->fragments_object_);
 
 	if (insertion_frequency.first.empty()) {
 		G_TASK_WARN("Insertion Bias Calculation Failed.");
 		return false;
 	}
 
-	auto insertion_bias = _Cs partial_divide<double>(insertion_frequency.second, genome_frequency.second);
+	auto insertion_bias = custom::partial_divide<double>(insertion_frequency.second, genome_frequency.second);
 	bias.first = insertion_frequency.first;
 	bias.second = insertion_bias;
 
@@ -320,7 +320,7 @@ void TranscriptionalFactorFootprintingWorker::mode2() {
 		PatternWeightMatrix{},
 		insertion_matrix,
 		this->cell_names_,
-		_Cs cast<QString>(_Cs minus(_Cs seq_n(1, insertion_width), insertion_width / 2)),
+		custom::cast<QString>(custom::minus(custom::seq_n(1, insertion_width), insertion_width / 2)),
 		expected_insertions,
 		motif_location
 	);
@@ -399,12 +399,12 @@ void TranscriptionalFactorFootprintingWorker::run() {
 					this->motif_position_->motifs_.at(tf_name),
 					insertion_matrix,
 					this->cell_names_,
-					_Cs cast<QString>(_Cs minus(_Cs seq_n(1, insertion_width), insertion_width / 2)),
+					custom::cast<QString>(custom::minus(custom::seq_n(1, insertion_width), insertion_width / 2)),
 					expected_insertions,
 					motif_location
 				);
 
-				QString file_name = this->output_directory_ + "/" + _Cs standardize_windows_file_name(fpt.motif_.motif_name_) + ".png";
+				QString file_name = this->output_directory_ + "/" + custom::standardize_windows_file_name(fpt.motif_.motif_name_) + ".png";
 
 				bool success = fpt.draw(
 					file_name,
@@ -429,7 +429,7 @@ void TranscriptionalFactorFootprintingWorker::run() {
 						this->motif_position_->motifs_.at(tf_name),
 						insertion_matrix,
 						this->cell_names_,
-						_Cs cast<QString>(_Cs minus(_Cs seq_n(1, insertion_width), insertion_width / 2)),
+						custom::cast<QString>(custom::minus(custom::seq_n(1, insertion_width), insertion_width / 2)),
 						expected_insertions,
 						motif_location
 					)

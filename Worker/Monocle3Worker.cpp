@@ -267,7 +267,7 @@ Eigen::MatrixXd jaccard_coeff(const Eigen::MatrixXi& idx, bool weight) {
 				Eigen::ArrayXi nodei = idx.row(i);
 				Eigen::ArrayXi nodej = idx.row(k);
 
-				int u = _Cs intersect_length(nodei, nodej);  // count intersection number
+				int u = custom::intersect_length(nodei, nodej);  // count intersection number
 				int v = 2 * ncol - u;  // count union number
 
 				if (u > 0) {
@@ -295,7 +295,7 @@ igraph_t cluster_cells_make_graph(
 		k = data.rows() - 2;
 	}
 
-	auto [nn_index, nn_distance] = _Cs get_knn_mt<Euclidean, true>(data, k);
+	auto [nn_index, nn_distance] = custom::get_knn_mt<Euclidean, true>(data, k);
 
 	nn_index = nn_index(Eigen::all, Eigen::seq(1, nn_index.cols() - 1)).eval();
 
@@ -391,7 +391,7 @@ std::pair<Eigen::MatrixXd, Eigen::MatrixXd> compute_partitions(igraph_t g, igrap
 			p_val[i * n_louvain_cluster + j] = cluster_mat(i, j);
 		}
 	}
-	p_val = _Cs adjust_p_value(p_val, "fdr");
+	p_val = custom::adjust_p_value(p_val, "fdr");
 	for (int i = 0; i < n_louvain_cluster; ++i) {
 		for (int j = 0; j < n_louvain_cluster; ++j) {
 			cluster_mat(i, j) = p_val[i * n_louvain_cluster + j];
@@ -485,7 +485,7 @@ igraph_t connect_tips(
 
 	igraph_vector_int_destroy(&degree);
 
-	auto tip_pc_points = _Cs match(degree2, 1);
+	auto tip_pc_points = custom::match(degree2, 1);
 	
 	auto [louvain_g, louvain_membership] = louvain_clustering(cell_embedding);
 
@@ -534,7 +534,7 @@ igraph_t connect_tips(
 	igraph_real_t diameter_dis;
 	igraph_diameter_dijkstra(&mst_g_old, 0, &diameter_dis, 0, 0, 0, 0, IGRAPH_DIRECTED, true);
 
-	auto distance = _Cs euclidean_distance_mt(pr_node_embedding);
+	auto distance = custom::euclidean_distance_mt(pr_node_embedding);
 
 	igraph_matrix_t adj_mat;
 	igraph_matrix_init(&adj_mat, n_vertice, n_vertice);
@@ -601,7 +601,7 @@ igraph_t connect_tips(
 		}
 	}
 
-	vertice_to_keep = _Cs unique(vertice_to_keep);
+	vertice_to_keep = custom::unique(vertice_to_keep);
 
 	igraph_vector_int_t neighborhood_size;
 	igraph_vector_int_init(&neighborhood_size, 0);
@@ -733,8 +733,8 @@ igraph_t connect_tips(
 		}
 	}
 
-	vertice_to_delete = _Cs unique(vertice_to_delete);
-	vertice_to_delete = _Cs set_difference(vertice_to_delete, vertice_to_keep);
+	vertice_to_delete = custom::unique(vertice_to_delete);
+	vertice_to_delete = custom::set_difference(vertice_to_delete, vertice_to_keep);
 	
 	if (!vertice_to_delete.empty()) {
 		int n_vertice_delete = vertice_to_delete.size();
@@ -837,25 +837,25 @@ void Monocle3Worker::learn_graph() {
 
 	int n_cell = this->cell_choosed_.count();
 
-	this->embedding_ = _Cs row_sliced(this->original_embedding_.data_.mat_, this->cell_choosed_).transpose();
+	this->embedding_ = custom::row_sliced(this->original_embedding_.data_.mat_, this->cell_choosed_).transpose();
 
 	int n_center = std::round( 150 * std::log10(n_cell));
 	if (n_center >= n_cell) {
 		n_center = n_cell - 1;
 	}
 
-	Eigen::MatrixXd centers = this->embedding_(Eigen::all, _Cs integer_linspaced(n_center, 0, n_cell - 1))
+	Eigen::MatrixXd centers = this->embedding_(Eigen::all, custom::integer_linspaced(n_center, 0, n_cell - 1))
 		 + Eigen::MatrixXd::Random(this->embedding_.rows(), n_center) * 1e-8;
 
-	auto [kmeans_center, kmeans_cluster] = _Cs kmeans_lloyd(this->embedding_, centers, true, 100);
+	auto [kmeans_center, kmeans_cluster] = custom::kmeans_lloyd(this->embedding_, centers, true, 100);
 
 	int n_kmeans_cluster = kmeans_center.cols();
 
-	auto nearest_center = _Cs find_nearest(kmeans_center, this->embedding_);
+	auto nearest_center = custom::find_nearest(kmeans_center, this->embedding_);
 
 	constexpr int k = 25;
 
-	auto [nn_index, nn_distance] = _Cs get_knn_mt<Euclidean, true>(this->embedding_, std::min(k, n_cell - 1));
+	auto [nn_index, nn_distance] = custom::get_knn_mt<Euclidean, true>(this->embedding_, std::min(k, n_cell - 1));
 
 	nn_index = nn_index(Eigen::all, Eigen::seq(1, nn_index.cols() - 1)).eval();
 
@@ -869,9 +869,9 @@ void Monocle3Worker::learn_graph() {
 
 	for (int i = 0; i < n_kmeans_cluster; ++i) {
 
-		auto index = _Cs match(kmeans_cluster, i);
+		auto index = custom::match(kmeans_cluster, i);
 
-		auto min_index = _Cs argmax(_Cs reordered(rho, index));
+		auto min_index = custom::argmax(custom::reordered(rho, index));
 
 		high_density_loc << index[min_index];
 	}
@@ -953,7 +953,7 @@ void Monocle3Worker::project_to_mst(
 	const Eigen::MatrixXd& pr_node_embedding) 
 {
 
-	auto closest_vertex = _Cs find_nearest(this->embedding_, pr_node_embedding);
+	auto closest_vertex = custom::find_nearest(this->embedding_, pr_node_embedding);
 	int n_cell = closest_vertex.size();
 
 	igraph_vector_int_t degree;
@@ -997,7 +997,7 @@ void Monocle3Worker::project_to_mst(
 
 			distances[j] = (projection.row(j) - this->embedding_.col(i)).squaredNorm();
 		}
-		auto which_min = _Cs argmin(distances);
+		auto which_min = custom::argmin(distances);
 		P.col(i) = projection.row(which_min);
 		nearest_edges(i, 0) = closest_vertex[i];
 		nearest_edges(i, 1) = VECTOR(vertex_neighbors)[which_min];
@@ -1026,20 +1026,20 @@ void Monocle3Worker::project_to_mst(
 	Eigen::ArrayXi new_cell_order(n_cell);
 	int loc_now = 0;
 
-	auto pr_edge = _Cs unique(edges);
+	auto pr_edge = custom::unique(edges);
 	for (auto&& edge : pr_edge) {
 
-		auto edge_index = _Cs match(edges, edge);
+		auto edge_index = custom::match(edges, edge);
 		Eigen::ArrayXd distance = distance_to_source(edge_index);
-		auto dis_order = _Cs order(distance);
+		auto dis_order = custom::order(distance);
 
 		int n_sub_cell = edge_index.size();
-		new_cell_order.segment(loc_now, n_sub_cell) = _Cs cast<Eigen::ArrayX>(_Cs reordered(edge_index, dis_order));
+		new_cell_order.segment(loc_now, n_sub_cell) = custom::cast<Eigen::ArrayX>(custom::reordered(edge_index, dis_order));
 		
 		loc_now += n_sub_cell;
 	}
 
-	edges = _Cs reordered(edges, new_cell_order);
+	edges = custom::reordered(edges, new_cell_order);
 
 	source = source(new_cell_order).eval();
 	target = target(new_cell_order).eval();
@@ -1054,7 +1054,7 @@ void Monocle3Worker::project_to_mst(
 	std::map<std::pair<int, int>, int> pr_edge_weight_adj;
 
 	for (auto&& edge : pr_edge) {
-		auto edge_index = _Cs match(edges, edge);
+		auto edge_index = custom::match(edges, edge);
 		Eigen::ArrayXi cell_id = cell_graph_id(edge_index);
 		Eigen::ArrayXi cell_order = new_cell_order(edge_index);
 		int n_cell_edge = cell_id.size();

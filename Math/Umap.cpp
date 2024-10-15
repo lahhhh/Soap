@@ -106,7 +106,7 @@ void UMAP::smooth_knn_distance(int n_iter) { // bandwidth --> 1.0
 		double cnt = this->knn_distance_.row(i).count();
 
 		Eigen::ArrayXd ith_distances = this->knn_distance_.row(i);
-		Eigen::ArrayXd non_zero_dists = _Cs sliced(ith_distances, ith_distances > 0);
+		Eigen::ArrayXd non_zero_dists = custom::sliced(ith_distances, ith_distances > 0);
 
 		if (cnt > this->local_connectivity_) {
 
@@ -223,14 +223,14 @@ void UMAP::fuzzy_simplicial_set() {
 
 	if (this->metric_ == "Euclidean") {
 
-		std::tie(this->knn_indices_, this->knn_distance_) = _Cs get_knn_mt<Euclidean, true>(*this->mat_, this->n_neighbors_, this->n_trees_);
+		std::tie(this->knn_indices_, this->knn_distance_) = custom::get_knn_mt<Euclidean, true>(*this->mat_, this->n_neighbors_, this->n_trees_);
 	}
 	else if (this->metric_ == "Angular") {
 
-		std::tie(this->knn_indices_, this->knn_distance_) = _Cs get_knn_mt<Angular, true>(*this->mat_, this->n_neighbors_, this->n_trees_);
+		std::tie(this->knn_indices_, this->knn_distance_) = custom::get_knn_mt<Angular, true>(*this->mat_, this->n_neighbors_, this->n_trees_);
 	}
 	else {
-		std::tie(this->knn_indices_, this->knn_distance_) = _Cs get_knn_mt<Manhattan, true>(*this->mat_, this->n_neighbors_, this->n_trees_);
+		std::tie(this->knn_indices_, this->knn_distance_) = custom::get_knn_mt<Manhattan, true>(*this->mat_, this->n_neighbors_, this->n_trees_);
 	}
 
 	this->smooth_knn_distance();
@@ -248,7 +248,7 @@ void UMAP::make_epoches_per_sample() {
 	
 	this->epochs_per_sample_ = Eigen::ArrayXd::Constant(length, -1.0);
 	
-	double max_value = _Cs max(this->strengths_);
+	double max_value = custom::max(this->strengths_);
 	
 	double factor = this->n_epoches_ / max_value;
 
@@ -405,7 +405,7 @@ void UMAP::optimize_layout_euclidean() {
 
 void UMAP::fit_embed_data() {
 	this->n_epoches_ = this->strengths_.rows() > 10000 ? 200 : 500;
-	this->strengths_ = _Cs eliminate_less_than(this->strengths_, _Cs max(this->strengths_) / this->n_epoches_);
+	this->strengths_ = custom::eliminate_less_than(this->strengths_, custom::max(this->strengths_) / this->n_epoches_);
 
 	srand(this->random_state_);
 	this->embedding_ = Eigen::MatrixXd::Random(this->strengths_.rows(), 2) * 10; // --> this->init_ == random ... to do : spectral_layout

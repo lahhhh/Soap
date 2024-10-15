@@ -14,7 +14,7 @@ void MultiCommandWorker::run() {
     connect(this->p_, QOverload<int, QProcess::ExitStatus>::of(&QProcess::finished),
         this, &MultiCommandWorker::finished);
 
-    QStringList cmd = this->commands_[this->command_id_];
+    QString cmd = this->commands_[this->command_id_];
     if (cmd.isEmpty()) {
         this->p_->close();
 
@@ -24,28 +24,21 @@ void MultiCommandWorker::run() {
         G_TASK_END;
     }
 
-    QString program = cmd[0];
-
-    QStringList params;
-    if (cmd.size() > 1) {
-        params = cmd.sliced(1);
-    }
-
-    this->p_->start(program, params);
+    this->p_->start("cmd.exe", {"/C", cmd});
 };
 
 void MultiCommandWorker::finished(int exit_code, QProcess::ExitStatus exit_status) {
 
     if (exit_status != QProcess::ExitStatus::NormalExit) {
         G_TASK_WARN("Meeting error in command " + QString::number(this->command_id_ + 1) + 
-            ": [" + this->commands_[this->command_id_].join(" ") + "].");
+            ": [" + this->commands_[this->command_id_] + "].");
         this->p_->close();
         this->p_->deleteLater();
         G_TASK_END;
     }
     else {
         G_TASK_LOG("Command " + QString::number(this->command_id_ + 1) +
-            ": [" + this->commands_[this->command_id_].join(" ") + "] finished.");
+            ": [" + this->commands_[this->command_id_] + "] finished.");
 
         ++this->command_id_;
 
@@ -58,7 +51,7 @@ void MultiCommandWorker::finished(int exit_code, QProcess::ExitStatus exit_statu
             G_TASK_END;
         }
         else {
-            QStringList cmd = this->commands_[this->command_id_];
+            QString cmd = this->commands_[this->command_id_];
             if (cmd.isEmpty()) {
                 this->p_->close();
 
@@ -68,14 +61,7 @@ void MultiCommandWorker::finished(int exit_code, QProcess::ExitStatus exit_statu
                 G_TASK_END;
             }
 
-            QString program = cmd[0];
-
-            QStringList params;
-            if (cmd.size() > 1) {
-                params = cmd.sliced(1);
-            }
-
-            this->p_->start(program, params);
+            this->p_->start("cmd.exe", { "/C", cmd });
         }
     }
 }

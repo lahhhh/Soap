@@ -84,7 +84,7 @@ void MotifPositionItem::s_show_motif_matrix() {
 	int motif_size = pwm.weight_.mat_.cols();
 
 	MatrixWindow::show_matrix(&pwm.weight_.mat_, {"A", "C", "G", "T"},
-		_Cs cast<QString>(_Cs linspaced(motif_size, 1, motif_size)), motif_name, this->signal_emitter_);
+		custom::cast<QString>(custom::linspaced(motif_size, 1, motif_size)), motif_name, this->signal_emitter_);
 }
 
 void MotifPositionItem::s_show_motif_binding_location() {
@@ -217,7 +217,7 @@ void MotifPositionItem::s_show_typical_binding_sequence() {
 
 	n_loc = loc.size();
 
-	auto seqs = _Cs get_human_grch38_sequence(loc);
+	auto seqs = custom::get_human_grch38_sequence(loc);
 
 	int count{ 0 };
 
@@ -641,10 +641,10 @@ void MotifPositionItem::s_show_motif() {
 	int length = pwm.weight_.cols();
 
 	auto&& gs = this->draw_suite_->graph_settings_;
-	auto [draw_area, axis_rect] = _Cp prepare_ar(gs);
+	auto [draw_area, axis_rect] = custom_plot::prepare_ar(gs);
 
-	_CpPatch set_range(axis_rect, QCPRange(0, length * 100), QCPRange(0, 400));
-	_CpPatch remove_left_bottom_axis(axis_rect);
+	custom_plot::patch::set_range(axis_rect, QCPRange(0, length * 100), QCPRange(0, 400));
+	custom_plot::patch::remove_left_bottom_axis(axis_rect);
 
 	QStringList characters = pwm.weight_.rownames_;
 
@@ -663,7 +663,7 @@ void MotifPositionItem::s_show_motif() {
 
 	for (int i = 0; i < length; ++i) {
 		Eigen::ArrayXd col = pwm.weight_.mat_.col(i); // frequency
-		auto col_order = _Cs order(col);
+		auto col_order = custom::order(col);
 		double now = 0;
 		double sum = col.sum();
 		double uncertainty{ 0.0 };
@@ -691,8 +691,8 @@ void MotifPositionItem::s_show_motif() {
 		}
 
 	}
-	_CpPatch set_range(axis_rect, QCPRange(0, length * 100), QCPRange(0, 800));
-	_Cp add_title(draw_area, motif_name, gs);
+	custom_plot::patch::set_range(axis_rect, QCPRange(0, length * 100), QCPRange(0, 800));
+	custom_plot::add_title(draw_area, motif_name, gs);
 	this->draw_suite_->update(draw_area);
 };
 
@@ -708,7 +708,7 @@ void MotifPositionItem::footprint_plot_patch(
 	const QList<QColor>& colors
 ) {
 	QCPAxisRect* axis_rect = new QCPAxisRect(draw_area);
-	_CpPatch set_border_only(axis_rect, Qt::black, 2);
+	custom_plot::patch::set_border_only(axis_rect, Qt::black, 2);
 
 	layout->addElement(0, 0, axis_rect);
 	draw_area->addGraph(axis_rect->axis(QCPAxis::atBottom), axis_rect->axis(QCPAxis::atLeft));
@@ -751,7 +751,7 @@ void MotifPositionItem::footprint_plot_patch(
 		auto&& factor = levels[i];
 
 		auto index = show_in_group ? 
-			_Cs which(_Cs equal(factors, factor) * show_filter) : _Cs match(factors, factor);
+			custom::which(custom::equal(factors, factor) * show_filter) : custom::match(factors, factor);
 
 		if (index.isEmpty()) {
 			continue;
@@ -765,27 +765,27 @@ void MotifPositionItem::footprint_plot_patch(
 
 		color_use << colors[i];
 
-		locations << means - _Cs cast<Eigen::ArrayX>(data->expected_insertions_);
+		locations << means - custom::cast<Eigen::ArrayX>(data->expected_insertions_);
 	}
 
 	if (locations.isEmpty()) {
 		return;
 	}
 
-	QVector<double> x_axis = _Cs cast<double>(data->insertion_matrix_.colnames_);
+	QVector<double> x_axis = custom::cast<double>(data->insertion_matrix_.colnames_);
 
 	const int ncolor = color_use.size();
 	for (int i = 0; i < ncolor; ++i) {
-		_CpPatch line(draw_area, axis_rect, x_axis, _Cs cast<QVector>(locations[i]), color_use[i], 2);
+		custom_plot::patch::line(draw_area, axis_rect, x_axis, custom::cast<QVector>(locations[i]), color_use[i], 2);
 	}
-	double min_ob = std::ranges::min(_Cs sapply(locations, [](auto&& arr) {return arr.minCoeff(); }));
-	double max_ob = std::ranges::max(_Cs sapply(locations, [](auto&& arr) {return arr.maxCoeff(); }));
+	double min_ob = std::ranges::min(custom::sapply(locations, [](auto&& arr) {return arr.minCoeff(); }));
+	double max_ob = std::ranges::max(custom::sapply(locations, [](auto&& arr) {return arr.maxCoeff(); }));
 
 	auto [min_x, max_x] = std::ranges::minmax(x_axis);
 
-	_CpPatch set_range(axis_rect, QCPRange(min_x, max_x), QCPRange(1.1 * min_ob - 0.1 * max_ob, 1.1 * max_ob - 0.1 * min_ob));
+	custom_plot::patch::set_range(axis_rect, QCPRange(min_x, max_x), QCPRange(1.1 * min_ob - 0.1 * max_ob, 1.1 * max_ob - 0.1 * min_ob));
 
-	_CpPatch add_title(draw_area, layout, transcriptional_factor_name, this->draw_suite_->graph_settings_.get_title_font());
+	custom_plot::patch::add_title(draw_area, layout, transcriptional_factor_name, this->draw_suite_->graph_settings_.get_title_font());
 };
 
 void MotifPositionItem::s_chromvar() {
@@ -850,7 +850,7 @@ void MotifPositionItem::s_multiple_footprint_plot() {
 		{ "Footprint", "Factor:Factor", "Number of row:1", "Show in group:no", "Show Group" },
 		{ soap::InputStyle::MultipleLineEditWithCompleter, soap::InputStyle::FactorChoice,
 		soap::InputStyle::IntegerLineEdit, soap::InputStyle::SwitchButton, soap::InputStyle::FactorChoice},
-		{ _Cs keys(DATA_SUBMODULES(Footprint))},
+		{ custom::keys(DATA_SUBMODULES(Footprint))},
 		{ map, map}
 	);
 
@@ -883,11 +883,11 @@ void MotifPositionItem::s_multiple_footprint_plot() {
 	}
 
 	QStringList show_group = metadata.get_qstring(show_group_name);
-	auto show_filter = _Cs in(show_group, show_levels);
+	auto show_filter = custom::in(show_group, show_levels);
 
 	QStringList valid_footprints;
 
-	auto computed = _Cs sapply(DATA_SUBMODULES(Footprint),
+	auto computed = custom::sapply(DATA_SUBMODULES(Footprint),
 		[](auto&& fp) {return fp.second.motif_.motif_name_; }
 	);
 
@@ -903,7 +903,7 @@ void MotifPositionItem::s_multiple_footprint_plot() {
 
 	auto& gs = this->draw_suite_->graph_settings_;
 
-	auto [draw_area, left_layout, legend_layout] = _Cp prepare_lg_lg(gs);
+	auto [draw_area, left_layout, legend_layout] = custom_plot::prepare_lg_lg(gs);
 
 	const int ncolor = levels.size();
 	auto colors = gs.palette(levels);
@@ -928,7 +928,7 @@ void MotifPositionItem::s_multiple_footprint_plot() {
 		);
 	}
 
-	_Cp add_round_legend(
+	custom_plot::add_round_legend(
 		draw_area, 
 		legend_layout, 
 		levels, 

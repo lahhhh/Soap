@@ -82,11 +82,11 @@ FEATURE_DATA FeatureHandler::get_feature_names() {
 		break;
 	}
 
-	res.all_names = _Cs unique(res.all_names);
+	res.all_names = custom::unique(res.all_names);
 
-	res.factor_names = _Cs unique(res.factor_names);
+	res.factor_names = custom::unique(res.factor_names);
 
-	res.numeric_names = _Cs unique(res.numeric_names);
+	res.numeric_names = custom::unique(res.numeric_names);
 
 	return res;
 };
@@ -410,7 +410,7 @@ QUERY_DATA FeatureHandler::get_data_single_cell_atac(QUERY_INFO info) {
 			}
 
 			res.type = QUERY_DATA::DataType::numeric;
-			res.dd = _Cs cast<QVector>(Eigen::ArrayXd(gene_activity_normalized->mat_.row(index)));
+			res.dd = custom::cast<QVector>(Eigen::ArrayXd(gene_activity_normalized->mat_.row(index)));
 			return res;
 		}
 		else {
@@ -427,7 +427,7 @@ QUERY_DATA FeatureHandler::get_data_single_cell_atac(QUERY_INFO info) {
 			}
 
 			res.type = QUERY_DATA::DataType::integer;
-			res.di = _Cs cast<QVector>(Eigen::ArrayXi(gene_activity_counts->mat_.row(index)));
+			res.di = custom::cast<QVector>(Eigen::ArrayXi(gene_activity_counts->mat_.row(index)));
 			return res;
 		}
 	}
@@ -449,7 +449,7 @@ QUERY_DATA FeatureHandler::get_data_single_cell_atac(QUERY_INFO info) {
 			}
 
 			res.type = QUERY_DATA::DataType::numeric;
-			res.dd = _Cs cast<QVector>(Eigen::ArrayXd(normalized->mat_.row(index)));
+			res.dd = custom::cast<QVector>(Eigen::ArrayXd(normalized->mat_.row(index)));
 			return res;
 		}
 		else {
@@ -466,7 +466,7 @@ QUERY_DATA FeatureHandler::get_data_single_cell_atac(QUERY_INFO info) {
 			}
 
 			res.type = QUERY_DATA::DataType::integer;
-			res.di = _Cs cast<QVector>(Eigen::ArrayXi(counts->mat_.row(index)));
+			res.di = custom::cast<QVector>(Eigen::ArrayXi(counts->mat_.row(index)));
 			return res;
 		}
 	}
@@ -534,7 +534,7 @@ QUERY_DATA FeatureHandler::get_data_single_cell_multiome(QUERY_INFO info) {
 			}
 
 			res.type = QUERY_DATA::DataType::numeric;
-			res.dd = _Cs cast<QVector>(Eigen::ArrayXd(trans_normalized->mat_.row(index)));
+			res.dd = custom::cast<QVector>(Eigen::ArrayXd(trans_normalized->mat_.row(index)));
 			return res;
 		}
 		else {
@@ -551,7 +551,7 @@ QUERY_DATA FeatureHandler::get_data_single_cell_multiome(QUERY_INFO info) {
 			}
 
 			res.type = QUERY_DATA::DataType::integer;
-			res.di = _Cs cast<QVector>(Eigen::ArrayXi(trans_counts->mat_.row(index)));
+			res.di = custom::cast<QVector>(Eigen::ArrayXi(trans_counts->mat_.row(index)));
 			return res;
 		}
 	}
@@ -579,7 +579,7 @@ QUERY_DATA FeatureHandler::get_data_single_cell_multiome(QUERY_INFO info) {
 			}
 
 			res.type = QUERY_DATA::DataType::numeric;
-			res.dd = _Cs cast<QVector>(Eigen::ArrayXd(normalized->mat_.row(index)));
+			res.dd = custom::cast<QVector>(Eigen::ArrayXd(normalized->mat_.row(index)));
 			return res;
 		}
 		else {
@@ -603,7 +603,7 @@ QUERY_DATA FeatureHandler::get_data_single_cell_multiome(QUERY_INFO info) {
 			}
 
 			res.type = QUERY_DATA::DataType::integer;
-			res.di = _Cs cast<QVector>(Eigen::ArrayXi(counts->mat_.row(index)));
+			res.di = custom::cast<QVector>(Eigen::ArrayXi(counts->mat_.row(index)));
 			return res;
 		}
 	}
@@ -646,7 +646,7 @@ QUERY_DATA FeatureHandler::get_data_bulk_rna(QUERY_INFO info) {
 			return res;
 		}
 		res.type = QUERY_DATA::DataType::numeric;
-		res.dd = _Cs cast<QVector>(Eigen::ArrayXd(normalized->mat_.row(index)));
+		res.dd = custom::cast<QVector>(Eigen::ArrayXd(normalized->mat_.row(index)));
 		return res;
 	}
 	else {
@@ -663,7 +663,7 @@ QUERY_DATA FeatureHandler::get_data_bulk_rna(QUERY_INFO info) {
 		}
 
 		res.type = QUERY_DATA::DataType::integer;
-		res.di = _Cs cast<QVector>(Eigen::ArrayXi(counts->mat_.row(index)));
+		res.di = custom::cast<QVector>(Eigen::ArrayXi(counts->mat_.row(index)));
 		return res;
 	}
 };
@@ -702,7 +702,7 @@ QUERY_DATA FeatureHandler::get_data_single_cell_rna(QUERY_INFO info) {
 			return res;
 		}
 		res.type = QUERY_DATA::DataType::numeric;
-		res.dd = _Cs cast<QVector>(Eigen::ArrayXd(normalized->mat_.row(index)));
+		res.dd = custom::cast<QVector>(Eigen::ArrayXd(normalized->mat_.row(index)));
 		return res;
 	}
 	else {
@@ -719,7 +719,7 @@ QUERY_DATA FeatureHandler::get_data_single_cell_rna(QUERY_INFO info) {
 		}
 
 		res.type = QUERY_DATA::DataType::integer;
-		res.di = _Cs cast<QVector>(Eigen::ArrayXi(counts->mat_.row(index)));
+		res.di = custom::cast<QVector>(Eigen::ArrayXi(counts->mat_.row(index)));
 		return res;
 	}
 };

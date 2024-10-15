@@ -6,8 +6,8 @@
 
 static std::tuple<double, double, double, double, double, double, double, double>  
 get_statistics(const QVector<double>& data) {
-	auto sorted = _Cs sorted(data);
-	double mean = _Cs mean(sorted);
+	auto sorted = custom::sorted(data);
+	double mean = custom::mean(sorted);
 	
 	const std::size_t size = sorted.size();
 	double max = sorted.last(), min = sorted.first();

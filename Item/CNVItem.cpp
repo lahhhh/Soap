@@ -42,7 +42,7 @@ void CNVItem::draw_cnv(
 
 	int nrow = cnv_mat.rows(), ncol = cnv_mat.cols();
 
-	QCustomPlot* draw_area = _Cp initialize_plot(gs);
+	QCustomPlot* draw_area = custom_plot::initialize_plot(gs);
 	SoapTextElement* title = new SoapTextElement(draw_area, gs.get_title("CNV"), gs.get_title_font());
 	draw_area->plotLayout()->addElement(0, 0, title);
 
@@ -60,7 +60,7 @@ void CNVItem::draw_cnv(
 	main_layout->addElement(0, 0, left_bottom_legend);
 	main_layout->addElement(0, 1, axis_rect);
 
-	auto cluster_names = _Cs sapply(metadata_location, [](auto&& loc) {return std::get<0>(loc); });
+	auto cluster_names = custom::sapply(metadata_location, [](auto&& loc) {return std::get<0>(loc); });
 
 	auto cluster_colors = gs.palette(cluster_names);
 	int index = 0;
@@ -68,7 +68,7 @@ void CNVItem::draw_cnv(
 
 		double end = start + n;
 
-		_CpPatch rectangle_borderless(
+		custom_plot::patch::rectangle_borderless(
 			draw_area, left_bottom_legend, 0, start, 1, end - start, cluster_colors[index++]
 		);
 
@@ -83,8 +83,8 @@ void CNVItem::draw_cnv(
 		label_x->setFont(gs.get_left_label_font());
 	}
 
-	_CpPatch remove_left_bottom_axis(left_bottom_legend);
-	left_bottom_legend->setMinimumSize(_CpUtility get_max_text_width(_Cs sapply(metadata_location, [](auto&& t) {return std::get<0>(t); }), gs.get_left_label_font()) * 1.2, 200);
+	custom_plot::patch::remove_left_bottom_axis(left_bottom_legend);
+	left_bottom_legend->setMinimumSize(custom_plot::utility::get_max_text_width(custom::sapply(metadata_location, [](auto&& t) {return std::get<0>(t); }), gs.get_left_label_font()) * 1.2, 200);
 
 	left_bottom_legend->axis(QCPAxis::atBottom)->setRange(-11, 1);
 	left_bottom_legend->axis(QCPAxis::atLeft)->setRange(0, ncol);
@@ -93,8 +93,8 @@ void CNVItem::draw_cnv(
 	QCPColorMap* heatmap = new QCPColorMap(axis_rect->axis(QCPAxis::atBottom), axis_rect->axis(QCPAxis::atLeft));
 	heatmap->data()->setSize(nrow, ncol);
 	heatmap->data()->setRange(QCPRange(0, nrow - 1), QCPRange(0, ncol - 1));
-	_CpPatch remove_left_bottom_axis(axis_rect);
-	_CpPatch set_range(axis_rect, QCPRange(-0.5, nrow - 0.5), QCPRange(-0.5, ncol - 0.5));
+	custom_plot::patch::remove_left_bottom_axis(axis_rect);
+	custom_plot::patch::set_range(axis_rect, QCPRange(-0.5, nrow - 0.5), QCPRange(-0.5, ncol - 0.5));
 
 	for (int i = 0; i < nrow; ++i) {
 		for (int j = 0; j < ncol; ++j) {
@@ -152,7 +152,7 @@ void CNVItem::draw_cnv(
 	main_layout->addElement(1, 1, bottom_legend);
 	main_layout->addElement(1, 2, bottom_right);
 
-	auto chr_colors = _CpUtility kmeans_palette(chromosome_location.size());
+	auto chr_colors = custom_plot::utility::kmeans_palette(chromosome_location.size());
 	index = 0;
 	for (const auto& [chr, start, n] : chromosome_location) {
 

@@ -72,8 +72,8 @@ bool LoadFragmentsWorker::load_fragments() {
 			}
 			seq_end = c;
 
-			int start = _Cs atoi_specialized(&c);
-			int end = _Cs atoi_specialized(&c);
+			int start = custom::atoi_specialized(&c);
+			int end = custom::atoi_specialized(&c);
 
 			if (start >= end) {
 				G_TASK_WARN("Invalid Fragments File: " + QString::fromUtf8(buffer));
@@ -94,7 +94,7 @@ bool LoadFragmentsWorker::load_fragments() {
 			if (iter != this->barcodes_index_.end()) {
 
 				int index = iter->second;
-				QString seq_name = _Cs standardize_chromosome_name(QString::fromUtf8(buffer, seq_end - buffer));
+				QString seq_name = custom::standardize_chromosome_name(QString::fromUtf8(buffer, seq_end - buffer));
 				auto& sequence_matrix = this->fragments_->data_[seq_name];
 
 				if (sequence_matrix.empty()) {

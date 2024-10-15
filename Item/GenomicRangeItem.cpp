@@ -17,7 +17,7 @@ void GenomicRangeItem::__s_update_interface() {
 void GenomicRangeItem::__show_this() {
 	MatrixWindow::show_matrix(
 		this->data(), 
-		_Cs cast<QString>(_Cs seq_n(1, this->data()->size())),
+		custom::cast<QString>(custom::seq_n(1, this->data()->size())),
 		this->data()->colnames(), 
 		this->title_, 
 		this->signal_emitter_,
@@ -152,7 +152,7 @@ void GenomicRangeItem::s_recalculated_counts(SparseInt* data) {
 };
 
 QStringList GenomicRangeItem::ucsc_to_ensembl(const QStringList& ucsc_name) {
-	return _Cs sapply(ucsc_name, [](QString name)->QString {
+	return custom::sapply(ucsc_name, [](QString name)->QString {
 		if (name == "chrM") {
 			return "MT";
 		}
@@ -163,7 +163,7 @@ QStringList GenomicRangeItem::ucsc_to_ensembl(const QStringList& ucsc_name) {
 };
 
 QStringList GenomicRangeItem::ensembl_to_ucsc(const QStringList& ensembl_name) {
-	return _Cs sapply(ensembl_name, [](QString name)->QString {
+	return custom::sapply(ensembl_name, [](QString name)->QString {
 		if (name == "MT" || name == "Mt") {
 			return "chrM";
 		}

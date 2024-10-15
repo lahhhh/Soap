@@ -3,11 +3,11 @@
 
 CustomMatrix::CustomMatrix(int nrow)
 {
-	this->rownames_ = _Cs cast<QString>(_Cs seq_n(0, nrow));
+	this->rownames_ = custom::cast<QString>(custom::seq_n(0, nrow));
 };
 
 CustomMatrix::CustomMatrix(const QStringList& rownames) :
-	rownames_(_Cs make_unique(rownames))
+	rownames_(custom::make_unique(rownames))
 {};
 
 CustomMatrix::CustomMatrix(const CustomMatrix& mat) :
@@ -27,11 +27,11 @@ CustomMatrix::CustomMatrix(const CustomMatrix& mat) :
 			this->data_[name] = static_cast<void*>(new QVector<double>(*static_cast<QVector<double> *>(mat.data_.at(name))));
 		}
 		else if (type == DataType::QStringFactor) {
-			this->data_[name] = static_cast<void*>(new QStringList(*static_cast<QStringList *>(mat.data_.at(name))));
+			this->data_[name] = static_cast<void*>(new QStringList(*static_cast<QStringList*>(mat.data_.at(name))));
 			this->string_factors_[name] = mat.string_factors_.at(name);
 		}
 		else if (type == DataType::QString) {
-			this->data_[name] = static_cast<void*>(new QStringList(*static_cast<QStringList *>(mat.data_.at(name))));
+			this->data_[name] = static_cast<void*>(new QStringList(*static_cast<QStringList*>(mat.data_.at(name))));
 		}
 
 		this->data_type_[name] = type;
@@ -66,7 +66,7 @@ CustomMatrix& CustomMatrix::operator=(CustomMatrix&& mat) noexcept {
 	mat.string_factors_.clear();
 	mat.integer_factors_.clear();
 	mat.rownames_.clear();
-	mat.colnames_.clear();	
+	mat.colnames_.clear();
 
 	return *this;
 };
@@ -77,13 +77,13 @@ CustomMatrix& CustomMatrix::operator=(const CustomMatrix& mat) {
 		auto type = this->data_type_[name];
 
 		if (type == DataType::IntegerNumeric || type == DataType::IntegerFactor) {
-			delete static_cast<QVector<int> *>(data);
+			delete static_cast<QVector<int>*>(data);
 		}
 		else if (type == DataType::DoubleNumeric) {
-			delete static_cast<QVector<double> *>(data);
+			delete static_cast<QVector<double>*>(data);
 		}
 		else if (type == DataType::QStringFactor || type == DataType::QString) {
-			delete static_cast<QStringList *>(data);
+			delete static_cast<QStringList*>(data);
 		}
 	}
 
@@ -107,11 +107,11 @@ CustomMatrix& CustomMatrix::operator=(const CustomMatrix& mat) {
 			this->data_[name] = static_cast<void*>(new QVector<double>(*static_cast<QVector<double> *>(mat.data_.at(name))));
 		}
 		else if (type == DataType::QStringFactor) {
-			this->data_[name] = static_cast<void*>(new QStringList(*static_cast<QStringList *>(mat.data_.at(name))));
+			this->data_[name] = static_cast<void*>(new QStringList(*static_cast<QStringList*>(mat.data_.at(name))));
 			this->string_factors_[name] = mat.string_factors_.at(name);
 		}
 		else if (type == DataType::QString) {
-			this->data_[name] = static_cast<void*>(new QStringList(*static_cast<QStringList *>(mat.data_.at(name))));
+			this->data_[name] = static_cast<void*>(new QStringList(*static_cast<QStringList*>(mat.data_.at(name))));
 		}
 
 		this->data_type_[name] = type;
@@ -120,12 +120,12 @@ CustomMatrix& CustomMatrix::operator=(const CustomMatrix& mat) {
 	return *this;
 }
 
-CustomMatrix::CustomMatrix(CustomMatrix&& mat) noexcept:
-	rownames_(mat.rownames_), 
-	colnames_(mat.colnames_), 
+CustomMatrix::CustomMatrix(CustomMatrix&& mat) noexcept :
+	rownames_(mat.rownames_),
+	colnames_(mat.colnames_),
 	data_(mat.data_),
-	data_type_(mat.data_type_), 
-	string_factors_(mat.string_factors_), 
+	data_type_(mat.data_type_),
+	string_factors_(mat.string_factors_),
 	integer_factors_(mat.integer_factors_)
 {
 
@@ -150,7 +150,7 @@ void CustomMatrix::adjust_type() {
 
 			const QStringList& data = this->get_const_qstring_reference(data_name);
 
-			int type = _Cs detect_type(data);
+			int type = custom::detect_type_mt(data);
 
 			if (type == 2) { // integer
 				const qsizetype size = data.size();
@@ -165,7 +165,7 @@ void CustomMatrix::adjust_type() {
 
 				this->data_type_[data_name] = DataType::IntegerNumeric;
 			}
-			
+
 			if (type == 1) {
 
 				const qsizetype size = data.size();
@@ -181,9 +181,9 @@ void CustomMatrix::adjust_type() {
 				this->data_type_[data_name] = DataType::DoubleNumeric;
 			}
 
-			if(type == 0) {
+			if (type == 0) {
 
-				QStringList factors = _Cs unique(data);
+				QStringList factors = custom::unique(data);
 				int n_unique = factors.size();
 				int size = data.size();
 
@@ -231,22 +231,22 @@ void CustomMatrix::to_integer_numeric(const QString& name) {
 	}
 	else if (data_type == DataType::DoubleNumeric) {
 		QVector<double>* vec = static_cast<QVector<double> *>(this->at(name));
-		this->update(name, _Cs sapply(*vec, [](double d) {return (int)d; }), DataType::IntegerNumeric);
+		this->update(name, custom::sapply(*vec, [](double d) {return (int)d; }), DataType::IntegerNumeric);
 	}
 	else if (data_type == DataType::IntegerFactor) {
 		this->data_type_[name] = DataType::IntegerNumeric;
 		this->integer_factors_.erase(name);
 	}
 	else if (data_type == DataType::QString || data_type == DataType::QStringFactor) {
-		QStringList* vec = static_cast<QStringList *>(this->at(name));
-		this->update(name, _Cs sapply(*vec, [](const QString& str) {return str.toInt(); }), DataType::IntegerNumeric);
+		QStringList* vec = static_cast<QStringList*>(this->at(name));
+		this->update(name, custom::sapply(*vec, [](const QString& str) {return str.toInt(); }), DataType::IntegerNumeric);
 	}
 };
 
 void CustomMatrix::to_integer_factor(const QString& name) {
 
 	if (!this->contains(name))return;
-	
+
 	auto data_type = this->data_type_[name];
 
 	if (data_type == DataType::IntegerFactor) {
@@ -254,22 +254,22 @@ void CustomMatrix::to_integer_factor(const QString& name) {
 	}
 	else if (data_type == DataType::DoubleNumeric) {
 		QVector<double>* vec = static_cast<QVector<double> *>(this->at(name));
-		this->update(name, _Cs sapply(*vec, [](double d) {return (int)d; }), DataType::IntegerFactor);
+		this->update(name, custom::sapply(*vec, [](double d) {return (int)d; }), DataType::IntegerFactor);
 	}
 	else if (data_type == DataType::IntegerNumeric) {
 		this->data_type_[name] = DataType::IntegerFactor;
-		this->integer_factors_[name] = _Cs unique(this->get_const_integer_reference(name));
+		this->integer_factors_[name] = custom::unique(this->get_const_integer_reference(name));
 	}
 	else if (data_type == DataType::QString || data_type == DataType::QStringFactor) {
-		QStringList* vec = static_cast<QStringList *>(this->at(name));
-		this->update(name, _Cs sapply(*vec, [](const QString& str) {return str.toInt(); }), DataType::IntegerFactor);
+		QStringList* vec = static_cast<QStringList*>(this->at(name));
+		this->update(name, custom::sapply(*vec, [](const QString& str) {return str.toInt(); }), DataType::IntegerFactor);
 	}
 };
 
 void CustomMatrix::to_double_numeric(const QString& name) {
 
 	if (!this->contains(name))return;
-	
+
 	auto data_type = this->data_type_[name];
 
 	if (data_type == DataType::DoubleNumeric) {
@@ -277,30 +277,30 @@ void CustomMatrix::to_double_numeric(const QString& name) {
 	}
 	else if (data_type == DataType::IntegerNumeric || data_type == DataType::IntegerFactor) {
 		QVector<int>* vec = static_cast<QVector<int> *>(this->at(name));
-		this->update(name, _Cs sapply(*vec, [](int i) {return (double)i; }), DataType::DoubleNumeric);
+		this->update(name, custom::sapply(*vec, [](int i) {return (double)i; }), DataType::DoubleNumeric);
 	}
 	else if (data_type == DataType::QString || data_type == DataType::QStringFactor) {
-		QStringList* vec = static_cast<QStringList *>(this->at(name));
-		this->update(name, _Cs sapply(*vec, [](const QString& str) {return str.toDouble(); }), DataType::DoubleNumeric);
+		QStringList* vec = static_cast<QStringList*>(this->at(name));
+		this->update(name, custom::sapply(*vec, [](const QString& str) {return str.toDouble(); }), DataType::DoubleNumeric);
 	}
 };
 
 void CustomMatrix::to_string(const QString& name) {
 
 	if (!this->contains(name))return;
-	
+
 	auto data_type = this->data_type_[name];
-	
+
 	if (data_type == DataType::QString) {
 		return;
 	}
 	else if (data_type == DataType::IntegerNumeric || data_type == DataType::IntegerFactor) {
 		QVector<int>* vec = static_cast<QVector<int> *>(this->at(name));
-		this->update(name, _Cs sapply(*vec, [](int i) {return QString::number(i); }), DataType::QString);
+		this->update(name, custom::sapply(*vec, [](int i) {return QString::number(i); }), DataType::QString);
 	}
-	else if (data_type == DataType::DoubleNumeric){
+	else if (data_type == DataType::DoubleNumeric) {
 		QVector<double>* vec = static_cast<QVector<double> *>(this->at(name));
-		this->update(name, _Cs sapply(*vec, [](double d) {return QString::number(d); }), DataType::QString);
+		this->update(name, custom::sapply(*vec, [](double d) {return QString::number(d); }), DataType::QString);
 	}
 	else if (data_type == DataType::QStringFactor) {
 		this->data_type_[name] = DataType::QString;
@@ -311,7 +311,7 @@ void CustomMatrix::to_string(const QString& name) {
 void CustomMatrix::to_string_factor(const QString& name) {
 
 	if (!this->contains(name))return;
-	
+
 	auto data_type = this->data_type_[name];
 
 	if (data_type == DataType::QStringFactor) {
@@ -319,22 +319,22 @@ void CustomMatrix::to_string_factor(const QString& name) {
 	}
 	else if (data_type == DataType::IntegerNumeric || data_type == DataType::IntegerFactor) {
 		QVector<int>* vec = static_cast<QVector<int> *>(this->at(name));
-		this->update(name, _Cs sapply(*vec, [](int i) {return QString::number(i); }), DataType::QStringFactor);
+		this->update(name, custom::sapply(*vec, [](int i) {return QString::number(i); }), DataType::QStringFactor);
 	}
-	else if (data_type == DataType::DoubleNumeric){
+	else if (data_type == DataType::DoubleNumeric) {
 		QVector<double>* vec = static_cast<QVector<double> *>(this->at(name));
-		this->update(name, _Cs sapply(*vec, [](double d) {return QString::number(d); }), DataType::QStringFactor);
+		this->update(name, custom::sapply(*vec, [](double d) {return QString::number(d); }), DataType::QStringFactor);
 	}
 	else if (data_type == DataType::QString) {
 		this->data_type_[name] = DataType::QStringFactor;
-		this->string_factors_[name] = _Cs unique(this->get_const_qstring_reference(name));
+		this->string_factors_[name] = custom::unique(this->get_const_qstring_reference(name));
 	}
 };
 
 void CustomMatrix::change_name(const QString& original_name, const QString& new_name) {
 
 	if (this->contains(new_name))return;
-	
+
 	int index = this->colnames_.indexOf(original_name);
 	if (index == -1)return;
 
@@ -400,7 +400,7 @@ void* CustomMatrix::at(const QString& name) const {
 }
 
 bool CustomMatrix::contains(const QString& name, DataType data_type) const {
-	
+
 	auto iter = this->data_type_.find(name);
 
 	if (iter != this->data_type_.cend()) {
@@ -430,7 +430,7 @@ bool CustomMatrix::contains(const QStringList& names) const {
 };
 
 void CustomMatrix::update(const QString& name, const QStringList& data, DataType data_type) {
-	
+
 	this->remove(name);
 
 	if (this->rownames_.isEmpty()) {
@@ -441,7 +441,7 @@ void CustomMatrix::update(const QString& name, const QStringList& data, DataType
 	this->data_type_[name] = data_type;
 
 	if (data_type == DataType::QStringFactor) {
-		this->string_factors_[name] = _Cs unique(data);
+		this->string_factors_[name] = custom::unique(data);
 	}
 
 	this->colnames_ << name;
@@ -459,7 +459,7 @@ void CustomMatrix::update(const QString& name, const QVector<int>& data, DataTyp
 	this->data_type_[name] = data_type;
 
 	if (data_type == DataType::IntegerFactor) {
-		this->integer_factors_[name] = _Cs unique(data);
+		this->integer_factors_[name] = custom::unique(data);
 	}
 
 	this->colnames_ << name;
@@ -497,20 +497,20 @@ void CustomMatrix::remove(const QString& name) {
 		void* data_ptr = this->data_[name];
 
 		if (this->data_type_[name] == DataType::IntegerNumeric) {
-			delete static_cast<QVector<int> *>(data_ptr);
+			delete static_cast<QVector<int>*>(data_ptr);
 		}
 		else if (this->data_type_[name] == DataType::DoubleNumeric) {
-			delete static_cast<QVector<double> *>(data_ptr);
+			delete static_cast<QVector<double>*>(data_ptr);
 		}
 		else if (this->data_type_[name] == DataType::QString) {
-			delete static_cast<QStringList *>(data_ptr);
+			delete static_cast<QStringList*>(data_ptr);
 		}
 		else if (this->data_type_[name] == DataType::QStringFactor) {
-			delete static_cast<QStringList *>(data_ptr);
+			delete static_cast<QStringList*>(data_ptr);
 			this->string_factors_.erase(name);
 		}
 		else if (this->data_type_[name] == DataType::IntegerFactor) {
-			delete static_cast<QVector<int> *>(data_ptr);
+			delete static_cast<QVector<int>*>(data_ptr);
 			this->integer_factors_.erase(name);
 		}
 
@@ -531,13 +531,13 @@ QStringList CustomMatrix::get_qstring(const QString& name) const {
 	auto ptr = this->data_.at(name);
 
 	if (type == DataType::IntegerNumeric || type == DataType::IntegerFactor) {
-		return _Cs cast<QString>(*static_cast<QVector<int> *>(ptr));
+		return custom::cast<QString>(*static_cast<QVector<int> *>(ptr));
 	}
 	else if (type == DataType::DoubleNumeric) {
-		return _Cs cast<QString>(*static_cast<QVector<double> *>(ptr));
+		return custom::cast<QString>(*static_cast<QVector<double> *>(ptr));
 	}
 	else if (type == DataType::QStringFactor || type == DataType::QString) {
-		return *static_cast<QStringList *>(ptr);
+		return *static_cast<QStringList*>(ptr);
 	}
 	else {
 		return {};
@@ -559,17 +559,17 @@ QVector<double>& CustomMatrix::get_mutable_double_reference(const QString& name)
 	return *static_cast<QVector<double>*>(this->data_[name]);
 };
 
-const QStringList& CustomMatrix::get_const_qstring_reference(const QString& name) const{
+const QStringList& CustomMatrix::get_const_qstring_reference(const QString& name) const {
 
 	return *static_cast<QStringList*>(this->data_.at(name));
 };
 
-const QVector<int>& CustomMatrix::get_const_integer_reference(const QString& name) const{
+const QVector<int>& CustomMatrix::get_const_integer_reference(const QString& name) const {
 
 	return *static_cast<QVector<int>*>(this->data_.at(name));
 };
 
-const QVector<double>& CustomMatrix::get_const_double_reference(const QString& name) const{
+const QVector<double>& CustomMatrix::get_const_double_reference(const QString& name) const {
 
 	return *static_cast<QVector<double>*>(this->data_.at(name));
 };
@@ -590,7 +590,7 @@ QString CustomMatrix::get_qstring(const QString& name, int index) const {
 		return QString::number(static_cast<QVector<double> *>(ptr)->operator[](index));
 	}
 	else if (type == DataType::QStringFactor || type == DataType::QString) {
-		return static_cast<QStringList *>(ptr)->operator[](index);
+		return static_cast<QStringList*>(ptr)->operator[](index);
 	}
 	else {
 		return QString();
@@ -641,10 +641,10 @@ QVector<int> CustomMatrix::get_integer(const QString& name) const {
 		return *static_cast<QVector<int> *>(this->data_.at(name));
 	}
 	else if (type == DataType::DoubleNumeric) {
-		return _Cs cast<int>(*static_cast<QVector<double> *>(this->data_.at(name)));
+		return custom::cast<int>(*static_cast<QVector<double> *>(this->data_.at(name)));
 	}
 	else if (type == DataType::QStringFactor || type == DataType::QString) {
-		return _Cs cast<int>(*static_cast<QStringList *>(this->data_.at(name)));
+		return custom::cast<int>(*static_cast<QStringList*>(this->data_.at(name)));
 	}
 	else {
 		return QVector<int>();
@@ -659,21 +659,21 @@ QVector<double> CustomMatrix::get_double(const QString& name) const {
 
 	auto type = this->data_type_.at(name);
 	if (type == DataType::IntegerNumeric || type == DataType::IntegerFactor) {
-		return _Cs cast<double>(*static_cast<QVector<int> *>(this->data_.at(name)));
+		return custom::cast<double>(*static_cast<QVector<int> *>(this->data_.at(name)));
 	}
 	else if (type == DataType::DoubleNumeric) {
 		return *static_cast<QVector<double> *>(this->data_.at(name));
 	}
 	else if (type == DataType::QStringFactor || type == DataType::QString) {
-		return _Cs cast<double>(*static_cast<QStringList *>(this->data_.at(name)));
+		return custom::cast<double>(*static_cast<QStringList*>(this->data_.at(name)));
 	}
 	else {
 		return QVector<double>();
 	}
 }
 
-CustomMatrix CustomMatrix::row_reordered(const QStringList& order) const{
-	return this->row_reordered(_Cs index_of(order, this->rownames_));
+CustomMatrix CustomMatrix::row_reordered(const QStringList& order) const {
+	return this->row_reordered(custom::index_of(order, this->rownames_));
 };
 
 std::pair<QStringList, QList<CustomMatrix::DataType>> CustomMatrix::get_type_information() const {
@@ -705,7 +705,7 @@ QMap<QString, QStringList> CustomMatrix::get_factor_information(bool get_single_
 					continue;
 				}
 			}
-			ret[name] = _Cs cast<QString>(this->integer_factors_.at(name));
+			ret[name] = custom::cast<QString>(this->integer_factors_.at(name));
 		}
 	}
 
@@ -762,10 +762,10 @@ bool CustomMatrix::is_empty() const {
 
 void CustomMatrix::set_rownames(const QStringList& rownames) {
 
-	this->rownames_ = _Cs make_unique(rownames);
+	this->rownames_ = custom::make_unique(rownames);
 };
 
 void CustomMatrix::set_nrow(int nrow) {
 
-	this->rownames_ = _Cs cast<QString>(_Cs seq_n(0, nrow));
+	this->rownames_ = custom::cast<QString>(custom::seq_n(0, nrow));
 };

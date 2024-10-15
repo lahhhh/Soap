@@ -1,9 +1,5 @@
 #pragma once
 
-#ifndef _Cs
-#define _Cs ::custom::
-#endif // !_Cs
-
 #include "Identifier.h"
 
 #include <string>
@@ -93,7 +89,7 @@ namespace custom {
 	QVector<int> sample_integer(int low, int high, int n, int seed = 1997, bool unique = true);
 
 	// 0 : string, 1 : numeric, 2 : integer
-	int detect_type(const QStringList& vec);
+	int detect_type_mt(const QStringList& vec);
 
 	bool is_integer(const char* str);
 	bool is_integer(const QString& str);
@@ -210,8 +206,6 @@ namespace custom {
 	double trimean(const Eigen::ArrayXd& arr);
 
 	Eigen::ArrayXd tricubic_weighting(const Eigen::ArrayXd& x, double loc, double maximum_distance);	
-
-	Eigen::MatrixXd pseudo_inverse(const Eigen::MatrixXd& mat);
 
 	Eigen::ArrayXd least_square(const Eigen::ArrayXd& y, const Eigen::ArrayXd& x, const int degree);
 

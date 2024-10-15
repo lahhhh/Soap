@@ -36,6 +36,6 @@ DenseDouble SparseDouble::to_dense() const{
 };
 
 Eigen::SparseMatrix<double> SparseDouble::get_rows(const QStringList & names) const{
-    auto index = _Cs index_of(names, this->rownames_);
-    return _Cs row_reordered(this->mat_, index);
+    auto index = custom::index_of(names, this->rownames_);
+    return custom::row_reordered(this->mat_, index);
 };

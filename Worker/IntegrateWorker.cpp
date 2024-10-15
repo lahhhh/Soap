@@ -8,26 +8,26 @@
 std::pair<QStringList, QList<QVector<int>>>
 IntegrateWorker::get_index(const QList<QStringList>& components, bool distinguish) {
 
-	QStringList concatenated = _Cs unroll(components);
+	QStringList concatenated = custom::unroll(components);
 
 	QList<QVector<int>> index;
 
 	if (!distinguish) {
 
-		concatenated = _Cs unique(concatenated);
+		concatenated = custom::unique(concatenated);
 
 		for (auto&& comp : components) {
-			index << _Cs index_of(comp, concatenated);
+			index << custom::index_of(comp, concatenated);
 		}
 	}
 	else {
 
-		concatenated = _Cs make_unique(concatenated);
+		concatenated = custom::make_unique(concatenated);
 
 		int loc{ 0 };
 		for (auto&& comp : components) {
 			int size = comp.size();
-			index << _Cs seq_n(loc, size);
+			index << custom::seq_n(loc, size);
 			loc += size;
 		}
 	}
@@ -107,14 +107,14 @@ void IntegrateWorker::integrate_velocyto(VelocytoBase& to, QList<const VelocytoB
 
 	auto& spliced = SUBMODULES(to, SparseInt)[VARIABLE_RNA_SPLICED];
 	spliced.data_type_ = SparseInt::DataType::Spliced;
-	auto spliced_froms = _Cs sapply(froms, [](auto* f) {return f->get_spliced(); });
+	auto spliced_froms = custom::sapply(froms, [](auto* f) {return f->get_spliced(); });
 
 	auto [counts_rownames, row_map] = this->get_index(
-		_Cs sapply(spliced_froms, [](auto&& t) {return t->rownames_; }),
+		custom::sapply(spliced_froms, [](auto&& t) {return t->rownames_; }),
 		false);
 
 	auto [counts_colnames, col_map] = this->get_index(
-		_Cs sapply(spliced_froms, [](auto&& t) {return t->colnames_; }),
+		custom::sapply(spliced_froms, [](auto&& t) {return t->colnames_; }),
 		this->distinguish_barcode_);
 
 	this->map_sparse_int_value(spliced, spliced_froms, row_map, col_map, counts_rownames, counts_colnames);
@@ -122,14 +122,14 @@ void IntegrateWorker::integrate_velocyto(VelocytoBase& to, QList<const VelocytoB
 
 	auto& unspliced = SUBMODULES(to, SparseInt)[VARIABLE_RNA_UNSPLICED];
 	unspliced.data_type_ = SparseInt::DataType::Unspliced;
-	auto unspliced_froms = _Cs sapply(froms, [](auto* f) {return f->get_unspliced(); });
+	auto unspliced_froms = custom::sapply(froms, [](auto* f) {return f->get_unspliced(); });
 
 	auto [counts_rownames2, row_map2] = this->get_index(
-		_Cs sapply(unspliced_froms, [](auto&& t) {return t->rownames_; }),
+		custom::sapply(unspliced_froms, [](auto&& t) {return t->rownames_; }),
 		false);
 
 	auto [counts_colnames2, col_map2] = this->get_index(
-		_Cs sapply(unspliced_froms, [](auto&& t) {return t->colnames_; }),
+		custom::sapply(unspliced_froms, [](auto&& t) {return t->colnames_; }),
 		this->distinguish_barcode_);
 
 	this->map_sparse_int_value(unspliced, unspliced_froms, row_map2, col_map2, counts_rownames2, counts_colnames2);
@@ -142,7 +142,7 @@ void IntegrateWorker::integrate_metadata(Metadata& to, QList<const Metadata*> fr
 	for (auto data : froms) {
 		metadata_names << data->mat_.colnames_;
 	}
-	metadata_names = _Cs unique(metadata_names);
+	metadata_names = custom::unique(metadata_names);
 
 	for (const auto& name : metadata_names) {
 		CustomMatrix::DataType data_type = CustomMatrix::DataType::NoType;
@@ -231,14 +231,14 @@ void IntegrateWorker::integrate_metadata(Metadata& to, QList<const Metadata*> fr
 
 void IntegrateWorker::multiome_quality_control(SingleCellMultiome& single_cell_multiome) {
 	SparseInt& rna_counts = SUBMODULES(*single_cell_multiome.rna_field(), SparseInt)[VARIABLE_RNA_COUNTS];
-	Eigen::ArrayX<bool> gene_detected = _Cs row_sum(rna_counts.mat_) > 0;
+	Eigen::ArrayX<bool> gene_detected = custom::row_sum(rna_counts.mat_) > 0;
 	rna_counts.row_slice(gene_detected);
 
 	SparseInt& atac_counts = SUBMODULES(*single_cell_multiome.atac_field(), SparseInt)[VARIABLE_ATAC_COUNTS];
-	Eigen::ArrayX<bool> peak_detected = _Cs row_sum(atac_counts.mat_) > 0;
+	Eigen::ArrayX<bool> peak_detected = custom::row_sum(atac_counts.mat_) > 0;
 	atac_counts.row_slice(peak_detected);
 
-	Eigen::ArrayXi rna_count = _Cs col_sum_mt(rna_counts.mat_);
+	Eigen::ArrayXi rna_count = custom::col_sum_mt(rna_counts.mat_);
 	const int ncol_rna = rna_counts.mat_.cols();
 	Eigen::ArrayXi rna_gene(ncol_rna);
 	Eigen::ArrayXd mitochondrial_content = Eigen::ArrayXd::Zero(ncol_rna);
@@ -288,17 +288,17 @@ void IntegrateWorker::multiome_quality_control(SingleCellMultiome& single_cell_m
 		ribosomal_content /= rna_count.cast<double>();
 	}
 
-	_Cs remove_na(mitochondrial_content);
-	_Cs remove_na(ribosomal_content);
+	custom::remove_na(mitochondrial_content);
+	custom::remove_na(ribosomal_content);
 
 	Metadata& metadata = SUBMODULES(single_cell_multiome, Metadata)[VARIABLE_METADATA];
 	metadata.mat_.set_rownames(rna_counts.colnames_);
 	metadata.mat_.update(METADATA_RNA_UMI_NUMBER, QVector<int>(rna_count.begin(), rna_count.end()));
 	metadata.mat_.update(METADATA_RNA_UNIQUE_GENE_NUMBER, QVector<int>(rna_gene.begin(), rna_gene.end()));
-	metadata.mat_.update(METADATA_RNA_MITOCHONDRIAL_CONTENT, _Cs cast<QVector>(mitochondrial_content));
-	metadata.mat_.update(METADATA_RNA_RIBOSOMAL_CONTENT, _Cs cast<QVector>(ribosomal_content));
+	metadata.mat_.update(METADATA_RNA_MITOCHONDRIAL_CONTENT, custom::cast<QVector>(mitochondrial_content));
+	metadata.mat_.update(METADATA_RNA_RIBOSOMAL_CONTENT, custom::cast<QVector>(ribosomal_content));
 
-	Eigen::ArrayXi peak_count = _Cs col_sum_mt(atac_counts.mat_);
+	Eigen::ArrayXi peak_count = custom::col_sum_mt(atac_counts.mat_);
 	const int ncol_atac = atac_counts.mat_.cols();
 	Eigen::ArrayXi peak_gene(ncol_atac);
 
@@ -314,7 +314,7 @@ void IntegrateWorker::atac_quality_control(SingleCellAtac& single_cell_atac) {
 
 	SparseInt& counts = *single_cell_atac.counts();
 
-	Eigen::ArrayXi col_count = _Cs col_sum_mt(counts.mat_);
+	Eigen::ArrayXi col_count = custom::col_sum_mt(counts.mat_);
 	const int ncol = counts.mat_.cols();
 	Eigen::ArrayXi col_peak(ncol);
 
@@ -323,14 +323,14 @@ void IntegrateWorker::atac_quality_control(SingleCellAtac& single_cell_atac) {
 	}
 
 	Metadata& metadata = SUBMODULES(single_cell_atac, Metadata)[VARIABLE_METADATA];
-	metadata.mat_.update(METADATA_ATAC_UMI_NUMBER, _Cs cast<QVector>(col_count));
-	metadata.mat_.update(METADATA_ATAC_UNIQUE_PEAK_NUMBER, _Cs cast<QVector>(col_peak));
+	metadata.mat_.update(METADATA_ATAC_UMI_NUMBER, custom::cast<QVector>(col_count));
+	metadata.mat_.update(METADATA_ATAC_UNIQUE_PEAK_NUMBER, custom::cast<QVector>(col_peak));
 	metadata.mat_.update(METADATA_BARCODES, single_cell_atac.fragments()->cell_names_);
 };
 
 void IntegrateWorker::rna_quality_control(SingleCellRna& single_cell_rna) {
 	Eigen::SparseMatrix<int>& counts = SUBMODULES(single_cell_rna, SparseInt)[VARIABLE_COUNTS].mat_;
-	Eigen::ArrayXi col_count = _Cs col_sum(counts);
+	Eigen::ArrayXi col_count = custom::col_sum(counts);
 	const int ncol = counts.cols();
 	Eigen::ArrayXi col_gene(ncol);
 	Eigen::ArrayXd mitochondrial_content = Eigen::ArrayXd::Zero(ncol);
@@ -378,15 +378,15 @@ void IntegrateWorker::rna_quality_control(SingleCellRna& single_cell_rna) {
 		ribosomal_content /= col_count.cast<double>();
 	}
 
-	_Cs remove_na(mitochondrial_content);
-	_Cs remove_na(ribosomal_content);
+	custom::remove_na(mitochondrial_content);
+	custom::remove_na(ribosomal_content);
 
 	CustomMatrix& metadata = SUBMODULES(single_cell_rna, Metadata)[VARIABLE_METADATA].mat_;
 
-	metadata.update(METADATA_RNA_UMI_NUMBER, _Cs cast<QVector>(col_count));
-	metadata.update(METADATA_RNA_UNIQUE_GENE_NUMBER, _Cs cast<QVector>(col_gene));
-	metadata.update(METADATA_RNA_MITOCHONDRIAL_CONTENT, _Cs cast<QVector>(mitochondrial_content));
-	metadata.update(METADATA_RNA_RIBOSOMAL_CONTENT, _Cs cast<QVector>(ribosomal_content));
+	metadata.update(METADATA_RNA_UMI_NUMBER, custom::cast<QVector>(col_count));
+	metadata.update(METADATA_RNA_UNIQUE_GENE_NUMBER, custom::cast<QVector>(col_gene));
+	metadata.update(METADATA_RNA_MITOCHONDRIAL_CONTENT, custom::cast<QVector>(mitochondrial_content));
+	metadata.update(METADATA_RNA_RIBOSOMAL_CONTENT, custom::cast<QVector>(ribosomal_content));
 }
 
 void IntegrateWorker::bulkrna_mode() {
@@ -397,15 +397,15 @@ void IntegrateWorker::bulkrna_mode() {
 	DenseInt& counts = SUBMODULES(*bulk_rna, DenseInt)[VARIABLE_COUNTS];
 	counts.data_type_ = DenseInt::DataType::Counts;
 
-	QList<DenseInt const*> list_of_counts = _Cs sapply(this->bulkrna_data_,
+	QList<DenseInt const*> list_of_counts = custom::sapply(this->bulkrna_data_,
 		[](auto* data) {return static_cast<DenseInt const*>(data->counts()); });
 
 	auto [counts_rownames, row_map] = this->get_index(
-		_Cs sapply(list_of_counts, [](auto&& t) {return t->rownames_; }),
+		custom::sapply(list_of_counts, [](auto&& t) {return t->rownames_; }),
 		false);
 
 	auto [counts_colnames, col_map] = this->get_index(
-		_Cs sapply(list_of_counts, [](auto&& t) {return t->colnames_; }),
+		custom::sapply(list_of_counts, [](auto&& t) {return t->colnames_; }),
 		this->distinguish_barcode_);
 
 	this->map_dense_int_value(counts, list_of_counts, row_map, col_map, counts_rownames, counts_colnames);
@@ -413,7 +413,7 @@ void IntegrateWorker::bulkrna_mode() {
 	Metadata& metadata = SUBMODULES(*bulk_rna, Metadata)[VARIABLE_METADATA];
 	metadata.mat_.set_rownames(counts.colnames_);
 
-	QList<const Metadata*> list_of_metadata = _Cs sapply(this->bulkrna_data_, [](auto* data) {return data->metadata(); });
+	QList<const Metadata*> list_of_metadata = custom::sapply(this->bulkrna_data_, [](auto* data) {return data->metadata(); });
 
 	this->integrate_metadata(metadata, list_of_metadata);
 
@@ -429,20 +429,20 @@ void IntegrateWorker::scrna_mode() {
 	SparseInt& counts = SUBMODULES(*single_cell_rna, SparseInt)[VARIABLE_COUNTS];
 	counts.data_type_ = SparseInt::DataType::Counts;
 
-	QList<SparseInt const*> list_of_counts = _Cs sapply(this->scrna_data_,
+	QList<SparseInt const*> list_of_counts = custom::sapply(this->scrna_data_,
 		[](auto* data) {return static_cast<SparseInt const*>(data->counts()); });
 
 	auto [counts_rownames, row_map] = this->get_index(
-		_Cs sapply(list_of_counts, [](auto&& t) {return t->rownames_; }),
+		custom::sapply(list_of_counts, [](auto&& t) {return t->rownames_; }),
 		false);
 
 	auto [counts_colnames, col_map] = this->get_index(
-		_Cs sapply(list_of_counts, [](auto&& t) {return t->colnames_; }),
+		custom::sapply(list_of_counts, [](auto&& t) {return t->colnames_; }),
 		this->distinguish_barcode_);
 
 	this->map_sparse_int_value(counts, list_of_counts, row_map, col_map, counts_rownames, counts_colnames);
 
-	QList<const VelocytoBase*> list_of_velocyto = _Cs sapply(this->scrna_data_,
+	QList<const VelocytoBase*> list_of_velocyto = custom::sapply(this->scrna_data_,
 		[](auto* data) {return data->velocyto_base(); });
 
 	if (!list_of_velocyto.contains(nullptr)) {
@@ -457,7 +457,7 @@ void IntegrateWorker::scrna_mode() {
 
 	if (this->distinguish_barcode_) {
 
-		QList<const Metadata*> list_of_metadata = _Cs sapply(this->scrna_data_, [](auto* data) {return data->metadata(); });
+		QList<const Metadata*> list_of_metadata = custom::sapply(this->scrna_data_, [](auto* data) {return data->metadata(); });
 
 		this->integrate_metadata(metadata, list_of_metadata);
 	}
@@ -509,7 +509,7 @@ void IntegrateWorker::scatac_mode() {
 	Fragments& fragments = SUBMODULES(*single_cell_atac, Fragments)[VARIABLE_FRAGMENTS];
 
 	auto [cell_names, col_map] = this->get_index(
-		_Cs sapply(this->scatac_data_, [](auto&& t) {return t->counts()->colnames_; }),
+		custom::sapply(this->scatac_data_, [](auto&& t) {return t->counts()->colnames_; }),
 		this->distinguish_barcode_
 	);
 
@@ -519,7 +519,7 @@ void IntegrateWorker::scatac_mode() {
 	if (!this->integrate_fragments_object(
 		fragments,
 		col_map,
-		_Cs sapply(this->scatac_data_, [](auto&& d) {return d->fragments(); }))) {
+		custom::sapply(this->scatac_data_, [](auto&& d) {return d->fragments(); }))) {
 		delete single_cell_atac;
 		G_TASK_WARN("Fragments integration failed due to incomplete fragments files.");
 		return;
@@ -542,7 +542,7 @@ void IntegrateWorker::scatac_mode() {
 	metadata.mat_.set_rownames(cell_names);
 	if (this->distinguish_barcode_) {
 
-		QList<const Metadata*> list_of_metadata = _Cs sapply(this->scatac_data_, [](auto* data) {return data->metadata(); });
+		QList<const Metadata*> list_of_metadata = custom::sapply(this->scatac_data_, [](auto* data) {return data->metadata(); });
 
 		this->integrate_metadata(metadata, list_of_metadata);
 	}
@@ -566,20 +566,20 @@ void IntegrateWorker::scmultiome_mode() {
 	SparseInt& rna_counts = SUBMODULES(rna_field, SparseInt)[VARIABLE_RNA_COUNTS];
 	rna_counts.data_type_ = SparseInt::DataType::Counts;
 
-	QList<SparseInt const*> list_of_counts = _Cs sapply(this->scmultiome_data_,
+	QList<SparseInt const*> list_of_counts = custom::sapply(this->scmultiome_data_,
 		[](const SingleCellMultiome* data) {return static_cast<SparseInt const*>(data->rna_counts()); });
 
 	auto [counts_rownames, row_map] = this->get_index(
-		_Cs sapply(list_of_counts, [](auto&& t) {return t->rownames_; }),
+		custom::sapply(list_of_counts, [](auto&& t) {return t->rownames_; }),
 		false);
 
 	auto [counts_colnames, col_map] = this->get_index(
-		_Cs sapply(list_of_counts, [](auto&& t) {return t->colnames_; }),
+		custom::sapply(list_of_counts, [](auto&& t) {return t->colnames_; }),
 		this->distinguish_barcode_);
 
 	this->map_sparse_int_value(rna_counts, list_of_counts, row_map, col_map, counts_rownames, counts_colnames);
 
-	QList<const VelocytoBase*> list_of_velocyto = _Cs sapply(this->scmultiome_data_,
+	QList<const VelocytoBase*> list_of_velocyto = custom::sapply(this->scmultiome_data_,
 		[](auto* data) {return data->velocyto_base(); });
 
 	if (!list_of_velocyto.contains(nullptr)) {
@@ -594,7 +594,7 @@ void IntegrateWorker::scmultiome_mode() {
 	fragments.cell_names_ = rna_counts.colnames_;
 	fragments.adjust_length_by_cell_name_length();
 
-	if (!this->integrate_fragments_object(fragments, col_map, _Cs sapply(this->scmultiome_data_, [](auto&& d) {return d->fragments(); }))) {
+	if (!this->integrate_fragments_object(fragments, col_map, custom::sapply(this->scmultiome_data_, [](auto&& d) {return d->fragments(); }))) {
 		delete single_cell_multiome;
 		G_TASK_WARN("Fragments integration failed due to incomplete fragments files.");
 		return;
@@ -616,7 +616,7 @@ void IntegrateWorker::scmultiome_mode() {
 	metadata.mat_.set_rownames(rna_counts.colnames_);
 	if (this->distinguish_barcode_) {
 
-		QList<const Metadata*> list_of_metadata = _Cs sapply(this->scmultiome_data_, [](auto* data) {return data->metadata(); });
+		QList<const Metadata*> list_of_metadata = custom::sapply(this->scmultiome_data_, [](auto* data) {return data->metadata(); });
 
 		this->integrate_metadata(metadata, list_of_metadata);
 	}

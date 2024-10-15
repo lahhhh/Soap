@@ -12,16 +12,16 @@ Eigen::SparseMatrix<double> create_shared_nearest_neighbors_matrix(
     Eigen::MatrixXi knn;
 
     if (nn_method == "Euclidean") {
-        knn = _Cs get_knn_mt<Euclidean>(mat, n_neighbors, n_trees);
+        knn = custom::get_knn_mt<Euclidean>(mat, n_neighbors, n_trees);
     }
     else if (nn_method == "Angular") {
-        knn = _Cs get_knn_mt<Angular>(mat, n_neighbors, n_trees);
+        knn = custom::get_knn_mt<Angular>(mat, n_neighbors, n_trees);
     }
     else /* if (nn_method == "Manhattan") */ {
-        knn = _Cs get_knn_mt<Manhattan>(mat, n_neighbors, n_trees);
+        knn = custom::get_knn_mt<Manhattan>(mat, n_neighbors, n_trees);
     }
 
-    return _Cs create_shared_nearest_neighbors_matrix(knn);
+    return custom::create_shared_nearest_neighbors_matrix(knn);
 };
 
 Network create_network(const Eigen::SparseMatrix<double>& snn,

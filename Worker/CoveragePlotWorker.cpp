@@ -119,7 +119,7 @@ bool CoveragePlotWorker::find_peak_in_region() {
 
 	const qsizetype size = peak_names.size();
 	for (qsizetype i = 0; i < size; ++i) {
-		auto [sequence_name, start, end, success] = _Cs string_to_peak(peak_names[i]);
+		auto [sequence_name, start, end, success] = custom::string_to_peak(peak_names[i]);
 		if (success) {
 			if (sequence_name == this->location_.sequence_name) {
 				if (start < this->location_.end && end > this->location_.start) {
@@ -220,11 +220,11 @@ bool CoveragePlotWorker::find_gene_in_region() {
 		return false;
 	}
 
-	auto start = _Cs sliced(genome_start, sequence_filter);
-	auto end = _Cs sliced(genome_end, sequence_filter);
-	strand = _Cs sliced(strand, sequence_filter);
-	QStringList type = _Cs sliced(this->genome_.metadata_.get_const_qstring_reference(METADATA_GENOMIC_RANGE_GENE_TYPE), sequence_filter);
-	QStringList gene_name = _Cs sliced(this->genome_.metadata_.get_const_qstring_reference(METADATA_GENOMIC_RANGE_GENE_NAME), sequence_filter);
+	auto start = custom::sliced(genome_start, sequence_filter);
+	auto end = custom::sliced(genome_end, sequence_filter);
+	strand = custom::sliced(strand, sequence_filter);
+	QStringList type = custom::sliced(this->genome_.metadata_.get_const_qstring_reference(METADATA_GENOMIC_RANGE_GENE_TYPE), sequence_filter);
+	QStringList gene_name = custom::sliced(this->genome_.metadata_.get_const_qstring_reference(METADATA_GENOMIC_RANGE_GENE_NAME), sequence_filter);
 
 	const qsizetype sequence_size = start.size();
 	int last_start = 0, last_end = 0;
@@ -242,7 +242,7 @@ bool CoveragePlotWorker::find_gene_in_region() {
 			this->gene_structure_[gene_name[i]].second.append(std::make_tuple(local_start, local_end, type[i]));
 		}
 	}
-	if (_Cs sum(_Cs sapply(this->gene_structure_.values(), [](const QPair< char, QList< std::tuple<int, int, QString> > >& value) {return value.second.size(); })) == 0) {
+	if (custom::sum(custom::sapply(this->gene_structure_.values(), [](const QPair< char, QList< std::tuple<int, int, QString> > >& value) {return value.second.size(); })) == 0) {
 		G_TASK_WARN("No Gene Found in region : " + this->location_.sequence_name + ":" + QString::number(this->location_.start) + "-" + QString::number(this->location_.end) + ".");
 		return false;
 	}
@@ -267,10 +267,10 @@ bool CoveragePlotWorker::load_genome() {
 		species = this->single_cell_atac_->species_;
 	}
 	if (species == soap::Species::Human) {
-		bool success = ItemDatabase::read_item(FILE_HUMAN_GENOME_GENOMIC_RANGE_GCS, this->genome_);
+		bool success = ItemDatabase::read_item(FILE_HUMAN_GENOME_GENOMIC_RANGE_SIF, this->genome_);
 
 		if (!success) {
-			G_TASK_WARN("Loading faied.");
+			G_TASK_WARN("Database Loading faied.");
 			return false;
 		}
 		return true;
@@ -380,7 +380,7 @@ bool CoveragePlotWorker::prepare_draw_matrix() {
 bool CoveragePlotWorker::get_location_by_name() {
 
 	auto [seq_name, start, end, strand, success] =
-		_Cs find_gene_in_genome(this->region_, this->genome_);
+		custom::find_gene_in_genome(this->region_, this->genome_);
 	if (!success) {
 		return false;
 	}
@@ -416,7 +416,7 @@ void CoveragePlotWorker::expand_plot_region() {
 void CoveragePlotWorker::build_index() {
 
 	const int n_level = this->levels_.size();
-	this->group_distribution_ = _Cs table(this->factors_);
+	this->group_distribution_ = custom::table(this->factors_);
 	const int n_cell = this->factors_.size();
 
 	const CustomMatrix* metadata{ nullptr };
@@ -451,7 +451,7 @@ bool CoveragePlotWorker::calculate_fragments_size() {
 			this->cell_size_[i] += data[i].second.size();
 		}
 	}
-	double mean_fragments_size = _Cs mean(this->cell_size_);
+	double mean_fragments_size = custom::mean(this->cell_size_);
 
 	for (auto&& size : this->cell_size_) {
 		if (size != 0.0) {
@@ -529,7 +529,7 @@ void CoveragePlotWorker::run() {
 }
 
 bool CoveragePlotWorker::get_location() {
-	auto [sequence_name, start, end, success] = _Cs string_to_peak(this->region_);
+	auto [sequence_name, start, end, success] = custom::string_to_peak(this->region_);
 	if (!success) {
 		return get_location_by_name();
 	}

@@ -42,7 +42,7 @@ std::map<QString, PatternWeightMatrix> read_motif_database(const QString& file_n
 		}
 
 		tf.weight_.rownames_ = { "A", "C", "G", "T" };
-		tf.weight_.colnames_ = _Cs cast<QString>(_Cs seq_n(1, pattern_length));
+		tf.weight_.colnames_ = custom::cast<QString>(custom::seq_n(1, pattern_length));
 
 		line = in.readLine();
 	}
@@ -61,7 +61,7 @@ void write_sv(const CustomMatrix& mat,
 		if (keep_rownames) {
 			out << delimiter;
 		}
-		out << _Cs merge_to_string(mat.colnames_, delimiter, quote) << Qt::endl;
+		out << custom::merge_to_string(mat.colnames_, delimiter, quote) << Qt::endl;
 	}
 
 	int nrow = mat.rows();
@@ -76,7 +76,7 @@ void write_sv(const CustomMatrix& mat,
 			}
 		}
 
-		out << _Cs merge_to_string(mat.get_row(i), delimiter, quote) << Qt::endl;
+		out << custom::merge_to_string(mat.get_row(i), delimiter, quote) << Qt::endl;
 	}
 
 	out.flush();
@@ -165,7 +165,7 @@ void write_sv(
 		if (keep_rownames) {
 			out << delimiter;
 		}
-		out << _Cs merge_to_string(colnames, delimiter, quote) << Qt::endl;
+		out << custom::merge_to_string(colnames, delimiter, quote) << Qt::endl;
 	}
 
 	for (int i = 0; i < nrow; ++i) {
@@ -216,7 +216,7 @@ void write_sv(
 		if (keep_rownames) {
 			out << delimiter;
 		}
-		out << _Cs merge_to_string(colnames, delimiter, quote) << Qt::endl;
+		out << custom::merge_to_string(colnames, delimiter, quote) << Qt::endl;
 	}
 
 	for (int i = 0; i < nrow; ++i) {
@@ -272,7 +272,7 @@ void write_sv(
 		if (keep_rownames) {
 			out << delimiter;
 		}
-		out << _Cs merge_to_string(colnames, delimiter, quote) << Qt::endl;
+		out << custom::merge_to_string(colnames, delimiter, quote) << Qt::endl;
 	}
 
 	for (int i = 0; i < nrow; ++i) {
@@ -328,7 +328,7 @@ void write_sv(
 		if (keep_rownames) {
 			out << delimiter;
 		}
-		out << _Cs merge_to_string(colnames, delimiter, quote) << Qt::endl;
+		out << custom::merge_to_string(colnames, delimiter, quote) << Qt::endl;
 	}
 
 	for (int i = 0; i < nrow; ++i) {
@@ -386,7 +386,7 @@ void write_sv(
 		if (keep_rownames) {
 			out << delimiter;
 		}
-		out << _Cs merge_to_string(colnames, delimiter, quote) << Qt::endl;
+		out << custom::merge_to_string(colnames, delimiter, quote) << Qt::endl;
 	}
 
 	for (int i = 0; i < nrow; ++i) {
@@ -441,7 +441,7 @@ void write_sv(
 		if (keep_rownames) {
 			out << delimiter;
 		}
-		out << _Cs merge_to_string(colnames, delimiter, quote) << Qt::endl;
+		out << custom::merge_to_string(colnames, delimiter, quote) << Qt::endl;
 	}
 
 	for (int i = 0; i < nrow; ++i) {
@@ -496,7 +496,7 @@ void write_sv(
 		if (keep_rownames) {
 			out << delimiter;
 		}
-		out << _Cs merge_to_string(colnames, delimiter, quote) << Qt::endl;
+		out << custom::merge_to_string(colnames, delimiter, quote) << Qt::endl;
 	}
 
 	for (int i = 0; i < nrow; ++i) {
@@ -547,7 +547,7 @@ void write_sv(
 		if (keep_rownames) {
 			out << delimiter;
 		}
-		out << _Cs merge_to_string(dd.colnames_, delimiter, quote) << Qt::endl;
+		out << custom::merge_to_string(dd.colnames_, delimiter, quote) << Qt::endl;
 	}
 
 	int nrow = dd.mat_.rows(), ncol = dd.mat_.cols();
@@ -607,7 +607,7 @@ CustomMatrix* read_table(const QString& file_name, bool fast) {
 	}
 
 	QStringList data_table;
-	auto delimiter = _Cs detect_delimiter(line, line2);
+	auto delimiter = custom::detect_delimiter(line, line2);
 
 	file.close();
 
@@ -665,10 +665,10 @@ CustomMatrix* read_sv_fast(const QString& file_name, const char delimiter) {
 
 #pragma omp parallel for
 	for (int i = 0; i < nrow; ++i) {
-		_Cs digest(content, delimiter, line_start_end[i].first, line_start_end[i].second, string_loc[i]);
+		custom::digest(content, delimiter, line_start_end[i].first, line_start_end[i].second, string_loc[i]);
 	}
 
-	if (!_Cs is_same(_Cs sapply(string_loc, [](auto&& v) {return v.size(); }))) {
+	if (!custom::is_same(custom::sapply(string_loc, [](auto&& v) {return v.size(); }))) {
 		return nullptr;
 	}
 
@@ -699,7 +699,7 @@ CustomMatrix* read_sv_fast(const QString& file_name, const char delimiter) {
 			colnames << QString::fromStdString(content.substr(string_loc[0][i].first, string_loc[0][i].second - string_loc[0][i].first));
 		}
 
-		colnames = _Cs make_unique(colnames);
+		colnames = custom::make_unique(colnames);
 
 		ret->set_rownames(rownames);
 
@@ -719,11 +719,11 @@ CustomMatrix* read_sv_fast(const QString& file_name, const char delimiter) {
 	}
 	else {
 
-		rownames = _Cs paste("Row ", _Cs cast<QString>(_Cs integer_linspaced(nrow, 1, nrow)));
+		rownames = custom::paste("Row ", custom::cast<QString>(custom::integer_linspaced(nrow, 1, nrow)));
 
 		ret->set_rownames(rownames);
 
-		colnames = _Cs paste("Column ", _Cs cast<QString>(_Cs integer_linspaced(ncol, 1, ncol)));
+		colnames = custom::paste("Column ", custom::cast<QString>(custom::integer_linspaced(ncol, 1, ncol)));
 
 	#pragma omp parallel for
 		for (int i = 0; i < ncol; ++i) {
@@ -790,10 +790,10 @@ CustomMatrix* read_sv(const QString& file_name, const QChar& delimiter) {
 
 #pragma omp parallel for
 	for (int i = 0; i < nrow; ++i) {
-		_Cs digest(content, delimiter, line_start_end[i].first, line_start_end[i].second, string_loc[i]);
+		custom::digest(content, delimiter, line_start_end[i].first, line_start_end[i].second, string_loc[i]);
 	}
 
-	if (!_Cs is_same(_Cs sapply(string_loc, [](auto&& v) {return v.size(); }))) {
+	if (!custom::is_same(custom::sapply(string_loc, [](auto&& v) {return v.size(); }))) {
 		return nullptr;
 	}
 
@@ -824,7 +824,7 @@ CustomMatrix* read_sv(const QString& file_name, const QChar& delimiter) {
 			colnames << content.sliced(string_loc[0][i].first, string_loc[0][i].second - string_loc[0][i].first);
 		}
 
-		colnames = _Cs make_unique(colnames);
+		colnames = custom::make_unique(colnames);
 
 		ret->set_rownames(rownames);
 
@@ -844,11 +844,11 @@ CustomMatrix* read_sv(const QString& file_name, const QChar& delimiter) {
 	}
 	else {
 
-		rownames = _Cs paste("Row ", _Cs cast<QString>(_Cs integer_linspaced(nrow, 1, nrow)));
+		rownames = custom::paste("Row ", custom::cast<QString>(custom::integer_linspaced(nrow, 1, nrow)));
 
 		ret->set_rownames(rownames);
 
-		colnames = _Cs paste("Column ", _Cs cast<QString>(_Cs integer_linspaced(ncol, 1, ncol)));
+		colnames = custom::paste("Column ", custom::cast<QString>(custom::integer_linspaced(ncol, 1, ncol)));
 
 	#pragma omp parallel for
 		for (int i = 0; i < ncol; ++i) {

@@ -11,7 +11,7 @@ static constexpr int LabelWidth = 150;
 MessageDialog::MessageDialog(const QString& title, const QString& message)
 {
     QVBoxLayout* main_layout = new QVBoxLayout;
-    QString processed_message = _Cs string_next_line(fm, message, LabelWidth);
+    QString processed_message = custom::string_next_line(fm, message, LabelWidth);
     QLabel* message_label = new QLabel(processed_message, this);
     message_label->adjustSize();
 

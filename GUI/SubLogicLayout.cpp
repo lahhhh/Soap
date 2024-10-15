@@ -98,5 +98,5 @@ QString SubLogicLayout::current_value() {
 		val << lg->current_value();
 	}
 
-	return _Cs merge_to_string(val, SOAP_DELIMITER2);
+	return custom::merge_to_string(val, SOAP_DELIMITER2);
 };

@@ -51,7 +51,7 @@ namespace custom {
 		while (!line.isNull()) {
 			QStringList loc = line.split('\t');
 
-			QString seq_name = _Cs standardize_chromosome_name(loc[0]);
+			QString seq_name = custom::standardize_chromosome_name(loc[0]);
 			int start = loc[1].toInt();
 			int end = loc[2].toInt();
 
@@ -140,7 +140,7 @@ namespace custom {
 		QVector<int> peak_index;
 
 		for (int i = 0; i < n_peak; ++i) {
-			auto [sequence_name, start, end, success] = _Cs string_to_peak(peak_names[i]);
+			auto [sequence_name, start, end, success] = custom::string_to_peak(peak_names[i]);
 
 			if (success) {
 				peak.append(sequence_name, start, end - start, '*');
@@ -156,14 +156,14 @@ namespace custom {
 	};
 
 	std::tuple<QString, int, int, bool> string_to_peak(const QString& peak_name) {
-		QStringList sub_string = _Cs multi_split(peak_name, QList<QChar>() << ':' << '-');
+		QStringList sub_string = custom::multi_split(peak_name, QList<QChar>() << ':' << '-');
 		qsizetype split_size = sub_string.size();
 		if (split_size == 3) { 
-			if (_Cs is_integer(sub_string[1]) && _Cs is_integer(sub_string[2])) {
+			if (custom::is_integer(sub_string[1]) && custom::is_integer(sub_string[2])) {
 				int start = sub_string[1].toInt();
 				int end = sub_string[2].toInt();
 				if (start >= 1 && start < end) {
-					return std::make_tuple(_Cs standardize_chromosome_name(sub_string[0]), start, end, true);
+					return std::make_tuple(custom::standardize_chromosome_name(sub_string[0]), start, end, true);
 				}
 			}
 		}
@@ -293,16 +293,16 @@ namespace custom {
 		if (metadata.contains(METADATA_GENOMIC_RANGE_GENE_NAME) && metadata.data_type_.at(METADATA_GENOMIC_RANGE_GENE_NAME) != CustomMatrix::DataType::QString) {
 			return std::make_tuple("", 0, 0, '-', false);
 		}
-		Eigen::ArrayX<bool> gene_filter = _Cs equal(metadata.get_const_qstring_reference(METADATA_GENOMIC_RANGE_GENE_NAME), gene_name);
+		Eigen::ArrayX<bool> gene_filter = custom::equal(metadata.get_const_qstring_reference(METADATA_GENOMIC_RANGE_GENE_NAME), gene_name);
 		if (gene_filter.count() == 0) {
 			return std::make_tuple("", 0, 0, '-', false);
 		}
 
-		int index = _Cs get_first_index(gene_filter);
+		int index = custom::get_first_index(gene_filter);
 		QString sequence_name = genome.sequence_names_[index];
 		char strand = genome.strand_[index];
-		int start = std::ranges::min(_Cs sliced(genome.ranges_.start_, gene_filter));
-		int end = std::ranges::max(_Cs sliced(genome.get_sequence_end(), gene_filter));
+		int start = std::ranges::min(custom::sliced(genome.ranges_.start_, gene_filter));
+		int end = std::ranges::max(custom::sliced(genome.get_sequence_end(), gene_filter));
 		int width = end - start;
 
 		return std::make_tuple(sequence_name, start, end, strand, true);
@@ -361,7 +361,7 @@ namespace custom {
 		const std::string& sequence,
 		const Fragments& fragments
 	) {
-		sequence_name = _Cs standardize_chromosome_name(sequence_name);
+		sequence_name = custom::standardize_chromosome_name(sequence_name);
 		if (!fragments.data_.contains(sequence_name)) {
 			return std::pair<std::vector<std::string>, std::vector<std::size_t> >();
 		}
@@ -415,7 +415,7 @@ namespace custom {
 		const std::unordered_set<std::string>& barcodes,
 		const QStringList& fragments_files) {
 
-		sequence_name = _Cs standardize_chromosome_name(sequence_name);
+		sequence_name = custom::standardize_chromosome_name(sequence_name);
 
 		std::vector<int> locations;
 
@@ -457,14 +457,14 @@ namespace custom {
 				}
 				seq_end = c;
 
-				std::string reads_sequence_name = _Cs standardize_chromosome_name(std::string(buffer, seq_end - buffer));				
+				std::string reads_sequence_name = custom::standardize_chromosome_name(std::string(buffer, seq_end - buffer));				
 
 				if (sequence_name != reads_sequence_name) {
 					continue;
 				}
 
-				int start = _Cs atoi_specialized(&c);
-				int end = _Cs atoi_specialized(&c);	
+				int start = custom::atoi_specialized(&c);
+				int end = custom::atoi_specialized(&c);	
 
 				++c;
 				d = c;

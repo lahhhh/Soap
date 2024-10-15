@@ -57,7 +57,7 @@ void EnrichmentItem::s_show_significant() {
 		G_WARN("Invalid p threshold.")
 			return;
 	}
-	Eigen::ArrayX<bool> filter = _Cs less_than(this->data()->mat_.get_double(METADATA_ENRICHMENT_ADJUSTED_P_VALUE), threshold);
+	Eigen::ArrayX<bool> filter = custom::less_than(this->data()->mat_.get_double(METADATA_ENRICHMENT_ADJUSTED_P_VALUE), threshold);
 	if (filter.count() == 0) {
 		G_WARN("No result meets requirement");
 		return;
@@ -80,7 +80,7 @@ void EnrichmentItem::s_barplot_show_selected() {
 		"Select Pathways",
 		{ "Pathways" },
 		{ soap::InputStyle::SimpleChoice},
-		{ _Cs sorted(this->data()->mat_.get_const_qstring_reference(METADATA_ENRICHMENT_PATHWAY_NAMES))}
+		{ custom::sorted(this->data()->mat_.get_const_qstring_reference(METADATA_ENRICHMENT_PATHWAY_NAMES))}
 	);
 
 	if (settings.isEmpty()) {
@@ -118,7 +118,7 @@ void EnrichmentItem::s_barplot() {
 
 void EnrichmentItem::barplot(const QStringList& pathways) {
 	const QStringList& all_pathways = this->data()->mat_.get_const_qstring_reference(METADATA_ENRICHMENT_PATHWAY_NAMES);
-	auto index = _Cs valid_index_of(pathways, all_pathways);
+	auto index = custom::valid_index_of(pathways, all_pathways);
 	int path_number = index.size();
 	if (path_number < 1) {
 		return;
@@ -126,7 +126,7 @@ void EnrichmentItem::barplot(const QStringList& pathways) {
 
 	auto& gs = this->draw_suite_->graph_settings_;
 
-	auto [draw_area, axis_rect, legend_layout] = _Cp prepare(gs);
+	auto [draw_area, axis_rect, legend_layout] = custom_plot::prepare(gs);
 	axis_rect->axis(QCPAxis::atLeft)->setBasePen(QPen(Qt::NoPen));
 	axis_rect->axis(QCPAxis::atLeft)->setTickLength(0);
 	axis_rect->axis(QCPAxis::atLeft)->setSubTickPen(QPen(Qt::NoPen));
@@ -134,11 +134,11 @@ void EnrichmentItem::barplot(const QStringList& pathways) {
 
 	axis_rect->axis(QCPAxis::atBottom)->grid()->setVisible(false);
 
-	QVector<double> x = _Cs linspaced(path_number, path_number, 1);
-	QVector<double> y = _Cs reordered(this->data()->mat_.get_double(METADATA_ENRICHMENT_COUNT), index);
-	QStringList labels = _Cs reordered(all_pathways, index);
-	labels = _Cs sapply(labels, _Cs capitalize_first);
-	Eigen::ArrayXd p_adjusted = _Cs cast<Eigen::ArrayX>(_Cs reordered(this->data()->mat_.get_double(METADATA_ENRICHMENT_ADJUSTED_P_VALUE), index));
+	QVector<double> x = custom::linspaced(path_number, path_number, 1);
+	QVector<double> y = custom::reordered(this->data()->mat_.get_double(METADATA_ENRICHMENT_COUNT), index);
+	QStringList labels = custom::reordered(all_pathways, index);
+	labels = custom::sapply(labels, custom::capitalize_first);
+	Eigen::ArrayXd p_adjusted = custom::cast<Eigen::ArrayX>(custom::reordered(this->data()->mat_.get_double(METADATA_ENRICHMENT_ADJUSTED_P_VALUE), index));
 	for (int i = 0; i < path_number; ++i) {
 		if (p_adjusted[i] < 1e-100) {
 			p_adjusted[i] = 1e-100;
@@ -146,11 +146,11 @@ void EnrichmentItem::barplot(const QStringList& pathways) {
 	}
 	p_adjusted = -log10(p_adjusted);
 
-	_Cp bar_plot_enrichment(
+	custom_plot::bar_plot_enrichment(
 		draw_area,
 		axis_rect,
-		_Cs cast<Eigen::ArrayX>(x),
-		_Cs cast<Eigen::ArrayX>(y),
+		custom::cast<Eigen::ArrayX>(x),
+		custom::cast<Eigen::ArrayX>(y),
 		p_adjusted,
 		24,
 		"-log<sub>10</sub>(P<sub>adj</sub>)",
@@ -159,7 +159,7 @@ void EnrichmentItem::barplot(const QStringList& pathways) {
 		false
 	);
 
-	_Cp add_gradient_legend(
+	custom_plot::add_gradient_legend(
 		draw_area,
 		legend_layout,
 		p_adjusted.minCoeff(),
@@ -168,7 +168,7 @@ void EnrichmentItem::barplot(const QStringList& pathways) {
 		gs
 	);
 
-	_Cp set_left_axis_label(axis_rect, Eigen::ArrayXd::LinSpaced(labels.size(), labels.size(), 1),
+	custom_plot::set_left_axis_label(axis_rect, Eigen::ArrayXd::LinSpaced(labels.size(), labels.size(), 1),
 		labels, 0, gs);
 
 	QPen pen(Qt::black);
@@ -176,7 +176,7 @@ void EnrichmentItem::barplot(const QStringList& pathways) {
 	axis_rect->axis(QCPAxis::atBottom)->setTickPen(pen);
 	axis_rect->axis(QCPAxis::atBottom)->setSubTickPen(pen);
 	axis_rect->axis(QCPAxis::atBottom)->setBasePen(pen);
-	_Cp set_bottom_title(axis_rect, "Gene Number", gs, true);
+	custom_plot::set_bottom_title(axis_rect, "Gene Number", gs, true);
 
 	this->draw_suite_->update(draw_area);
 };
@@ -190,17 +190,17 @@ void EnrichmentItem::barplot(int path_number) {
 
 	auto& gs = this->draw_suite_->graph_settings_;
 
-	auto [draw_area, axis_rect, legend_layout] = _Cp prepare(gs);
+	auto [draw_area, axis_rect, legend_layout] = custom_plot::prepare(gs);
 
-	_CpPatch remove_left_axis(axis_rect);
+	custom_plot::patch::remove_left_axis(axis_rect);
 
 	axis_rect->axis(QCPAxis::atBottom)->grid()->setVisible(false);
 
-	QVector<double> x = _Cs linspaced(path_number, path_number, 1);
+	QVector<double> x = custom::linspaced(path_number, path_number, 1);
 	QVector<double> y = this->data()->mat_.get_double(METADATA_ENRICHMENT_COUNT).sliced(0, path_number);
 	auto labels = this->data()->mat_.get_const_qstring_reference(METADATA_ENRICHMENT_PATHWAY_NAMES).sliced(0, path_number);
-	labels = _Cs sapply(labels, _Cs capitalize_first);
-	Eigen::ArrayXd p_adjusted = _Cs cast<Eigen::ArrayX>(this->data()->mat_.get_double(METADATA_ENRICHMENT_ADJUSTED_P_VALUE).sliced(0, path_number));
+	labels = custom::sapply(labels, custom::capitalize_first);
+	Eigen::ArrayXd p_adjusted = custom::cast<Eigen::ArrayX>(this->data()->mat_.get_double(METADATA_ENRICHMENT_ADJUSTED_P_VALUE).sliced(0, path_number));
 	for (int i = 0; i < path_number; ++i) {
 		if (p_adjusted[i] < 1e-100) {
 			p_adjusted[i] = 1e-100;
@@ -208,11 +208,11 @@ void EnrichmentItem::barplot(int path_number) {
 	}
 	p_adjusted = -log10(p_adjusted);
 
-	_Cp bar_plot_enrichment(
+	custom_plot::bar_plot_enrichment(
 		draw_area,
 		axis_rect,
-		_Cs cast<Eigen::ArrayX>(x),
-		_Cs cast<Eigen::ArrayX>(y),
+		custom::cast<Eigen::ArrayX>(x),
+		custom::cast<Eigen::ArrayX>(y),
 		p_adjusted,
 		24,
 		"-log<sub>10</sub>(P<sub>adj</sub>)",
@@ -221,7 +221,7 @@ void EnrichmentItem::barplot(int path_number) {
 		false
 	);
 
-	_Cp add_gradient_legend(
+	custom_plot::add_gradient_legend(
 		draw_area,
 		legend_layout,
 		p_adjusted.minCoeff(),
@@ -230,7 +230,7 @@ void EnrichmentItem::barplot(int path_number) {
 		gs
 	);
 
-	_Cp set_left_axis_label(axis_rect, Eigen::ArrayXd::LinSpaced(labels.size(), labels.size(), 1),
+	custom_plot::set_left_axis_label(axis_rect, Eigen::ArrayXd::LinSpaced(labels.size(), labels.size(), 1),
 		labels, 0, gs);
 
 	QPen pen(Qt::black);
@@ -238,7 +238,7 @@ void EnrichmentItem::barplot(int path_number) {
 	axis_rect->axis(QCPAxis::atBottom)->setTickPen(pen);
 	axis_rect->axis(QCPAxis::atBottom)->setSubTickPen(pen);
 	axis_rect->axis(QCPAxis::atBottom)->setBasePen(pen);
-	_Cp set_bottom_title(axis_rect, "Gene Number", gs, true);
+	custom_plot::set_bottom_title(axis_rect, "Gene Number", gs, true);
 
 	this->draw_suite_->update(draw_area);
 };

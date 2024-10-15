@@ -31,10 +31,10 @@ bool AtacLandscapePlotWorker::calculate_matrix() {
 
 		if (normalize_by_depth) {
 			if (depth.isEmpty()) {
-				depth = _Cs sapply(chr_frag, [](auto&& f) {return 2.0 * f.first.size(); });
+				depth = custom::sapply(chr_frag, [](auto&& f) {return 2.0 * f.first.size(); });
 			}
 			else {
-				depth = _Cs add(depth, _Cs sapply(chr_frag, [](auto&& f) {return 2.0 * f.first.size(); }));
+				depth = custom::add(depth, custom::sapply(chr_frag, [](auto&& f) {return 2.0 * f.first.size(); }));
 			}
 		}
 
@@ -112,7 +112,7 @@ bool AtacLandscapePlotWorker::calculate_matrix() {
 	}
 
 	if (this->scale_) {
-		_Cs scale_in_place(this->plot_mat_);
+		custom::scale_in_place(this->plot_mat_);
 	}
 };
 
@@ -128,7 +128,7 @@ bool AtacLandscapePlotWorker::create_index2() {
 	while (!in.atEnd()) {
 		QString line = in.readLine();
 		QStringList content = line.split('\t');
-		QString chr_name = _Cs standardize_chromosome_name(content[0]);
+		QString chr_name = custom::standardize_chromosome_name(content[0]);
 		int chr_size = content[1].toInt();
 
 		if (chr_size <= 1) {
@@ -180,7 +180,7 @@ bool AtacLandscapePlotWorker::create_index1() {
 
 	for (auto&& level : this->levels_) {
 
-		auto ind = _Cs match(this->factors_, level);
+		auto ind = custom::match(this->factors_, level);
 
 		if (ind.isEmpty()) {
 			continue;

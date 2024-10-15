@@ -175,7 +175,7 @@ int Network::get_n_nodes() const
 
 double Network::get_total_node_weight() const
 {
-	return _Cs sum(this->node_weight_);
+	return custom::sum(this->node_weight_);
 }
 
 std::vector<double> Network::get_node_weights() const
@@ -239,7 +239,7 @@ std::vector< std::vector<int> > Network::get_edges_per_node() const
 double Network::get_total_edge_weight() const
 {
 
-	return _Cs sum(this->edge_weight_) / 2;
+	return custom::sum(this->edge_weight_) / 2;
 }
 
 double Network::get_total_edge_weight(int node) const
@@ -405,7 +405,7 @@ Network Network::create_pruned_network(int n_edges, std::default_random_engine& 
 	while ((n_edges_above_threshold + n_edgesAt_threshold < this->n_edges_ / 2) && (edge_weight[this->n_edges_ / 2 - n_edges_above_threshold - n_edgesAt_threshold - 1] == edge_weight_threshold))
 		n_edgesAt_threshold++;
 
-	std::vector<int> node_permutation = _Cs generate_random_permutation(this->n_nodes_, re);
+	std::vector<int> node_permutation = custom::generate_random_permutation(this->n_nodes_, re);
 
 	std::vector<double> random_number(n_edgesAt_threshold, 0);
 	i = 0;

@@ -242,10 +242,10 @@ void EmbeddingViewWindow::show_type(const QString& type_name, const QStringList&
 		}
 
 		if (data.size() == 0) {
-			data = _Cs cast<Eigen::ArrayX>(feature_data.get_continuous());
+			data = custom::cast<Eigen::ArrayX>(feature_data.get_continuous());
 		}
 		else {
-			data += _Cs cast<Eigen::ArrayX>(feature_data.get_continuous());
+			data += custom::cast<Eigen::ArrayX>(feature_data.get_continuous());
 		}
 
 		++n_found;
@@ -263,10 +263,10 @@ void EmbeddingViewWindow::show_type(const QString& type_name, const QStringList&
 	QUERY_DATA d;
 	d.name = type_name;
 	d.type = QUERY_DATA::DataType::numeric;
-	d.dd = _Cs cast<QVector>(data);
+	d.dd = custom::cast<QVector>(data);
 	d.info["Legend Title"] = legend_title;
 
-	auto [draw_area, axis_rect, _] = _Cp feature_plot(d, this->embedding_, false, this->draw_suite_->graph_settings_);
+	auto [draw_area, axis_rect, _] = custom_plot::feature_plot(d, this->embedding_, false, this->draw_suite_->graph_settings_);
 
 	this->plot_to_axis_rect_[draw_area] = axis_rect;
 	this->draw_suite_->update(draw_area);
@@ -288,13 +288,15 @@ void EmbeddingViewWindow::preload() {
 
 	this->cell_marker_database_ = CellMarkerDatabase::get_database(this->handler_.get_species());
 	this->cell_marker_database_box_->addItems(this->cell_marker_database_.keys());
-	this->cell_marker_database_box_->adjustSize();
+	this->cell_marker_database_box_->setFixedWidth(150);
 	this->cell_marker_database_box_->setFixedHeight(30);
+	this->cell_marker_database_box_->view()->setMinimumWidth(custom_plot::utility::get_max_text_width(this->cell_marker_database_.keys(), QFont("Arial", 15)) + 20);
 
 	QString db = this->cell_marker_database_box_->currentText();
 	this->cell_marker_tissue_box_->addItems(this->cell_marker_database_[db].keys());
-	this->cell_marker_tissue_box_->adjustSize();
+	this->cell_marker_tissue_box_->setFixedWidth(150);
 	this->cell_marker_tissue_box_->setFixedHeight(30);
+	this->cell_marker_tissue_box_->view()->setMinimumWidth(custom_plot::utility::get_max_text_width(this->cell_marker_database_[db].keys(), QFont("Arial", 15)) + 20);
 
 	QString tissue = this->cell_marker_tissue_box_->currentText();
 
@@ -312,8 +314,9 @@ void EmbeddingViewWindow::preload() {
 	this->pathway_line_edit_->setCompleter(new QCompleter(pathways, this));
 
 	this->database_box_->addItems(this->pathway_content_.keys());
-	this->database_box_->adjustSize();
+	this->database_box_->setFixedWidth(150);
 	this->database_box_->setFixedHeight(30);
+	this->database_box_->view()->setMinimumWidth(custom_plot::utility::get_max_text_width(this->pathway_content_.keys(), QFont("Arial", 15)) + 20);
 };
 
 void EmbeddingViewWindow::s_view_pathway() {
@@ -378,9 +381,11 @@ void EmbeddingViewWindow::set_middle_layout() {
 
 	G_SET_LABEL(this->metadata_name_label_, "Metadata Name", soap::MiddleSize);
 	this->metadata_box_ = new QComboBox(this);
-	this->metadata_box_->addItems(this->handler_.get_metadata_names());
-	this->metadata_box_->adjustSize();
+	auto metadata_names = this->handler_.get_metadata_names();
+	this->metadata_box_->addItems(metadata_names);
+	this->metadata_box_->setFixedWidth(150);
 	this->metadata_box_->setFixedHeight(30);
+	this->metadata_box_->view()->setMinimumWidth(custom_plot::utility::get_max_text_width(metadata_names, QFont("Arial", 15)) + 20);
 
 	G_SET_BUTTON_ICON(this->metadata_view_button_, FILE_EYE_ICON_PNG, QSize(30, 30));
 
@@ -883,10 +888,9 @@ void EmbeddingViewWindow::s_update_tissue() {
 	this->cell_marker_tissue_box_->blockSignals(true);
 
 	this->cell_marker_tissue_box_->clear();
-	this->cell_marker_tissue_box_->addItems(this->cell_marker_database_[this->cell_marker_database_box_->currentText()].keys());
-	this->cell_marker_tissue_box_->adjustSize();
-
-	QString db = this->cell_marker_database_box_->currentText();
+	auto db = this->cell_marker_database_box_->currentText();
+	this->cell_marker_tissue_box_->addItems(this->cell_marker_database_[db].keys());
+	this->cell_marker_tissue_box_->view()->setMinimumWidth(custom_plot::utility::get_max_text_width(this->cell_marker_database_[db].keys(), QFont("Arial", 15)) + 20);
 
 	QString tissue = this->cell_marker_tissue_box_->currentText();
 
@@ -912,7 +916,7 @@ void EmbeddingViewWindow::show_gene(const QString& gene_name) {
 		return;
 	}
 
-	auto [draw_area, axis_rect, _] = _Cp feature_plot(feature_data, this->embedding_, false, this->draw_suite_->graph_settings_);
+	auto [draw_area, axis_rect, _] = custom_plot::feature_plot(feature_data, this->embedding_, false, this->draw_suite_->graph_settings_);
 
 	this->plot_to_axis_rect_[draw_area] = axis_rect;
 	this->draw_suite_->update(draw_area);
@@ -936,7 +940,7 @@ void EmbeddingViewWindow::s_view_metadata() {
 		return;
 	}
 
-	auto [draw_area, axis_rect, _] = _Cp feature_plot(feature_data, this->embedding_, false, this->draw_suite_->graph_settings_);
+	auto [draw_area, axis_rect, _] = custom_plot::feature_plot(feature_data, this->embedding_, false, this->draw_suite_->graph_settings_);
 
 	this->plot_to_axis_rect_[draw_area] = axis_rect;
 	this->draw_suite_->update(draw_area);
@@ -1120,7 +1124,7 @@ void EmbeddingViewWindow::s_save_pdf_and_png() {
 	std::string pdf_file_name = pdf_name.toStdString();
 	std::string picture_file_name = picture_name.toStdString();
 
-	if (!_Cs save_pdf_page_as_png(pdf_file_name, 0, picture_file_name)) {
+	if (!custom::save_pdf_page_as_png(pdf_file_name, 0, picture_file_name)) {
 		G_WARN("PNG Saving Failed.");
 	}
 	else {
@@ -1242,6 +1246,6 @@ void EmbeddingViewWindow::s_refresh_plot() {
 		show_type(this->active_tree_widget_->types_[0], this->active_tree_widget_->markers_[0]);
 	}
 	else {
-		show_type("Active Items", _Cs unroll(this->active_tree_widget_->markers_));
+		show_type("Active Items", custom::unroll(this->active_tree_widget_->markers_));
 	}
 };

@@ -92,7 +92,7 @@ void LogicGroup::to_factor_mode(const QStringList& levels) {
 	this->value_line_edit_->clear();
 	this->value_line_edit_->setVisible(false);
 	this->value_box_->clear();
-	auto width = _CpUtility get_max_text_width(levels, QFont("Arial", 15));
+	auto width = custom_plot::utility::get_max_text_width(levels, QFont("Arial", 15));
 	this->value_box_->setFixedWidth(width + 20);
 	this->value_box_->setVisible(true);
 	this->value_box_->addItems(levels);

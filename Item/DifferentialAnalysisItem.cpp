@@ -97,7 +97,7 @@ void DifferentialAnalysisItem::s_heatmap_plot() {
 
 	auto& comparison_1 = this->data()->mat_.get_const_qstring_reference(METADATA_DE_COMPARISON_1);
 
-	auto comparison1s = _Cs unique(comparison_1);
+	auto comparison1s = custom::unique(comparison_1);
 
 	auto settings = CommonDialog::get_response(
 		this->signal_emitter_,
@@ -137,12 +137,12 @@ void DifferentialAnalysisItem::s_heatmap_plot() {
 	auto& fc_val = this->data()->mat_.get_const_double_reference(METADATA_DE_LOG2_FOLD_CHANGE);
 	auto& feature_name = this->data()->mat_.get_const_qstring_reference(METADATA_DE_FEATURE_NAME);
 	
-	Eigen::ArrayX<bool> filter = _Cs less_than(pval, p_threshold);
-	filter *= _Cs greater_than(fc_val, fc_threshold);
+	Eigen::ArrayX<bool> filter = custom::less_than(pval, p_threshold);
+	filter *= custom::greater_than(fc_val, fc_threshold);
 	
 	for (auto&& comparison1 : comparison1s) {
 
-		Eigen::ArrayX<bool> sub_filter = filter * _Cs equal(comparison_1, comparison1);
+		Eigen::ArrayX<bool> sub_filter = filter * custom::equal(comparison_1, comparison1);
 
 		int n_feature_valid = sub_filter.count();
 
@@ -150,7 +150,7 @@ void DifferentialAnalysisItem::s_heatmap_plot() {
 			continue;
 		}
 
-		QStringList valid_feature_names = _Cs sliced(feature_name, sub_filter);
+		QStringList valid_feature_names = custom::sliced(feature_name, sub_filter);
 
 		if (n_feature_valid <= top_n) {
 			feature_list << valid_feature_names;
@@ -158,11 +158,11 @@ void DifferentialAnalysisItem::s_heatmap_plot() {
 			continue;
 		}
 
-		auto valid_fcs = _Cs sliced(fc_val, sub_filter);
+		auto valid_fcs = custom::sliced(fc_val, sub_filter);
 
-		auto order = _Cs order(valid_fcs, true);
+		auto order = custom::order(valid_fcs, true);
 
-		feature_list << _Cs reordered(valid_feature_names, order(_Cs seq_n(0, top_n)));
+		feature_list << custom::reordered(valid_feature_names, order(custom::seq_n(0, top_n)));
 		comparison1_list << QStringList(top_n, comparison1);
 	}
 
@@ -175,7 +175,7 @@ void DifferentialAnalysisItem::s_heatmap_plot() {
 	QList<QPair<int, QString>> cell_types;
 	for (auto&& comparison1 : comparison1s) {
 
-		auto sub_order = _Cs match(metadata_content, comparison1);
+		auto sub_order = custom::match(metadata_content, comparison1);
 
 		if (sub_order.isEmpty()) {
 			continue;
@@ -205,9 +205,9 @@ void DifferentialAnalysisItem::s_heatmap_plot() {
 			return;
 		}
 
-		auto feature_index = _Cs index_of(feature_list, normalized->rownames_);
+		auto feature_index = custom::index_of(feature_list, normalized->rownames_);
 
-		auto valid_elements = _Cs not_equal(feature_index, -1);
+		auto valid_elements = custom::not_equal(feature_index, -1);
 		if (valid_elements.count() == 0) {
 			G_WARN("No valid feature found in normalized data.");
 			return;
@@ -215,7 +215,7 @@ void DifferentialAnalysisItem::s_heatmap_plot() {
 
 		feature_index.removeAll(-1);
 
-		comparison1_list = _Cs sliced(comparison1_list, valid_elements);
+		comparison1_list = custom::sliced(comparison1_list, valid_elements);
 
 		int n_feature = feature_index.size();
 		heatmat.resize(n_feature, n_cell);
@@ -223,7 +223,7 @@ void DifferentialAnalysisItem::s_heatmap_plot() {
 	#pragma omp parallel for
 		for (int i = 0; i < n_feature; ++i) {
 			Eigen::ArrayXd f = normalized->mat_.row(feature_index[i]);
-			heatmat.row(i) = _Cs reordered(f, cell_order);
+			heatmat.row(i) = custom::reordered(f, cell_order);
 		}
 	}
 	else if (this->attached_to(soap::VariableType::SingleCellRna)) {
@@ -237,9 +237,9 @@ void DifferentialAnalysisItem::s_heatmap_plot() {
 			return;
 		}
 
-		auto feature_index = _Cs index_of(feature_list, normalized->rownames_);
+		auto feature_index = custom::index_of(feature_list, normalized->rownames_);
 
-		auto valid_elements = _Cs not_equal(feature_index, -1);
+		auto valid_elements = custom::not_equal(feature_index, -1);
 		if (valid_elements.count() == 0) {
 			G_WARN("No valid feature found in normalized data.");
 			return;
@@ -247,7 +247,7 @@ void DifferentialAnalysisItem::s_heatmap_plot() {
 
 		feature_index.removeAll(-1);
 
-		comparison1_list = _Cs sliced(comparison1_list, valid_elements);
+		comparison1_list = custom::sliced(comparison1_list, valid_elements);
 
 		int n_feature = feature_index.size();
 		heatmat.resize(n_feature, n_cell);
@@ -255,7 +255,7 @@ void DifferentialAnalysisItem::s_heatmap_plot() {
 	#pragma omp parallel for
 		for (int i = 0; i < n_feature; ++i) {
 			Eigen::ArrayXd f = normalized->mat_.row(feature_index[i]);
-			heatmat.row(i) = _Cs reordered(f, cell_order);
+			heatmat.row(i) = custom::reordered(f, cell_order);
 		}
 	}
 	else {
@@ -269,7 +269,7 @@ void DifferentialAnalysisItem::s_heatmap_plot() {
 
 #pragma omp parallel for
 	for (int i = 0; i < n_feature; ++i) {
-		double sd = _Cs sd(heatmat.row(i));
+		double sd = custom::sd(heatmat.row(i));
 
 		if (sd != 0.0) {
 			heatmat.row(i) /= sd;
@@ -278,7 +278,7 @@ void DifferentialAnalysisItem::s_heatmap_plot() {
 
 	const auto& gs = this->draw_suite_->graph_settings_;
 
-	QCustomPlot* draw_area = _Cp initialize_plot(gs);
+	QCustomPlot* draw_area = custom_plot::initialize_plot(gs);
 
 	QCPLayoutGrid* main_layout = new QCPLayoutGrid;
 	draw_area->plotLayout()->addElement(0, 0, main_layout);
@@ -298,18 +298,18 @@ void DifferentialAnalysisItem::s_heatmap_plot() {
 		main_layout->addElement(1, 0, axis_rect);
 		main_layout->addElement(1, 1, legend_layout);
 
-		legend_layout = _CpPatch set_legend_layout(draw_area, legend_layout);
+		legend_layout = custom_plot::patch::set_legend_layout(draw_area, legend_layout);
 
 		auto pal = gs.palette_map(comparison1_list);
 
 		int now_start = 0;
 
 		for (auto&& p : cell_types) {
-			_CpPatch rectangle_borderless(
+			custom_plot::patch::rectangle_borderless(
 				draw_area, top_legend, now_start, -3.0, p.first, 3.0, pal[p.second]
 			);
 
-			_CpPatch add_label(
+			custom_plot::patch::add_label(
 				draw_area,
 				top_legend,
 				p.second,
@@ -321,12 +321,12 @@ void DifferentialAnalysisItem::s_heatmap_plot() {
 			now_start += p.first;
 		}
 
-		_CpPatch remove_left_bottom_axis(top_legend);
+		custom_plot::patch::remove_left_bottom_axis(top_legend);
 
-		_CpPatch set_fixed_height(top_legend,
-			std::ceil(_CpUtility get_max_text_height(_Cs unique(comparison1_list), gs.get_left_label_font()) * 1.4));
+		custom_plot::patch::set_fixed_height(top_legend,
+			std::ceil(custom_plot::utility::get_max_text_height(custom::unique(comparison1_list), gs.get_left_label_font()) * 1.4));
 
-		_CpPatch set_range(top_legend, { 0.0, (double)n_cell }, {-3.0, 11.0});
+		custom_plot::patch::set_range(top_legend, { 0.0, (double)n_cell }, {-3.0, 11.0});
 
 		QCPColorMap* heatmap = new QCPColorMap(axis_rect->axis(QCPAxis::atBottom), axis_rect->axis(QCPAxis::atLeft));
 		heatmap->data()->setSize(n_cell, n_feature);
@@ -336,7 +336,7 @@ void DifferentialAnalysisItem::s_heatmap_plot() {
 		else {
 			heatmap->data()->setRange(QCPRange(0, n_cell - 1), QCPRange(-1, 1));
 		}
-		_CpPatch remove_left_bottom_axis(axis_rect);
+		custom_plot::patch::remove_left_bottom_axis(axis_rect);
 
 		for (int i = 0; i < n_cell; ++i) {
 			for (int j = 0; j < n_feature; ++j) {
@@ -345,20 +345,20 @@ void DifferentialAnalysisItem::s_heatmap_plot() {
 		}
 		heatmap->setInterpolate(false);
 		heatmap->setTightBoundary(false);
-		_CpPatch set_range(axis_rect, QCPRange(-0.5, n_cell - 0.5), QCPRange(-0.5, n_feature - 0.5));
+		custom_plot::patch::set_range(axis_rect, QCPRange(-0.5, n_cell - 0.5), QCPRange(-0.5, n_feature - 0.5));
 
 		double max_val = heatmat.cwiseAbs().maxCoeff();
 
 		QCPColorGradient gradient;
-		gradient.setColorStopAt(0.5, _CpColor aquamarine3);
-		gradient.setColorStopAt(1.0, _CpColor gold);
-		gradient.setColorStopAt(0.0, _CpColor navy);
+		gradient.setColorStopAt(0.5, custom_plot::color::aquamarine3);
+		gradient.setColorStopAt(1.0, custom_plot::color::gold);
+		gradient.setColorStopAt(0.0, custom_plot::color::navy);
 
 		heatmap->setGradient(gradient);
 		heatmap->setDataRange({ -1.0, 1.0 });
 
 
-		_CpPatch add_gradient_legend(
+		custom_plot::patch::add_gradient_legend(
 			draw_area,
 			legend_layout,
 			-1.0,
@@ -368,9 +368,9 @@ void DifferentialAnalysisItem::s_heatmap_plot() {
 			"High",
 			gs.get_legend_title_font(),
 			gs.get_legend_label_font(),
-			_CpColor navy,
-			_CpColor aquamarine3,
-			_CpColor gold
+			custom_plot::color::navy,
+			custom_plot::color::aquamarine3,
+			custom_plot::color::gold
 		);
 
 		this->draw_suite_->update(draw_area);
@@ -391,7 +391,7 @@ void DifferentialAnalysisItem::s_heatmap_plot() {
 		main_layout->addElement(0, 1, axis_rect);
 		main_layout->addElement(0, 2, legend_layout);
 
-		legend_layout = _CpPatch set_legend_layout(draw_area, legend_layout);
+		legend_layout = custom_plot::patch::set_legend_layout(draw_area, legend_layout);
 
 		auto pal = gs.palette_map(comparison1_list);
 
@@ -401,11 +401,11 @@ void DifferentialAnalysisItem::s_heatmap_plot() {
 
 			if (comparison1_list[i] != *now_comparison1) {
 
-				_CpPatch rectangle_borderless(
+				custom_plot::patch::rectangle_borderless(
 					draw_area, left_legend, 0, now_start, 10, i - now_start, pal[*now_comparison1]
 				);
 
-				_CpPatch add_label(
+				custom_plot::patch::add_label(
 					draw_area,
 					left_legend,
 					*now_comparison1,
@@ -419,11 +419,11 @@ void DifferentialAnalysisItem::s_heatmap_plot() {
 			}
 		}
 
-		_CpPatch rectangle_borderless(
+		custom_plot::patch::rectangle_borderless(
 			draw_area, left_legend, 0, now_start, 10, n_feature - now_start, pal[*now_comparison1]
 		);
 
-		_CpPatch add_label(
+		custom_plot::patch::add_label(
 			draw_area,
 			left_legend,
 			*now_comparison1,
@@ -432,11 +432,11 @@ void DifferentialAnalysisItem::s_heatmap_plot() {
 			gs.get_left_label_font(),
 			Qt::AlignRight | Qt::AlignVCenter);
 
-		_CpPatch remove_left_bottom_axis(left_legend);
-		_CpPatch set_fixed_width(left_legend, 
-			std::ceil(_CpUtility get_max_text_width(_Cs unique(comparison1_list), gs.get_left_label_font()) * 2.11));
+		custom_plot::patch::remove_left_bottom_axis(left_legend);
+		custom_plot::patch::set_fixed_width(left_legend, 
+			std::ceil(custom_plot::utility::get_max_text_width(custom::unique(comparison1_list), gs.get_left_label_font()) * 2.11));
 
-		_CpPatch set_range(left_legend, { -10.0, 10.0 }, { 0.0, (double)n_feature });
+		custom_plot::patch::set_range(left_legend, { -10.0, 10.0 }, { 0.0, (double)n_feature });
 
 		QCPColorMap* heatmap = new QCPColorMap(axis_rect->axis(QCPAxis::atBottom), axis_rect->axis(QCPAxis::atLeft));
 		heatmap->data()->setSize(n_cell, n_feature);
@@ -446,7 +446,7 @@ void DifferentialAnalysisItem::s_heatmap_plot() {
 		else {
 			heatmap->data()->setRange(QCPRange(0, n_cell - 1), QCPRange(-1, 1));
 		}
-		_CpPatch remove_left_bottom_axis(axis_rect);
+		custom_plot::patch::remove_left_bottom_axis(axis_rect);
 
 		for (int i = 0; i < n_cell; ++i) {
 			for (int j = 0; j < n_feature; ++j) {
@@ -455,19 +455,19 @@ void DifferentialAnalysisItem::s_heatmap_plot() {
 		}
 		heatmap->setInterpolate(false);
 		heatmap->setTightBoundary(false);
-		_CpPatch set_range(axis_rect, QCPRange(-0.5, n_cell - 0.5), QCPRange(-0.5, n_feature - 0.5));
+		custom_plot::patch::set_range(axis_rect, QCPRange(-0.5, n_cell - 0.5), QCPRange(-0.5, n_feature - 0.5));
 
 		double max_val = heatmat.cwiseAbs().maxCoeff();
 
 		QCPColorGradient gradient;
-		gradient.setColorStopAt(0.5, _CpColor aquamarine3);
-		gradient.setColorStopAt(1.0, _CpColor gold);
-		gradient.setColorStopAt(0.0, _CpColor navy);
+		gradient.setColorStopAt(0.5, custom_plot::color::aquamarine3);
+		gradient.setColorStopAt(1.0, custom_plot::color::gold);
+		gradient.setColorStopAt(0.0, custom_plot::color::navy);
 
 		heatmap->setGradient(gradient);
 		heatmap->setDataRange({ -1.0, 1.0 });
 
-		_CpPatch add_gradient_legend(
+		custom_plot::patch::add_gradient_legend(
 			draw_area,
 			legend_layout,
 			-1.0,
@@ -477,9 +477,9 @@ void DifferentialAnalysisItem::s_heatmap_plot() {
 			"High",
 			gs.get_legend_title_font(),
 			gs.get_legend_label_font(),
-			_CpColor navy,
-			_CpColor aquamarine3,
-			_CpColor gold
+			custom_plot::color::navy,
+			custom_plot::color::aquamarine3,
+			custom_plot::color::gold
 		);
 
 		this->draw_suite_->update(draw_area);
@@ -493,10 +493,10 @@ void DifferentialAnalysisItem::s_volcano_plot() {
 		return;
 	}
 
-	auto comparisons = _Cs paste(this->data()->mat_.get_const_qstring_reference(METADATA_DE_COMPARISON_1),
+	auto comparisons = custom::paste(this->data()->mat_.get_const_qstring_reference(METADATA_DE_COMPARISON_1),
 		this->data()->mat_.get_const_qstring_reference(METADATA_DE_COMPARISON_2), " vs. ");
 
-	auto comp = _Cs unique(comparisons);
+	auto comp = custom::unique(comparisons);
 
 	QStringList standard = CommonDialog::get_response(
 		this->signal_emitter_,
@@ -510,7 +510,7 @@ void DifferentialAnalysisItem::s_volcano_plot() {
 
 	double feature_p_threshold = standard[0].toDouble();
 	double fold_change_threshold = standard[1].toDouble();
-	auto filter = _Cs equal(comparisons, standard[2]);
+	auto filter = custom::equal(comparisons, standard[2]);
 	if (feature_p_threshold <= 0) {
 		G_LOG("Invalid P Value.");
 		return;
@@ -529,9 +529,9 @@ void DifferentialAnalysisItem::s_volcano_plot() {
 
 	int n_point = filter.count();
 	Eigen::ArrayXd transformed_p(n_point);
-	Eigen::ArrayXd p_adjusted = _Cs cast<Eigen::ArrayX>(_Cs sliced(this->data()->mat_.get_const_double_reference(METADATA_DE_ADJUSTED_P_VALUE), filter));
+	Eigen::ArrayXd p_adjusted = custom::cast<Eigen::ArrayX>(custom::sliced(this->data()->mat_.get_const_double_reference(METADATA_DE_ADJUSTED_P_VALUE), filter));
 
-	Eigen::ArrayXd fold_change = _Cs cast<Eigen::ArrayX>(_Cs sliced(this->data()->mat_.get_const_double_reference(METADATA_DE_LOG2_FOLD_CHANGE), filter));
+	Eigen::ArrayXd fold_change = custom::cast<Eigen::ArrayX>(custom::sliced(this->data()->mat_.get_const_double_reference(METADATA_DE_LOG2_FOLD_CHANGE), filter));
 
 	for (int i = 0; i < n_point; ++i) {
 		if (p_adjusted[i] < minimum_p) {
@@ -544,29 +544,29 @@ void DifferentialAnalysisItem::s_volcano_plot() {
 
 	auto& gs = this->draw_suite_->graph_settings_;
 
-	auto [draw_area, axis_rect, legend_layout] = _Cp prepare(gs);
+	auto [draw_area, axis_rect, legend_layout] = custom_plot::prepare(gs);
 	
 	QString axis_style = standard[4];
 	if (axis_style == "Simple") {
-		_Cp set_simple_axis(axis_rect, "log<sub>2</sub>(Fold Change)", "-log<sub>10</sub>(P<sub>adj</sub>)", gs);
+		custom_plot::set_simple_axis(axis_rect, "log<sub>2</sub>(Fold Change)", "-log<sub>10</sub>(P<sub>adj</sub>)", gs);
 	}
 	else if (axis_style == "Border") {
-		_CpPatch set_border_only(axis_rect, Qt::black, 3);
-		_Cp set_left_title(axis_rect, "-log<sub>10</sub>(P<sub>adj</sub>)", gs, true);
-		_Cp set_bottom_title(axis_rect, "log<sub>2</sub>(Fold Change)", gs, true);
+		custom_plot::patch::set_border_only(axis_rect, Qt::black, 3);
+		custom_plot::set_left_title(axis_rect, "-log<sub>10</sub>(P<sub>adj</sub>)", gs, true);
+		custom_plot::set_bottom_title(axis_rect, "log<sub>2</sub>(Fold Change)", gs, true);
 		axis_rect->axis(QCPAxis::atLeft)->setTickLabelFont(gs.get_left_label_font());
 		axis_rect->axis(QCPAxis::atBottom)->setTickLabelFont(gs.get_bottom_label_font());
 	}
 
 	bool show_border = switch_to_bool(standard[5]);
 
-	auto [x_range, y_range] = _CpUtility get_range(fold_change, transformed_p);
-	_CpPatch set_range(axis_rect, x_range, y_range);
+	auto [x_range, y_range] = custom_plot::utility::get_range(fold_change, transformed_p);
+	custom_plot::patch::set_range(axis_rect, x_range, y_range);
 
 	if (show_border) {
-		_CpPatch line(draw_area, axis_rect, QVector<double>{fold_change_threshold, fold_change_threshold}, QVector<double>{y_range.lower, y_range.upper}, Qt::black, 2, Qt::DashLine);
-		_CpPatch line(draw_area, axis_rect, QVector<double>{-fold_change_threshold, -fold_change_threshold}, QVector<double>{y_range.lower, y_range.upper}, Qt::black, 2, Qt::DashLine);
-		_CpPatch line(draw_area, axis_rect, QVector<double>{ x_range.lower, x_range.upper}, QVector<double>{-std::log10(feature_p_threshold), -std::log10(feature_p_threshold)}, Qt::black, 2, Qt::DashLine);
+		custom_plot::patch::line(draw_area, axis_rect, QVector<double>{fold_change_threshold, fold_change_threshold}, QVector<double>{y_range.lower, y_range.upper}, Qt::black, 2, Qt::DashLine);
+		custom_plot::patch::line(draw_area, axis_rect, QVector<double>{-fold_change_threshold, -fold_change_threshold}, QVector<double>{y_range.lower, y_range.upper}, Qt::black, 2, Qt::DashLine);
+		custom_plot::patch::line(draw_area, axis_rect, QVector<double>{ x_range.lower, x_range.upper}, QVector<double>{-std::log10(feature_p_threshold), -std::log10(feature_p_threshold)}, Qt::black, 2, Qt::DashLine);
 	}
 
 	QStringList values(n_point);
@@ -574,24 +574,24 @@ void DifferentialAnalysisItem::s_volcano_plot() {
 	for (int i = 0; i < n_point; ++i) {
 		values[i] = transformed_p[i] > feature_p_threshold ? (fold_change[i] > fold_change_threshold ? "Red" : (fold_change[i] < -fold_change_threshold ? "Blue" : "Grey")) : "Grey";
 	}
-	_CpPatch scatter_category(
+	custom_plot::patch::scatter_category(
 		draw_area, 
 		axis_rect, 
 		fold_change, 
 		transformed_p, 
 		values,
 		QStringList() << "Red" << "Blue" << "Grey", 
-		QList<QColor>{ gs.get_gradient_high_color(_CpColor firebrick3), gs.get_gradient_low_color(_CpColor navy), gs.get_gradient_middle_color(_CpColor gray)},
+		QList<QColor>{ gs.get_gradient_high_color(custom_plot::color::firebrick3), gs.get_gradient_low_color(custom_plot::color::navy), gs.get_gradient_middle_color(custom_plot::color::gray)},
 		gs.get_scatter_point_size());
 	this->draw_suite_->update(draw_area);
 };
 
 void DifferentialAnalysisItem::s_extract_feature_names() {
 
-	auto comparisons = _Cs paste(this->data()->mat_.get_const_qstring_reference(METADATA_DE_COMPARISON_1),
+	auto comparisons = custom::paste(this->data()->mat_.get_const_qstring_reference(METADATA_DE_COMPARISON_1),
 		this->data()->mat_.get_const_qstring_reference(METADATA_DE_COMPARISON_2), " vs. ");
 
-	auto comp = _Cs unique(comparisons);
+	auto comp = custom::unique(comparisons);
 
 	QString value_filter_string{ "log2 Fold Change(Absolute Value >):1" };
 	QString value_name{ METADATA_DE_LOG2_FOLD_CHANGE };
@@ -618,22 +618,22 @@ void DifferentialAnalysisItem::s_extract_feature_names() {
 		feature_p_threshold = 0.05;
 	}
 
-	Eigen::ArrayX<bool> filter = _Cs less_than(this->data()->mat_.get_const_double_reference(METADATA_DE_ADJUSTED_P_VALUE), feature_p_threshold);
+	Eigen::ArrayX<bool> filter = custom::less_than(this->data()->mat_.get_const_double_reference(METADATA_DE_ADJUSTED_P_VALUE), feature_p_threshold);
 
 	QString regulate_type = settings[2];
 	if (regulate_type == "Upregulated") {
-		filter *= _Cs greater_than(this->data()->mat_.get_const_double_reference(value_name), 0.);
+		filter *= custom::greater_than(this->data()->mat_.get_const_double_reference(value_name), 0.);
 	}
 	else if (regulate_type == "Downregulated") {
-		filter *= _Cs less_than(this->data()->mat_.get_const_double_reference(value_name), 0.);
+		filter *= custom::less_than(this->data()->mat_.get_const_double_reference(value_name), 0.);
 	}
 
 	bool all_comparison = switch_to_bool(settings[3]);
 	if (!all_comparison) {
-		filter *= _Cs equal(comparisons, settings[4]);
+		filter *= custom::equal(comparisons, settings[4]);
 	}
 
-	filter *= _Cs greater_equal(_Cs abs(this->data()->mat_.get_const_double_reference(METADATA_DE_LOG2_FOLD_CHANGE)), std::abs(value_threshold));
+	filter *= custom::greater_equal(custom::abs(this->data()->mat_.get_const_double_reference(METADATA_DE_LOG2_FOLD_CHANGE)), std::abs(value_threshold));
 	if (filter.count() == 0) {
 		G_NOTICE("No feature found.");
 		return;
@@ -650,27 +650,27 @@ void DifferentialAnalysisItem::s_extract_feature_names() {
 		QVector<int> order;
 
 		for (auto&& c : comp) {
-			Eigen::ArrayX<bool> sub_filter = filter * _Cs equal(comparisons, c);
-			auto sub_vals = _Cs sliced(this->data()->mat_.get_const_double_reference(value_name), sub_filter);
-			auto sub_order = _Cs order(sub_vals, true);
+			Eigen::ArrayX<bool> sub_filter = filter * custom::equal(comparisons, c);
+			auto sub_vals = custom::sliced(this->data()->mat_.get_const_double_reference(value_name), sub_filter);
+			auto sub_order = custom::order(sub_vals, true);
 
 			if (top_n > 0 && sub_order.size() > top_n) {
 				sub_order = sub_order.segment(0, top_n).eval();
 			}
 
-			order << _Cs cast<QVector>(_Cs reordered(_Cs which(sub_filter), sub_order));
+			order << custom::cast<QVector>(custom::reordered(custom::which(sub_filter), sub_order));
 		}
 
-		QStringList feature_names = _Cs reordered(this->data()->mat_.get_const_qstring_reference(METADATA_DE_FEATURE_NAME), order);
+		QStringList feature_names = custom::reordered(this->data()->mat_.get_const_qstring_reference(METADATA_DE_FEATURE_NAME), order);
 		StringVector* sv = new StringVector(feature_names);
 
 		this->signal_emitter_->x_data_create_soon(sv, soap::VariableType::StringVector, "Extracted Feature Names");
 	}
 	else {
 
-		auto vals = _Cs sliced(this->data()->mat_.get_const_double_reference(value_name), filter);
-		auto order = _Cs order(vals, true);
-		QStringList feature_names = _Cs reordered(this->data()->mat_.get_const_qstring_reference(METADATA_DE_FEATURE_NAME), _Cs reordered(_Cs which(filter), order));
+		auto vals = custom::sliced(this->data()->mat_.get_const_double_reference(value_name), filter);
+		auto order = custom::order(vals, true);
+		QStringList feature_names = custom::reordered(this->data()->mat_.get_const_qstring_reference(METADATA_DE_FEATURE_NAME), custom::reordered(custom::which(filter), order));
 		
 		if (top_n > 0 && feature_names.size() > top_n) {
 			feature_names = feature_names.sliced(0, top_n);
@@ -685,10 +685,10 @@ void DifferentialAnalysisItem::s_extract_feature_names() {
 
 void DifferentialAnalysisItem::s_show_significant() {
 
-	auto comparisons = _Cs paste(this->data()->mat_.get_const_qstring_reference(METADATA_DE_COMPARISON_1),
+	auto comparisons = custom::paste(this->data()->mat_.get_const_qstring_reference(METADATA_DE_COMPARISON_1),
 		this->data()->mat_.get_const_qstring_reference(METADATA_DE_COMPARISON_2), " vs. ");
 
-	auto comp = _Cs unique(comparisons);
+	auto comp = custom::unique(comparisons);
 
 	QString value_filter_string{ "log2 Fold Change(Absolute Value >):1" };
 	QString value_name{ METADATA_DE_LOG2_FOLD_CHANGE };
@@ -715,29 +715,29 @@ void DifferentialAnalysisItem::s_show_significant() {
 		feature_p_threshold = 0.05;
 	}
 
-	Eigen::ArrayX<bool> filter = _Cs less_than(this->data()->mat_.get_const_double_reference(METADATA_DE_ADJUSTED_P_VALUE), feature_p_threshold);
+	Eigen::ArrayX<bool> filter = custom::less_than(this->data()->mat_.get_const_double_reference(METADATA_DE_ADJUSTED_P_VALUE), feature_p_threshold);
 	
 	QString regulate_type = settings[2];
 	if (regulate_type == "Upregulated") {
-		filter *= _Cs greater_than(this->data()->mat_.get_const_double_reference(value_name), 0.);
+		filter *= custom::greater_than(this->data()->mat_.get_const_double_reference(value_name), 0.);
 	}
 	else if (regulate_type == "Downregulated") {
-		filter *= _Cs less_than(this->data()->mat_.get_const_double_reference(value_name), 0.);
+		filter *= custom::less_than(this->data()->mat_.get_const_double_reference(value_name), 0.);
 	}
 
 	bool all_comparison = switch_to_bool(settings[3]);
 	if (!all_comparison) {
-		filter *= _Cs equal(comparisons, settings[4]);
+		filter *= custom::equal(comparisons, settings[4]);
 	}
 
-	filter *= _Cs greater_equal(_Cs abs(this->data()->mat_.get_const_double_reference(METADATA_DE_LOG2_FOLD_CHANGE)), std::abs(value_threshold));
+	filter *= custom::greater_equal(custom::abs(this->data()->mat_.get_const_double_reference(METADATA_DE_LOG2_FOLD_CHANGE)), std::abs(value_threshold));
 	if (filter.count() == 0) {
 		G_NOTICE("No significant differential feature found.");
 		return;
 	}
 
-	auto vals = _Cs sliced(this->data()->mat_.get_const_double_reference(value_name), filter);
-	auto order = _Cs order(vals, true);
+	auto vals = custom::sliced(this->data()->mat_.get_const_double_reference(value_name), filter);
+	auto order = custom::order(vals, true);
 
 	auto tmp = this->data()->mat_.row_sliced(filter).row_reordered(order);
 	
@@ -785,10 +785,10 @@ void DifferentialAnalysisItem::s_enrich_go() {
 		return;
 	}
 
-	auto comparisons = _Cs paste(this->data()->mat_.get_const_qstring_reference(METADATA_DE_COMPARISON_1),
+	auto comparisons = custom::paste(this->data()->mat_.get_const_qstring_reference(METADATA_DE_COMPARISON_1),
 		this->data()->mat_.get_const_qstring_reference(METADATA_DE_COMPARISON_2), " vs. ");
 
-	auto comp = _Cs unique(comparisons);
+	auto comp = custom::unique(comparisons);
 
 	QStringList settings = CommonDialog::get_response(
 		this->signal_emitter_,
@@ -815,23 +815,23 @@ void DifferentialAnalysisItem::s_enrich_go() {
 		pathway_p_threshold = 0.05;
 	}
 
-	Eigen::ArrayX<bool> filter = _Cs less_than(this->data()->mat_.get_const_double_reference(METADATA_DE_ADJUSTED_P_VALUE), feature_p_threshold);
-	filter *= _Cs greater_equal(_Cs abs(this->data()->mat_.get_const_double_reference(METADATA_DE_LOG2_FOLD_CHANGE)), std::abs(fold_change_threshold));
+	Eigen::ArrayX<bool> filter = custom::less_than(this->data()->mat_.get_const_double_reference(METADATA_DE_ADJUSTED_P_VALUE), feature_p_threshold);
+	filter *= custom::greater_equal(custom::abs(this->data()->mat_.get_const_double_reference(METADATA_DE_LOG2_FOLD_CHANGE)), std::abs(fold_change_threshold));
 
 	QString regulate_type = settings[0];
 	if (regulate_type == "Upregulated") {
-		filter *= _Cs greater_than(this->data()->mat_.get_const_double_reference(METADATA_DE_LOG2_FOLD_CHANGE), 0.);
+		filter *= custom::greater_than(this->data()->mat_.get_const_double_reference(METADATA_DE_LOG2_FOLD_CHANGE), 0.);
 	}
 	else if (regulate_type == "Downregulated") {
-		filter *= _Cs less_than(this->data()->mat_.get_const_double_reference(METADATA_DE_LOG2_FOLD_CHANGE), 0.);
+		filter *= custom::less_than(this->data()->mat_.get_const_double_reference(METADATA_DE_LOG2_FOLD_CHANGE), 0.);
 	}
-	filter *= _Cs equal(comparisons, settings[6]);
+	filter *= custom::equal(comparisons, settings[6]);
 	if (filter.count() == 0) {
 		G_LOG("No feature meets requirement.");
 		G_UNLOCK;
 		return;
 	}
-	QStringList feature_names = _Cs sliced(this->data()->mat_.get_const_qstring_reference(METADATA_DE_FEATURE_NAME), filter);
+	QStringList feature_names = custom::sliced(this->data()->mat_.get_const_qstring_reference(METADATA_DE_FEATURE_NAME), filter);
 	EnrichWorker* worker = new EnrichWorker("GO", settings[6] + " " + regulate_type, feature_names, settings[3], species, settings[4], pathway_p_threshold);
 	G_LINK_WORKER_THREAD(EnrichWorker, x_enrichment_ready, DifferentialAnalysisItem, s_receive_enrichment);
 };
@@ -876,10 +876,10 @@ void DifferentialAnalysisItem::s_enrich_kegg() {
 		return;
 	}
 
-	auto comparisons = _Cs paste(this->data()->mat_.get_const_qstring_reference(METADATA_DE_COMPARISON_1),
+	auto comparisons = custom::paste(this->data()->mat_.get_const_qstring_reference(METADATA_DE_COMPARISON_1),
 		this->data()->mat_.get_const_qstring_reference(METADATA_DE_COMPARISON_2), " vs. ");
 
-	auto comp = _Cs unique(comparisons);
+	auto comp = custom::unique(comparisons);
 
 	QStringList settings = CommonDialog::get_response(
 		this->signal_emitter_,
@@ -905,25 +905,25 @@ void DifferentialAnalysisItem::s_enrich_kegg() {
 		G_LOG("Invalid p value to filter pathways! Reset to 0.05");
 		pathway_p_threshold = 0.05;
 	}
-	Eigen::ArrayX<bool> filter = _Cs less_than(this->data()->mat_.get_const_double_reference(METADATA_DE_ADJUSTED_P_VALUE), feature_p_threshold);
-	filter *= _Cs greater_equal(_Cs abs(this->data()->mat_.get_const_double_reference(METADATA_DE_LOG2_FOLD_CHANGE)), std::abs(fold_change_threshold));
+	Eigen::ArrayX<bool> filter = custom::less_than(this->data()->mat_.get_const_double_reference(METADATA_DE_ADJUSTED_P_VALUE), feature_p_threshold);
+	filter *= custom::greater_equal(custom::abs(this->data()->mat_.get_const_double_reference(METADATA_DE_LOG2_FOLD_CHANGE)), std::abs(fold_change_threshold));
 
 	QString regulate_type = settings[0];
 	if (regulate_type == "Upregulated") {
-		filter *= _Cs greater_than(this->data()->mat_.get_const_double_reference(METADATA_DE_LOG2_FOLD_CHANGE), 0.);
+		filter *= custom::greater_than(this->data()->mat_.get_const_double_reference(METADATA_DE_LOG2_FOLD_CHANGE), 0.);
 	}
 	else if (regulate_type == "Downregulated") {
-		filter *= _Cs less_than(this->data()->mat_.get_const_double_reference(METADATA_DE_LOG2_FOLD_CHANGE), 0.);
+		filter *= custom::less_than(this->data()->mat_.get_const_double_reference(METADATA_DE_LOG2_FOLD_CHANGE), 0.);
 	}
 
-	filter *= _Cs equal(comparisons, settings[5]);
+	filter *= custom::equal(comparisons, settings[5]);
 
 	if (filter.count() == 0) {
 		G_LOG("No feature meets requirement.");
 		G_UNLOCK;
 		return;
 	}
-	QStringList feature_names = _Cs sliced(this->data()->mat_.rownames_, filter);
+	QStringList feature_names = custom::sliced(this->data()->mat_.rownames_, filter);
 
 	EnrichWorker* worker = new EnrichWorker(
 		"KEGG", 
@@ -973,10 +973,10 @@ void DifferentialAnalysisItem::s_enrich_motif() {
 		return;
 	}
 
-	auto comparisons = _Cs paste(this->data()->mat_.get_const_qstring_reference(METADATA_DE_COMPARISON_1),
+	auto comparisons = custom::paste(this->data()->mat_.get_const_qstring_reference(METADATA_DE_COMPARISON_1),
 		this->data()->mat_.get_const_qstring_reference(METADATA_DE_COMPARISON_2), " vs. ");
 
-	auto comp = _Cs unique(comparisons);
+	auto comp = custom::unique(comparisons);
 
 	QStringList settings = CommonDialog::get_response(
 		this->signal_emitter_,
@@ -1004,18 +1004,18 @@ void DifferentialAnalysisItem::s_enrich_motif() {
 		motif_p_threshold = 0.05;
 	}
 
-	Eigen::ArrayX<bool> filter = _Cs less_than(this->data()->mat_.get_const_double_reference(METADATA_DE_ADJUSTED_P_VALUE), peak_p_threshold);
-	filter *= _Cs greater_equal(_Cs abs(this->data()->mat_.get_const_double_reference(METADATA_DE_LOG2_FOLD_CHANGE)), std::abs(fold_change_threshold));
+	Eigen::ArrayX<bool> filter = custom::less_than(this->data()->mat_.get_const_double_reference(METADATA_DE_ADJUSTED_P_VALUE), peak_p_threshold);
+	filter *= custom::greater_equal(custom::abs(this->data()->mat_.get_const_double_reference(METADATA_DE_LOG2_FOLD_CHANGE)), std::abs(fold_change_threshold));
 
 	QString regulate_type = settings[0];
 	if (regulate_type == "Upregulated") {
-		filter *= _Cs greater_than(this->data()->mat_.get_const_double_reference(METADATA_DE_LOG2_FOLD_CHANGE), 0.);
+		filter *= custom::greater_than(this->data()->mat_.get_const_double_reference(METADATA_DE_LOG2_FOLD_CHANGE), 0.);
 	}
 	else if (regulate_type == "Downregulated") {
-		filter *= _Cs less_than(this->data()->mat_.get_const_double_reference(METADATA_DE_LOG2_FOLD_CHANGE), 0.);
+		filter *= custom::less_than(this->data()->mat_.get_const_double_reference(METADATA_DE_LOG2_FOLD_CHANGE), 0.);
 	}
 
-	filter *= _Cs equal(comparisons, settings[5]);
+	filter *= custom::equal(comparisons, settings[5]);
 
 	if (filter.count() == 0) {
 		G_LOG("No peak meets requirement.");
@@ -1023,7 +1023,7 @@ void DifferentialAnalysisItem::s_enrich_motif() {
 		return;
 	}
 
-	QStringList peak_names = _Cs sliced(this->data()->mat_.get_const_qstring_reference(METADATA_DE_FEATURE_NAME), filter);
+	QStringList peak_names = custom::sliced(this->data()->mat_.get_const_qstring_reference(METADATA_DE_FEATURE_NAME), filter);
 	
 	EnrichWorker* worker = new EnrichWorker(
 		peak_names,

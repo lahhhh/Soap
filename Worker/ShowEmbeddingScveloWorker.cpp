@@ -8,15 +8,15 @@ void ShowEmbeddingScveloWorker::velocity_embedding() {
 
 	Eigen::SparseMatrix<double> transition_matrix = this->transition_matrix();
 
-	_Cs set_diagonal(transition_matrix, 0.0);
+	custom::set_diagonal(transition_matrix, 0.0);
 
-	transition_matrix = _Cs eliminate_zero(transition_matrix);
+	transition_matrix = custom::eliminate_zero(transition_matrix);
 
 	const int n_cell = this->estimate_->graph_.rows();
 
 	for (int i = 0; i < n_cell; ++i) {
 
-		Eigen::MatrixXd dX = this->embedding_(_Cs get_row_index(transition_matrix, i), Eigen::all).array().rowwise() - this->embedding_.row(i).array();
+		Eigen::MatrixXd dX = this->embedding_(custom::get_row_index(transition_matrix, i), Eigen::all).array().rowwise() - this->embedding_.row(i).array();
 
 		int n_row = dX.rows();
 
@@ -30,14 +30,14 @@ void ShowEmbeddingScveloWorker::velocity_embedding() {
 			}
 		}
 
-		Eigen::ArrayXd probs = _Cs get_row_data(transition_matrix, i);
+		Eigen::ArrayXd probs = custom::get_row_data(transition_matrix, i);
 
 
 		this->velocity_embedding_.row(i) = (probs.matrix().transpose() * dX).array() - probs.mean() * dX.array().colwise().sum();
 
 	}
 
-	_Cs quiver_scale(this->embedding_, this->velocity_embedding_);
+	custom::quiver_scale(this->embedding_, this->velocity_embedding_);
 };
 
 void ShowEmbeddingScveloWorker::compute_velocity_on_grid() {
@@ -64,7 +64,7 @@ void ShowEmbeddingScveloWorker::compute_velocity_on_grid() {
 	boost::math::normal_distribution<double> norm(0, scale);
 
 	constexpr int n_neighbor = 30;
-	auto [neighbors, weight] = _Cs get_knn_mt<Euclidean, true>(this->embedding_, x_grid, n_neighbor);
+	auto [neighbors, weight] = custom::get_knn_mt<Euclidean, true>(this->embedding_, x_grid, n_neighbor);
 	for (int j = 0; j < n_neighbor; ++j) {
 		for (int i = 0; i < n_grid * n_grid; ++i) {
 			weight(i, j) = boost::math::pdf(norm, weight(i, j));
@@ -79,12 +79,12 @@ void ShowEmbeddingScveloWorker::compute_velocity_on_grid() {
 
 	if (this->graph_mode_ == 0) {
 
-		const double min_mass = _Cs linear_percentile(p_mass, 99) / 100;
+		const double min_mass = custom::linear_percentile(p_mass, 99) / 100;
 
-		x_grid = _Cs row_sliced(x_grid, p_mass > min_mass);
-		v_grid = _Cs row_sliced(v_grid, p_mass > min_mass);
+		x_grid = custom::row_sliced(x_grid, p_mass > min_mass);
+		v_grid = custom::row_sliced(v_grid, p_mass > min_mass);
 
-		_Cs quiver_scale(x_grid, v_grid);
+		custom::quiver_scale(x_grid, v_grid);
 
 		VELO_GRID_PLOT_ELEMENTS res;
 		res.embedding = this->embedding_;
@@ -112,7 +112,7 @@ void ShowEmbeddingScveloWorker::compute_velocity_on_grid() {
 			length[i] = this->velocity_embedding_(neighbors.row(i), Eigen::all).array().abs().rowwise().mean().sum();
 		}
 
-		filter *= (length > _Cs linear_percentile(length, 5));
+		filter *= (length > custom::linear_percentile(length, 5));
 
 		Eigen::MatrixX<bool> mask(n_grid, n_grid);
 		Eigen::MatrixXd u(n_grid, n_grid), v(n_grid, n_grid);
@@ -142,19 +142,19 @@ void ShowEmbeddingScveloWorker::compute_velocity_on_grid() {
 };
 
 Eigen::SparseMatrix<double> ShowEmbeddingScveloWorker::transition_matrix() {
-	Eigen::SparseMatrix<double> T = _Cs set_diagonaled(this->estimate_->graph_, this->estimate_->self_probability_);
+	Eigen::SparseMatrix<double> T = custom::set_diagonaled(this->estimate_->graph_, this->estimate_->self_probability_);
 
 
 	constexpr double scale = 10.0;
-	_Cs elementwise_in_place(T, [](auto& it) {return std::exp(it.value() * scale) - 1; });
+	custom::elementwise_in_place(T, [](auto& it) {return std::exp(it.value() * scale) - 1; });
 
 
-	T -= _Cs elementwise(this->estimate_->graph_neg_, [](const auto& it) {
+	T -= custom::elementwise(this->estimate_->graph_neg_, [](const auto& it) {
 		return std::exp(-it.value() * scale) - 1;
 	});
 
 
-	return _Cs row_normalize2(T, 1.0);
+	return custom::row_normalize2(T, 1.0);
 
 };
 

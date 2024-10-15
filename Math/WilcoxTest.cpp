@@ -26,7 +26,7 @@ double wilcox_test(
 		bool has_zero = std::ranges::any_of(not_zero, [](auto no) {return !no; });
 
 		if (has_zero) {
-			query = _Cs sliced(query, not_zero);
+			query = custom::sliced(query, not_zero);
 		}
 
 		double n = query.size();
@@ -37,8 +37,8 @@ double wilcox_test(
 
 		bool exact = n < 50;
 
-		auto [r, ties, n_tie] = _Cs rank_average(query.abs()); // ntie = sum(NTIES^3 - NTIES)
-		double statistic = r(_Cs which(query > 0)).sum();
+		auto [r, ties, n_tie] = custom::rank_average(query.abs()); // ntie = sum(NTIES^3 - NTIES)
+		double statistic = r(custom::which(query > 0)).sum();
 
 		if (exact && !ties && !has_zero) {
 			if (alternative == 0) {
@@ -62,7 +62,7 @@ double wilcox_test(
 
 			if (correct) {
 				if (alternative == 0) {
-					correction = _Cs sign(z) * 0.5;
+					correction = custom::sign(z) * 0.5;
 				}
 				else if (alternative == 2) {
 					correction = 0.5;
@@ -94,7 +94,7 @@ double wilcox_test(
 		const int n_y = y.size();
 		Eigen::ArrayXd r(n_x + n_y);
 		r << x - mu, y;
-		auto [rank, ties, n_tie] = _Cs rank_average(r);
+		auto [rank, ties, n_tie] = custom::rank_average(r);
 		bool exact = (n_x < 50) && (n_y < 50);
 		double statistic = rank.segment(0, n_x).sum() - n_x * (n_x + 1) / 2.0;
 
@@ -119,7 +119,7 @@ double wilcox_test(
 
 			if (correct) {
 				if (alternative == 0) {
-					correction = _Cs sign(z) * 0.5;
+					correction = custom::sign(z) * 0.5;
 				}
 				else if (alternative == 2) {
 					correction = 0.5;

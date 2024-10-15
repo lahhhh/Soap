@@ -15,7 +15,7 @@ std::vector<std::vector<double> > mat_conversion(const Eigen::ArrayXXd& mat) {
 	const Eigen::Index n_row = mat.rows(), n_col = mat.cols();
 	score_matrix out(n_row);
 	for (Eigen::Index i = 0; i < n_row; ++i) {
-		out[i] = _Cs cast<std::vector>(mat.row(i));
+		out[i] = custom::cast<std::vector>(mat.row(i));
 	};
 	return out;
 }
@@ -90,8 +90,8 @@ GenomicRange match_motif(
 	const double p_cutoff,
 	const int window_size
 ) {
-	auto background_frequency = _Cs get_nucleic_acid_frequency(sequence);
-	std::vector<double> nuc_freqs = _Cs cast<std::vector>(background_frequency);
+	auto background_frequency = custom::get_nucleic_acid_frequency(sequence);
+	std::vector<double> nuc_freqs = custom::cast<std::vector>(background_frequency);
 
 	pwm.from_frequency_to_log2();
 	pwm.convert(background_frequency);
@@ -136,10 +136,10 @@ void match_motif(
 		pwm.convert(background_frequency);
 	}
 
-	std::vector<double> nuc_freqs = _Cs cast<std::vector>(background_frequency);
-	const QVector<PatternWeightMatrix> mats = _Cs values(pwms);
+	std::vector<double> nuc_freqs = custom::cast<std::vector>(background_frequency);
+	const QVector<PatternWeightMatrix> mats = custom::values(pwms);
 
-	auto peak_sequences = _Cs sapply(sequences, [](const QString& str) {return str.toStdString(); });
+	auto peak_sequences = custom::sapply(sequences, [](const QString& str) {return str.toStdString(); });
 	const size_t n_motif = pwms.size();
 	std::vector<double> thresholds(2 * n_motif);
 	std::vector<score_matrix> matrices(2 * n_motif);

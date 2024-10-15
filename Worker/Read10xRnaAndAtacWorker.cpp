@@ -51,7 +51,7 @@ bool Read10XMultiomeWorker::read_barcodes() {
 
 	while ((gzgets(barcodes, buffer, 1024)) != 0)
 	{
-		this->barcodes_ << QString::fromUtf8(buffer, _Cs line_length(buffer));;
+		this->barcodes_ << QString::fromUtf8(buffer, custom::line_length(buffer));;
 	}
 	gzclose(barcodes);
 
@@ -140,9 +140,9 @@ bool Read10XMultiomeWorker::read_matrix() {
 
 	const char* c = buffer;
 
-	int n_row = _Cs atoi_specialized(&c);
-	int n_column = _Cs atoi_specialized(&c);
-	int n_number = _Cs atoi_specialized(&c);
+	int n_row = custom::atoi_specialized(&c);
+	int n_column = custom::atoi_specialized(&c);
+	int n_number = custom::atoi_specialized(&c);
 
 	if (n_row != this->gene_symbols_.size() + this->peak_names_.size() || n_column != this->barcodes_.length()) {
 		return false;
@@ -156,9 +156,9 @@ bool Read10XMultiomeWorker::read_matrix() {
 	for (int i = 0; i < n_number; ++i) {
 		gzgets(matrix, buffer, 1024);
 		c = buffer;
-		data[3 * i] = _Cs atoi_specialized(&c) - 1;
-		data[3 * i + 1] = _Cs atoi_specialized(&c) - 1;
-		data[3 * i + 2] = _Cs atoi_specialized(&c);
+		data[3 * i] = custom::atoi_specialized(&c) - 1;
+		data[3 * i + 1] = custom::atoi_specialized(&c) - 1;
+		data[3 * i + 2] = custom::atoi_specialized(&c);
 		++wi(data[3 * i]);
 	}
 
@@ -185,28 +185,28 @@ void Read10XMultiomeWorker::separate_counts() {
 	SparseInt& atac_counts = SUBMODULES(*this->single_cell_multiome_->atac_field(), SparseInt)[VARIABLE_ATAC_COUNTS];
 	atac_counts.data_type_ = SparseInt::DataType::Counts;
 
-	QStringList barcodes = _Cs make_unique(this->barcodes_);
+	QStringList barcodes = custom::make_unique(this->barcodes_);
 
-	rna_counts.mat_ = _Cs row_sliced(this->counts_, _Cs equal(this->feature_names_, QString("Gene Expression")));
-	rna_counts.rownames_ = _Cs make_unique(this->gene_symbols_);
+	rna_counts.mat_ = custom::row_sliced(this->counts_, custom::equal(this->feature_names_, QString("Gene Expression")));
+	rna_counts.rownames_ = custom::make_unique(this->gene_symbols_);
 	rna_counts.colnames_ = barcodes;
 
-	atac_counts.mat_ = _Cs row_sliced(this->counts_, _Cs equal(this->feature_names_, QString("Peaks")));
-	atac_counts.rownames_ = _Cs make_unique(this->peak_names_);
+	atac_counts.mat_ = custom::row_sliced(this->counts_, custom::equal(this->feature_names_, QString("Peaks")));
+	atac_counts.rownames_ = custom::make_unique(this->peak_names_);
 	atac_counts.colnames_ = barcodes;
 }
 
 void Read10XMultiomeWorker::calculate_metadata() {
 
 	SparseInt& rna_counts = SUBMODULES(*this->single_cell_multiome_->rna_field(), SparseInt)[VARIABLE_RNA_COUNTS];
-	Eigen::ArrayX<bool> gene_detected = _Cs row_sum(rna_counts.mat_) > 0;
+	Eigen::ArrayX<bool> gene_detected = custom::row_sum(rna_counts.mat_) > 0;
 	rna_counts.row_slice(gene_detected);
 
 	SparseInt& atac_counts = SUBMODULES(*this->single_cell_multiome_->atac_field(), SparseInt)[VARIABLE_ATAC_COUNTS];
-	Eigen::ArrayX<bool> peak_detected = _Cs row_sum(atac_counts.mat_) > 0;
+	Eigen::ArrayX<bool> peak_detected = custom::row_sum(atac_counts.mat_) > 0;
 	atac_counts.row_slice(peak_detected);
 
-	Eigen::ArrayXi rna_count = _Cs col_sum_mt(rna_counts.mat_);
+	Eigen::ArrayXi rna_count = custom::col_sum_mt(rna_counts.mat_);
 	const int n_cell = rna_counts.mat_.cols();
 	Eigen::ArrayXi rna_gene(n_cell);
 	Eigen::ArrayXd mitochondrial_content = Eigen::ArrayXd::Zero(n_cell);
@@ -256,18 +256,18 @@ void Read10XMultiomeWorker::calculate_metadata() {
 		ribosomal_content /= rna_count.cast<double>();
 	}
 
-	_Cs remove_na(mitochondrial_content);
-	_Cs remove_na(ribosomal_content);
+	custom::remove_na(mitochondrial_content);
+	custom::remove_na(ribosomal_content);
 
 	Metadata& metadata = SUBMODULES(*this->single_cell_multiome_, Metadata)[VARIABLE_METADATA];
 	metadata.mat_.set_rownames(rna_counts.colnames_);
 	metadata.mat_.update(METADATA_RNA_UMI_NUMBER, QVector<int>(rna_count.begin(), rna_count.end()));
 	metadata.mat_.update(METADATA_RNA_UNIQUE_GENE_NUMBER, QVector<int>(rna_gene.begin(), rna_gene.end()));
-	metadata.mat_.update(METADATA_RNA_MITOCHONDRIAL_CONTENT, _Cs cast<QVector>(mitochondrial_content));
-	metadata.mat_.update(METADATA_RNA_RIBOSOMAL_CONTENT, _Cs cast<QVector>(ribosomal_content)); 
+	metadata.mat_.update(METADATA_RNA_MITOCHONDRIAL_CONTENT, custom::cast<QVector>(mitochondrial_content));
+	metadata.mat_.update(METADATA_RNA_RIBOSOMAL_CONTENT, custom::cast<QVector>(ribosomal_content)); 
 	metadata.mat_.update(METADATA_BARCODES, this->barcodes_);
 
-	Eigen::ArrayXi peak_count = _Cs col_sum_mt(atac_counts.mat_);
+	Eigen::ArrayXi peak_count = custom::col_sum_mt(atac_counts.mat_);
 	const int ncol_atac = atac_counts.mat_.cols();
 	Eigen::ArrayXi peak_gene(ncol_atac);
 
@@ -275,6 +275,6 @@ void Read10XMultiomeWorker::calculate_metadata() {
 		peak_gene[i] = atac_counts.mat_.outerIndexPtr()[i + 1] - atac_counts.mat_.outerIndexPtr()[i];
 	}
 
-	metadata.mat_.update(METADATA_ATAC_UMI_NUMBER, _Cs cast<QVector>(peak_count));
-	metadata.mat_.update(METADATA_ATAC_UNIQUE_PEAK_NUMBER, _Cs cast<QVector>(peak_gene));
+	metadata.mat_.update(METADATA_ATAC_UMI_NUMBER, custom::cast<QVector>(peak_count));
+	metadata.mat_.update(METADATA_ATAC_UNIQUE_PEAK_NUMBER, custom::cast<QVector>(peak_gene));
 };

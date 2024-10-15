@@ -2,8 +2,6 @@
 
 #include <qCustomPlot.h>
 
-#define _CpColor ::custom_plot::color::
-
 namespace custom_plot {
 
 	namespace color {

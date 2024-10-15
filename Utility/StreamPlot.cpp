@@ -180,7 +180,7 @@ void stream_plot(
 		std::ranges::for_each(tx, [&dmap](auto&& d) {d = d / dmap.x_data2grid_ + dmap.grid_.x_origin_; });
 		std::ranges::for_each(ty, [&dmap](auto&& d) {d = d / dmap.y_data2grid_ + dmap.grid_.y_origin_; });
 
-		_CpPatch curve(draw_area, axis_rect, _Cs cast<QVector>(tx), _Cs cast<QVector>(ty), Qt::black, 2, Qt::SolidLine);
+		custom_plot::patch::curve(draw_area, axis_rect, custom::cast<QVector>(tx), custom::cast<QVector>(ty), Qt::black, 2, Qt::SolidLine);
 
 		const int n_point = tx.size();
 		std::vector<double> s(n_point, 0.0);    

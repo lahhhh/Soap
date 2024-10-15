@@ -12,7 +12,7 @@ void TranscriptModel::finalize() {
 		interval_starts[i] = this->loc_[i * 2];
 	}
 
-	const auto order = _Cs order(interval_starts);
+	const auto order = custom::order(interval_starts);
 
 	std::vector<int> new_loc(size);
 

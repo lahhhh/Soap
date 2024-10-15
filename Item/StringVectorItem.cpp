@@ -69,19 +69,19 @@ void StringVectorItem::s_intersect_with() {
 
 	available_data = simple_choice_to_list(settings[0]);
 	if (available_data.size() < 2)return;
-	if (!_Cs is_unique(available_data)) {
+	if (!custom::is_unique(available_data)) {
 		G_WARN("Can not intersect the same data!");
 		return;
 	}
 
 	auto its = this->signal_emitter_->search(available_data);
 
-	auto choosed = _Cs sapply(its, [](IndexTree* it) {return static_cast<const StringVector*>(it->data_); });
+	auto choosed = custom::sapply(its, [](IndexTree* it) {return static_cast<const StringVector*>(it->data_); });
 
 	QStringList res = choosed[0]->data_;
 
 	for (int i = 1; i < choosed.size(); ++i) {
-		res = _Cs intersect(res, choosed[i]->data_);
+		res = custom::intersect(res, choosed[i]->data_);
 	}
 
 	this->signal_emitter_->x_data_create_soon(new StringVector(res), soap::VariableType::StringVector, "Intersected");
@@ -102,7 +102,7 @@ void StringVectorItem::s_edit_manually() {
 void StringVectorItem::s_edit_sort() {
 	G_GETLOCK;
 
-	this->data()->data_ = _Cs sorted(this->data()->data_);	
+	this->data()->data_ = custom::sorted(this->data()->data_);	
 
 	G_UNLOCK;
 };

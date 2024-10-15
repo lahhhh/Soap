@@ -93,5 +93,5 @@ QString LogicLayout::current_value() {
 		val << orLayout->current_value();
 	}
 
-	return _Cs merge_to_string(val, SOAP_DELIMITER3);
+	return custom::merge_to_string(val, SOAP_DELIMITER3);
 };

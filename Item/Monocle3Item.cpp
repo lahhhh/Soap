@@ -101,7 +101,7 @@ void Monocle3Item::pseudo_time_feature_plot_single_cell_rna() {
 		return;
 	}
 
-	auto data = _Cs sapply(features,
+	auto data = custom::sapply(features,
 		[&handler, normalized, gene_activity](auto&& t) {return handler.get_data({ t, normalized, gene_activity }); });
 
 	int n_valid{ 0 };
@@ -132,7 +132,7 @@ void Monocle3Item::pseudo_time_feature_plot_single_cell_rna() {
 
 	factor_data.slice(this->data()->cell_included_);
 
-	auto draw_area = _Cp monocle3_feature_plot(
+	auto draw_area = custom_plot::monocle3_feature_plot(
 		data, x, factor_data, "Pseudo Time", nrow, this->draw_suite_->graph_settings_
 	);
 
@@ -177,7 +177,7 @@ void Monocle3Item::pseudo_time_feature_plot_single_cell_multiome() {
 		return;
 	}
 
-	auto data = _Cs sapply(features,
+	auto data = custom::sapply(features,
 		[&handler, normalized, gene_activity](auto&& t) {return handler.get_data({ t, normalized, gene_activity }); });
 
 	int n_valid{ 0 };
@@ -208,7 +208,7 @@ void Monocle3Item::pseudo_time_feature_plot_single_cell_multiome() {
 
 	factor_data.slice(this->data()->cell_included_);
 
-	auto draw_area = _Cp monocle3_feature_plot(
+	auto draw_area = custom_plot::monocle3_feature_plot(
 		data, x, factor_data, "Pseudo Time", nrow, this->draw_suite_->graph_settings_
 	);
 	
@@ -264,18 +264,18 @@ void Monocle3Item::s_pseudo_time_graph() {
 		return;
 	}
 
-	auto [draw_area, axis_rect, legend_layout] = _Cp prepare(gs);
+	auto [draw_area, axis_rect, legend_layout] = custom_plot::prepare(gs);
 
-	_Cp set_scatter_plot_axis_style(draw_area, axis_rect,
+	custom_plot::set_scatter_plot_axis_style(draw_area, axis_rect,
 		this->data()->original_embedding_.data_.colnames_[0],
 		this->data()->original_embedding_.data_.colnames_[1], x, y, gs);
 
 
 	QColor low_color = gs.get_gradient_low_color(Qt::blue);
 	QColor middle_color = gs.get_gradient_middle_color(Qt::yellow);
-	QColor high_color = gs.get_gradient_high_color(_CpColor darkorchid2);
+	QColor high_color = gs.get_gradient_high_color(custom_plot::color::darkorchid2);
 
-	_CpPatch scatter_gradient(
+	custom_plot::patch::scatter_gradient(
 		draw_area,
 		axis_rect,
 		x,
@@ -289,7 +289,7 @@ void Monocle3Item::s_pseudo_time_graph() {
 		gs.get_scatter_point_size()
 	);
 
-	_Cp add_gradient_legend(
+	custom_plot::add_gradient_legend(
 		draw_area,
 		legend_layout,
 		values.minCoeff(),
@@ -317,7 +317,7 @@ void Monocle3Item::s_pseudo_time_graph() {
 			int v1 = VECTOR(edge_list)[i * 2];
 			int v2 = VECTOR(edge_list)[i * 2 + 1];
 
-			_CpPatch line(draw_area, axis_rect,
+			custom_plot::patch::line(draw_area, axis_rect,
 				this->data()->pr_embedding_(Eigen::all, { v1, v2 }).row(0),
 				this->data()->pr_embedding_(Eigen::all, { v1, v2 }).row(1),
 				trajectory_color, trajectory_width);
@@ -335,7 +335,7 @@ void Monocle3Item::s_pseudo_time_graph() {
 		x = this->data()->pr_embedding_.row(0);
 		y = this->data()->pr_embedding_.row(1);
 
-		_CpPatch scatter(
+		custom_plot::patch::scatter(
 			draw_area,
 			axis_rect,
 			x,
@@ -346,25 +346,25 @@ void Monocle3Item::s_pseudo_time_graph() {
 	}
 
 	if (show_all_cells) {
-		auto rest_index = _Cs which(_Cs flip(this->data()->cell_included_));
+		auto rest_index = custom::which(custom::flip(this->data()->cell_included_));
 		if (!rest_index.isEmpty()) {
 			x = this->data()->original_embedding_.data_.mat_.col(0)(rest_index);
 			y = this->data()->original_embedding_.data_.mat_.col(1)(rest_index);
-			_CpPatch scatter(
+			custom_plot::patch::scatter(
 				draw_area,
 				axis_rect,
 				x,
 				y,
-				_CpColor gray,
+				custom_plot::color::gray,
 				gs.get_scatter_point_size()
 			);
 
-			_CpPatch set_range(axis_rect, _CpUtility get_range(this->data()->original_embedding_.data_.mat_.col(0),
+			custom_plot::patch::set_range(axis_rect, custom_plot::utility::get_range(this->data()->original_embedding_.data_.mat_.col(0),
 				this->data()->original_embedding_.data_.mat_.col(1)));
 		}
 	}
 
-	_Cp add_title(draw_area, "Pseudo Time", gs);
+	custom_plot::add_title(draw_area, "Pseudo Time", gs);
 
 	this->draw_suite_->update(draw_area);
 };
@@ -428,7 +428,7 @@ Eigen::ArrayXd Monocle3Item::extract_general_graph_ordering(const Eigen::ArrayXi
 
 Eigen::ArrayXi Monocle3Item::get_root_nodes() {
 
-	return _Cs cast<Eigen::ArrayX>(Monocle3ChooseRootDialog::get_response(this->data()));
+	return custom::cast<Eigen::ArrayX>(Monocle3ChooseRootDialog::get_response(this->data()));
 };
 
 void Monocle3Item::s_feature_plot() {
@@ -481,7 +481,7 @@ void Monocle3Item::s_feature_plot() {
 			feature_data.message.insert("Lighten Color");
 		}
 
-		auto [draw_area, axis_rect, _] = _Cp feature_plot(feature_data, &this->data()->original_embedding_, scale, this->draw_suite_->graph_settings_);
+		auto [draw_area, axis_rect, _] = custom_plot::feature_plot(feature_data, &this->data()->original_embedding_, scale, this->draw_suite_->graph_settings_);
 
 		if (show_trajectory) {
 
@@ -500,7 +500,7 @@ void Monocle3Item::s_feature_plot() {
 				int v1 = VECTOR(edge_list)[i * 2];
 				int v2 = VECTOR(edge_list)[i * 2 + 1];
 
-				_CpPatch line(draw_area, axis_rect,
+				custom_plot::patch::line(draw_area, axis_rect,
 					this->data()->pr_embedding_(Eigen::all, { v1, v2 }).row(0),
 					this->data()->pr_embedding_(Eigen::all, { v1, v2 }).row(1),
 					trajectory_color, trajectory_width);
@@ -518,7 +518,7 @@ void Monocle3Item::s_feature_plot() {
 			Eigen::ArrayXd x = this->data()->pr_embedding_.row(0);
 			Eigen::ArrayXd y = this->data()->pr_embedding_.row(1);
 
-			_CpPatch scatter(
+			custom_plot::patch::scatter(
 				draw_area,
 				axis_rect,
 				x,
@@ -577,7 +577,7 @@ void Monocle3Item::s_feature_plot() {
 			feature_data.message.insert("Lighten Color");
 		}
 
-		auto [draw_area, axis_rect, _] = _Cp feature_plot(feature_data, &this->data()->original_embedding_, scale, this->draw_suite_->graph_settings_);
+		auto [draw_area, axis_rect, _] = custom_plot::feature_plot(feature_data, &this->data()->original_embedding_, scale, this->draw_suite_->graph_settings_);
 
 		if (show_trajectory) {
 
@@ -596,7 +596,7 @@ void Monocle3Item::s_feature_plot() {
 				int v1 = VECTOR(edge_list)[i * 2];
 				int v2 = VECTOR(edge_list)[i * 2 + 1];
 
-				_CpPatch line(draw_area, axis_rect,
+				custom_plot::patch::line(draw_area, axis_rect,
 					this->data()->pr_embedding_(Eigen::all, { v1, v2 }).row(0),
 					this->data()->pr_embedding_(Eigen::all, { v1, v2 }).row(1),
 					trajectory_color, trajectory_width);
@@ -614,7 +614,7 @@ void Monocle3Item::s_feature_plot() {
 			Eigen::ArrayXd x = this->data()->pr_embedding_.row(0);
 			Eigen::ArrayXd y = this->data()->pr_embedding_.row(1);
 
-			_CpPatch scatter(
+			custom_plot::patch::scatter(
 				draw_area,
 				axis_rect,
 				x,

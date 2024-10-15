@@ -38,27 +38,27 @@ CountMatrixBatchLoadingWorker::integrate_sparseint(
 		barcodes << ptr->colnames_;
 		gene_names << ptr->rownames_;
 	}
-	gene_names = _Cs unique(gene_names);
+	gene_names = custom::unique(gene_names);
 
 	int nrow = gene_names.size();
 
 	if (distinguish_barcode) {
 
-		barcodes = _Cs make_unique(barcodes);
+		barcodes = custom::make_unique(barcodes);
 		int ncol = barcodes.size(), index = 0;
 		to.mat_.resize(nrow, ncol);
 		std::vector<Eigen::Triplet<int> > triplets;
 
 		for (auto from : froms) {
 			int loc = locations[index++];
-			QVector<int> row_map = _Cs index_of(from->rownames_, gene_names);
+			QVector<int> row_map = custom::index_of(from->rownames_, gene_names);
 			for (int k = 0; k < from->mat_.cols(); ++k) {
 				for (Eigen::SparseMatrix<int>::InnerIterator it(from->mat_, k); it; ++it) {
 					triplets.emplace_back(row_map[it.row()], k + loc, it.value());
 				}
 			}
 
-			index_map.emplace_back(std::make_pair(row_map, _Cs seq_n(loc, from->colnames_.size())));
+			index_map.emplace_back(std::make_pair(row_map, custom::seq_n(loc, from->colnames_.size())));
 		}
 
 		to.mat_.setFromTriplets(triplets.cbegin(), triplets.cend());
@@ -70,14 +70,14 @@ CountMatrixBatchLoadingWorker::integrate_sparseint(
 	}
 	else {
 
-		barcodes = _Cs unique(barcodes);
+		barcodes = custom::unique(barcodes);
 		int ncol = barcodes.size(), index = 0;
 		to.mat_.resize(nrow, ncol);
 		std::vector<Eigen::Triplet<int> > triplets;
 
 		for (auto from : froms) {
-			QVector<int> row_map = _Cs index_of(from->rownames_, gene_names);
-			QVector<int> col_map = _Cs index_of(from->colnames_, barcodes);
+			QVector<int> row_map = custom::index_of(from->rownames_, gene_names);
+			QVector<int> col_map = custom::index_of(from->colnames_, barcodes);
 			for (int k = 0; k < from->mat_.outerSize(); ++k) {
 				for (Eigen::SparseMatrix<int>::InnerIterator it(from->mat_, k); it; ++it) {
 					triplets.emplace_back(row_map[it.row()], col_map[k], it.value());
@@ -99,7 +99,7 @@ CountMatrixBatchLoadingWorker::integrate_sparseint(
 
 void CountMatrixBatchLoadingWorker::integrate_objects() {
 
-	auto sp = _Cs unique(_Cs sapply(this->objects_, [](auto&& o) {return o.species_; }));
+	auto sp = custom::unique(custom::sapply(this->objects_, [](auto&& o) {return o.species_; }));
 
 	SingleCellRna* single_cell_rna = new SingleCellRna();
 	single_cell_rna->species_ = sp[0];
@@ -108,7 +108,7 @@ void CountMatrixBatchLoadingWorker::integrate_objects() {
 	SparseInt& counts = SUBMODULES(*single_cell_rna, SparseInt)[VARIABLE_COUNTS];
 	counts.data_type_ = SparseInt::DataType::Counts;
 
-	QList<SparseInt const*> list_of_counts = _Cs sapply(this->objects_,
+	QList<SparseInt const*> list_of_counts = custom::sapply(this->objects_,
 		[](auto&& data) {return static_cast<SparseInt const*>(data.counts()); });
 
 	this->integrate_sparseint(counts, list_of_counts, true);
@@ -116,7 +116,7 @@ void CountMatrixBatchLoadingWorker::integrate_objects() {
 	Metadata& metadata = SUBMODULES(*single_cell_rna, Metadata)[VARIABLE_METADATA];
 	metadata.mat_.set_rownames(counts.colnames_);
 
-	QList<Metadata*> list_of_metadata = _Cs sapply(this->objects_, [](auto&& data) {return data.metadata(); });
+	QList<Metadata*> list_of_metadata = custom::sapply(this->objects_, [](auto&& data) {return data.metadata(); });
 
 	this->integrate_metadata(metadata, list_of_metadata);
 
@@ -129,7 +129,7 @@ void CountMatrixBatchLoadingWorker::integrate_metadata(Metadata& to, QList<Metad
 	for (auto data : froms) {
 		metadata_names << data->mat_.colnames_;
 	}
-	metadata_names = _Cs unique(metadata_names);
+	metadata_names = custom::unique(metadata_names);
 
 	for (const auto& name : metadata_names) {
 		CustomMatrix::DataType data_type = CustomMatrix::DataType::NoType;
@@ -242,10 +242,10 @@ bool CountMatrixBatchLoadingWorker::load_single_object(SingleCellRna& object, co
 	QChar delimiter = this->delimiter_[0];
 
 	if (this->delimiter_ == "auto-detect") {
-		delimiter = _Cs detect_delimiter(line, line2);
+		delimiter = custom::detect_delimiter(line, line2);
 	}
 
-	QStringList colnames = _Cs digest(line, delimiter);
+	QStringList colnames = custom::digest(line, delimiter);
 	int ncol = colnames.size();
 
 	// common dataset should contains more than 100 cells
@@ -259,7 +259,7 @@ bool CountMatrixBatchLoadingWorker::load_single_object(SingleCellRna& object, co
 		colnames = colnames.sliced(1, ncol);
 	}
 
-	QStringList first_row = _Cs digest(line2, delimiter);
+	QStringList first_row = custom::digest(line2, delimiter);
 	if (first_row.size() == ncol) {
 		--ncol;
 		colnames = colnames.sliced(1, ncol);
@@ -287,7 +287,7 @@ bool CountMatrixBatchLoadingWorker::load_single_object(SingleCellRna& object, co
 
 	auto fun = [&cache, &mutex, &mutex2, &success, delimiter, ncol, &row_name_map, &nrow, &triplets](int row_index) {
 
-		QStringList row = _Cs digest(cache[row_index], delimiter);
+		QStringList row = custom::digest(cache[row_index], delimiter);
 
 		if (row.size() != ncol + 1) {
 			success = false;
@@ -319,7 +319,7 @@ bool CountMatrixBatchLoadingWorker::load_single_object(SingleCellRna& object, co
 			++count;
 		}
 
-		QVector<int> params = _Cs seq_n(0, count);
+		QVector<int> params = custom::seq_n(0, count);
 		QFuture<void> f = QtConcurrent::map(params, fun);
 		f.waitForFinished();
 
@@ -343,17 +343,17 @@ bool CountMatrixBatchLoadingWorker::load_single_object(SingleCellRna& object, co
 		gene_symbols[i] = row_name_map[i];
 	}
 
-	Eigen::ArrayX<bool> gene_detected = _Cs row_sum(counts.mat_) > 0;
+	Eigen::ArrayX<bool> gene_detected = custom::row_sum(counts.mat_) > 0;
 
 	// gene number should be more than 1000
 	if (gene_detected.count() < 1000) {
 		return false;
 	}
 
-	counts.mat_ = _Cs row_sliced(counts.mat_, gene_detected);
-	gene_symbols = _Cs sliced(gene_symbols, gene_detected);
+	counts.mat_ = custom::row_sliced(counts.mat_, gene_detected);
+	gene_symbols = custom::sliced(gene_symbols, gene_detected);
 
-	Eigen::ArrayXi col_count = _Cs col_sum(counts.mat_);
+	Eigen::ArrayXi col_count = custom::col_sum(counts.mat_);
 	Eigen::ArrayXi col_gene(ncol);
 	Eigen::ArrayXd mitochondrial_content = Eigen::ArrayXd::Zero(ncol);
 	Eigen::ArrayXd ribosomal_content = Eigen::ArrayXd::Zero(ncol);
@@ -410,20 +410,20 @@ bool CountMatrixBatchLoadingWorker::load_single_object(SingleCellRna& object, co
 		ribosomal_content /= col_count.cast<double>();
 	}
 
-	_Cs remove_na(mitochondrial_content);
-	_Cs remove_na(ribosomal_content);
+	custom::remove_na(mitochondrial_content);
+	custom::remove_na(ribosomal_content);
 
-	gene_symbols = _Cs make_unique(gene_symbols);
-	colnames = _Cs make_unique(colnames);
+	gene_symbols = custom::make_unique(gene_symbols);
+	colnames = custom::make_unique(colnames);
 	counts.rownames_ = gene_symbols;
 	counts.colnames_ = colnames;
 
 	Metadata& metadata = SUBMODULES(object, Metadata)[VARIABLE_METADATA];
 	metadata.mat_.set_rownames(colnames);
-	metadata.mat_.update(METADATA_RNA_UMI_NUMBER, _Cs cast<QVector>(col_count));
-	metadata.mat_.update(METADATA_RNA_UNIQUE_GENE_NUMBER, _Cs cast<QVector>(col_gene));
-	metadata.mat_.update(METADATA_RNA_MITOCHONDRIAL_CONTENT, _Cs cast<QVector>(mitochondrial_content));
-	metadata.mat_.update(METADATA_RNA_RIBOSOMAL_CONTENT, _Cs cast<QVector>(ribosomal_content));
+	metadata.mat_.update(METADATA_RNA_UMI_NUMBER, custom::cast<QVector>(col_count));
+	metadata.mat_.update(METADATA_RNA_UNIQUE_GENE_NUMBER, custom::cast<QVector>(col_gene));
+	metadata.mat_.update(METADATA_RNA_MITOCHONDRIAL_CONTENT, custom::cast<QVector>(mitochondrial_content));
+	metadata.mat_.update(METADATA_RNA_RIBOSOMAL_CONTENT, custom::cast<QVector>(ribosomal_content));
 	metadata.mat_.update("Source", QStringList(ncol, file_path), CustomMatrix::DataType::QStringFactor);
 
 	object.species_ = species;

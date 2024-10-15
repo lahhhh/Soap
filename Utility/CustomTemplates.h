@@ -1,9 +1,5 @@
 #pragma once
 
-#ifndef _Cs
-#define _Cs ::custom::
-#endif // !_Cs
-
 #include "Identifier.h"
 
 #include "CustomTypeTraits.h"
@@ -15,8 +11,11 @@
 
 namespace custom {
 
+	template <typename Con, typename Function, typename Re = sapply_return_type<Function, get_element_arg_type<Con>>> Re sapply(Con&& ct, Function&& fun);
+	template <typename Con, typename Ele = get_element_raw_type<Con> > requires is_container<Con> SOAP_INLINE auto sum(const Con& ct);
+
 	template<typename Dst, typename Src>
-		requires _Cs not_container<Src>&& _Cs not_same<Dst, QString>
+		requires custom::not_container<Src>&& custom::not_same<Dst, QString>
 	SOAP_INLINE Dst cast(Src&& src) {
 		return static_cast<Dst>(std::forward<Src>(src));
 	}
@@ -70,10 +69,10 @@ namespace custom {
 	template<
 		template<typename...>typename Outer,
 		typename SrcCon,
-		typename Ele = _Cs get_element_raw_type<SrcCon>,
+		typename Ele = custom::get_element_raw_type<SrcCon>,
 		typename ReCon = Outer<Ele>
 	>
-		requires _Cs construct_from_size<ReCon>
+		requires custom::construct_from_size<ReCon>
 	ReCon cast(SrcCon&& src) {
 
 		auto size = std::size(src);
@@ -95,7 +94,7 @@ namespace custom {
 	template<
 		template<typename, int, int...>typename Outer,
 		typename SrcCon,
-		typename Ele = _Cs get_element_raw_type<SrcCon>,
+		typename Ele = custom::get_element_raw_type<SrcCon>,
 		int Int, int... Ints
 	>
 	auto cast(SrcCon&& src) {
@@ -123,9 +122,9 @@ namespace custom {
 		typename SrcCon,
 		typename DstCon = change_element_type<std::decay_t<SrcCon>, Ele>
 	>
-		requires _Cs is_container<DstCon>
-	&& _Cs is_container<SrcCon>
-		&& _Cs construct_from_size<DstCon>
+		requires custom::is_container<DstCon>
+	&& custom::is_container<SrcCon>
+		&& custom::construct_from_size<DstCon>
 		DstCon cast(SrcCon&& src) {
 		auto size = std::size(src);
 		DstCon ret(size);
@@ -135,7 +134,7 @@ namespace custom {
 		auto to_iter = std::begin(ret);
 
 		for (; iter != end; ++iter, ++to_iter) {
-			*to_iter = _Cs cast<Ele>(*iter);
+			*to_iter = custom::cast<Ele>(*iter);
 		}
 
 		return ret;
@@ -255,6 +254,30 @@ namespace custom {
 		return ret;
 	}
 
+	template <typename Con, template<typename...>typename Outer>
+		requires is_container<Con> && construct_from_size<Con>
+	Con concatenated(const Outer<Con>& src) {
+
+		auto final_size = custom::sum(custom::sapply(src, [](auto&& ele) {return std::size(ele); }));
+
+		if (final_size == 0) {
+			return {};
+		}
+
+		Con res(final_size);
+
+		auto iter = std::begin(res);
+
+		for (auto&& con : src) {
+			for (auto&& ele : con) {
+				*iter = ele;
+				++iter;
+			}
+		}
+
+		return res;
+	}
+
 	template <typename Con, typename Ele>
 		requires is_container<Con>
 	SOAP_INLINE void extend_minmax(const Con& container, Ele& min_val, Ele& max_val) {
@@ -341,7 +364,7 @@ namespace custom {
 		typename Con,
 		typename ReCon = std::decay_t<Con>
 	>
-		requires _Cs is_arithmetic_container<Con>
+		requires custom::is_arithmetic_container<Con>
 	ReCon abs(Con&& container) {
 
 		ReCon ret(std::forward<Con>(container));
@@ -354,7 +377,7 @@ namespace custom {
 	}
 
 	template <typename S, typename _S = std::decay_t<S>>
-		requires _Cs is_slice_container<_S>
+		requires custom::is_slice_container<_S>
 	_S flip(S&& slice) {
 
 		_S flipped(std::forward<S>(slice));
@@ -403,7 +426,7 @@ namespace custom {
 	template<typename Val, typename Val2, typename... Vals>
 	auto SOAP_INLINE constexpr min(const Val& val1, const Val2& val2, const Vals&... vals)
 	{
-		return val1 < val2 ? _Cs min(val1, vals...) : _Cs min(val2, vals...);
+		return val1 < val2 ? custom::min(val1, vals...) : custom::min(val2, vals...);
 	}
 
 	template<typename Con>
@@ -443,7 +466,7 @@ namespace custom {
 	template<typename Val, typename Val2, typename... Vals>
 	auto SOAP_INLINE constexpr max(const Val& val1, const Val2& val2, const Vals&... vals)
 	{
-		return val1 < val2 ? _Cs max(val2, vals...) : _Cs max(val1, vals...);
+		return val1 < val2 ? custom::max(val2, vals...) : custom::max(val1, vals...);
 	}
 
 	template<typename Con>
@@ -566,7 +589,7 @@ namespace custom {
 		return index;
 	}
 
-	template <typename Con, typename Ele = get_element_raw_type<Con> >
+	template <typename Con, typename Ele>
 		requires  is_container<Con>
 	SOAP_INLINE auto sum(const Con& ct)
 	{
@@ -796,7 +819,7 @@ namespace custom {
 
 		const auto size = std::ranges::size(ct);
 
-		Eigen::ArrayXi index = _Cs order(ct);
+		Eigen::ArrayXi index = custom::order(ct);
 		Eigen::ArrayXd ret(size);
 
 		int count{ 1 };
@@ -984,42 +1007,42 @@ namespace custom {
 		requires std::is_arithmetic_v<Value>&& std::same_as<get_element_raw_type<Con>, Value>&& construct_from_size<Con>
 	[[nodiscard]] Con add(const Con& ct, Value val) {
 
-		return _Cs calculate(ct, val, std::plus{});
+		return custom::calculate(ct, val, std::plus{});
 	}
 
 	template <typename Con>
 		requires is_arithmetic_container<Con>&& construct_from_size<Con>
 	[[nodiscard]] Con add(const Con& ct1, const Con& ct2) {
 
-		return _Cs calculate(ct1, ct2, std::plus{});
+		return custom::calculate(ct1, ct2, std::plus{});
 	}
 
 	template <typename Con, typename Value>
 		requires std::is_arithmetic_v<Value>&& std::same_as<get_element_raw_type<Con>, Value>&& construct_from_size<Con>
 	[[nodiscard]] Con minus(const Con& ct, Value val) {
 
-		return _Cs calculate(ct, val, std::minus{});
+		return custom::calculate(ct, val, std::minus{});
 	}
 
 	template <typename Con>
 		requires is_arithmetic_container<Con>&& construct_from_size<Con>
 	[[nodiscard]] Con minus(const Con& ct1, const Con& ct2) {
 
-		return _Cs calculate(ct1, ct2, std::minus{});
+		return custom::calculate(ct1, ct2, std::minus{});
 	}
 
 	template <typename Con, typename Value>
 		requires std::is_arithmetic_v<Value>&& std::same_as<get_element_raw_type<Con>, Value>&& construct_from_size<Con>
 	[[nodiscard]] Con multiply(const Con& ct, Value val) {
 
-		return _Cs calculate(ct, val, std::multiplies{});
+		return custom::calculate(ct, val, std::multiplies{});
 	}
 
 	template <typename Con>
 		requires is_arithmetic_container<Con>&& construct_from_size<Con>
 	[[nodiscard]] Con multiply(const Con& ct1, const Con& ct2) {
 
-		return _Cs calculate(ct1, ct2, std::multiplies{});
+		return custom::calculate(ct1, ct2, std::multiplies{});
 	}
 
 	template <
@@ -1245,7 +1268,7 @@ namespace custom {
 		Eigen::ArrayX<Ele> ret = Eigen::ArrayX<Ele>::Zero(ncol);
 
 		for (std::size_t i = 0; i < ncol; ++i) {
-			ret[i] = _Cs sum(_Cs reordered(Eigen::ArrayX<Ele>(mat.col(i)), order));
+			ret[i] = custom::sum(custom::reordered(Eigen::ArrayX<Ele>(mat.col(i)), order));
 		}
 
 		return ret;
@@ -1257,7 +1280,7 @@ namespace custom {
 
 		const std::size_t order_size = std::ranges::size(order);
 
-		Eigen::ArrayXd ret = _Cs row_reorder_and_column_sum(mat, order).cast<double>();
+		Eigen::ArrayXd ret = custom::row_reorder_and_column_sum(mat, order).cast<double>();
 
 		ret /= (double)order_size;
 
@@ -1270,7 +1293,7 @@ namespace custom {
 
 		Eigen::ArrayX<Ele> row = sp_mat.row(ind);
 
-		return _Cs which(row != static_cast<Ele>(0));
+		return custom::which(row != static_cast<Ele>(0));
 	}
 
 	template <typename Ele>
@@ -1279,14 +1302,14 @@ namespace custom {
 
 		Eigen::ArrayX<Ele> row = sp_mat.row(ind);
 
-		return _Cs sliced(row, row != static_cast<Ele>(0));
+		return custom::sliced(row, row != static_cast<Ele>(0));
 	}
 
 	template<typename Con, typename Ele = get_element_raw_type<Con>>
 		requires is_random_access_container<Con>
 	Ele median(const Con& con) {
 
-		auto order = _Cs order(con);
+		auto order = custom::order(con);
 
 		const std::size_t size = std::ranges::size(con);
 
@@ -1308,7 +1331,7 @@ namespace custom {
 
 		const std::size_t size = std::ranges::size(ct);
 
-		return static_cast<double>(_Cs sum(ct)) / size;
+		return static_cast<double>(custom::sum(ct)) / size;
 	}
 
 	template <typename Con>
@@ -1321,7 +1344,7 @@ namespace custom {
 			return std::nan("0");
 		}
 
-		double mean = _Cs mean(ct), variance{ 0.0 };
+		double mean = custom::mean(ct), variance{ 0.0 };
 
 		for (auto&& ele : ct) {
 
@@ -1335,7 +1358,7 @@ namespace custom {
 		requires is_arithmetic_container<Con>
 	SOAP_INLINE double sd(const Con& ct) {
 
-		return std::sqrt(_Cs var(ct));
+		return std::sqrt(custom::var(ct));
 	}
 
 	template <typename Con, typename Function, typename Re = get_return_type<Function, get_element_arg_type<Con>>>
@@ -1357,7 +1380,7 @@ namespace custom {
 		return index;
 	}
 
-	template <typename Con, typename Function, typename Re = sapply_return_type<Function, get_element_arg_type<Con>>>
+	template <typename Con, typename Function, typename Re>
 		Re sapply(Con&& ct, Function&& fun)
 	{
 		constexpr bool has_return_value = !std::same_as<Re, void>;
@@ -1393,7 +1416,7 @@ namespace custom {
 		requires is_container<Outer>&& is_container<Inner>
 	QVector<Ele> unroll(const Outer& ct)
 	{
-		const std::size_t size = _Cs sum(_Cs sapply(ct, [](auto&& ele) { return std::size(ele); }));
+		const std::size_t size = custom::sum(custom::sapply(ct, [](auto&& ele) { return std::size(ele); }));
 
 		QVector<Ele> ret;
 		ret.reserve(size);
@@ -1471,7 +1494,7 @@ namespace custom {
 
 		ReCon res(std::forward<Con>(ct));
 
-		_Cs sort(res, decrease);
+		custom::sort(res, decrease);
 
 		return res;
 	};
@@ -1481,11 +1504,11 @@ namespace custom {
 	&& is_random_access_container<Con2>
 		void sort_by_first(Con& first, Con2& second, bool decrease = false) {
 
-		Eigen::ArrayXi ind = _Cs order(first, decrease);
+		Eigen::ArrayXi ind = custom::order(first, decrease);
 
-		first = _Cs reordered(first, ind);
+		first = custom::reordered(first, ind);
 
-		second = _Cs reordered(second, ind);
+		second = custom::reordered(second, ind);
 	};
 
 	template <typename Con, typename Ele = get_element_raw_type<Con>>
@@ -1546,7 +1569,7 @@ namespace custom {
 		requires same_element<Con1, Con2>&& is_random_access_container<Con1>&& is_random_access_container<Con2>
 	QVector<int> index_of(const Con1& x, const Con2& y) {
 
-		Eigen::ArrayXi order_x = _Cs stable_order(x), order_y = _Cs stable_order(y);
+		Eigen::ArrayXi order_x = custom::stable_order(x), order_y = custom::stable_order(y);
 
 		const std::size_t size_x = std::ranges::size(x), size_y = std::ranges::size(y);
 
@@ -1577,7 +1600,7 @@ namespace custom {
 		requires same_element<Con1, Con2>&& is_random_access_container<Con1>&& is_random_access_container<Con2>
 	QVector<int> last_index_of(const Con1& x, const Con2& y) {
 
-		Eigen::ArrayXi order_x = _Cs stable_order(x), order_y = _Cs stable_order(y);
+		Eigen::ArrayXi order_x = custom::stable_order(x), order_y = custom::stable_order(y);
 
 		const std::size_t size_x = std::ranges::size(x), size_y = std::ranges::size(y);
 
@@ -1727,7 +1750,7 @@ namespace custom {
 		requires same_element<Con1, Con2>&& is_random_access_container<Con1>&& is_random_access_container<Con2>
 	QVector<int> SOAP_INLINE valid_index_of(const Con1& query, const Con2& data) {
 
-		QVector<int> ret = _Cs index_of(query, data);
+		QVector<int> ret = custom::index_of(query, data);
 
 		ret.removeAll(-1);
 
@@ -1895,7 +1918,7 @@ namespace custom {
 	template <typename T>
 	Eigen::ArrayX<T> stable_unique(const Eigen::ArrayX<T>& ct) {
 
-		return _Cs cast<Eigen::ArrayX>(_Cs stable_unique(_Cs cast<QVector>(ct)));
+		return custom::cast<Eigen::ArrayX>(custom::stable_unique(custom::cast<QVector>(ct)));
 	}
 
 	template <typename Con, typename Ele, typename Comp = std::less<Ele>>
@@ -1921,42 +1944,42 @@ namespace custom {
 		requires std::same_as<Ele, get_element_raw_type<Con>>
 	SOAP_INLINE Eigen::ArrayX<bool> equal(const Con& ct, const Ele& val) {
 
-		return _Cs compare(ct, val, std::equal_to<Ele>{});
+		return custom::compare(ct, val, std::equal_to<Ele>{});
 	}
 
 	template <typename Con, typename Ele>
 		requires std::same_as<Ele, get_element_raw_type<Con>>
 	SOAP_INLINE Eigen::ArrayX<bool> not_equal(const Con& ct, const Ele& val) {
 
-		return _Cs compare(ct, val, std::not_equal_to<Ele>{});
+		return custom::compare(ct, val, std::not_equal_to<Ele>{});
 	}
 
 	template <typename Con, typename Ele>
 		requires std::same_as<Ele, get_element_raw_type<Con>>
 	SOAP_INLINE Eigen::ArrayX<bool> greater_than(const Con& ct, const Ele& val) {
 
-		return _Cs compare(ct, val, std::greater<Ele>{});
+		return custom::compare(ct, val, std::greater<Ele>{});
 	}
 
 	template <typename Con, typename Ele>
 		requires std::same_as<Ele, get_element_raw_type<Con>>
 	SOAP_INLINE Eigen::ArrayX<bool> greater_equal(const Con& ct, const Ele& val) {
 
-		return _Cs compare(ct, val, std::greater_equal<Ele>{});
+		return custom::compare(ct, val, std::greater_equal<Ele>{});
 	}
 
 	template <typename Con, typename Ele>
 		requires std::same_as<Ele, get_element_raw_type<Con>>
 	SOAP_INLINE Eigen::ArrayX<bool> less_than(const Con& ct, const Ele& val) {
 
-		return _Cs compare(ct, val, std::less<Ele>{});
+		return custom::compare(ct, val, std::less<Ele>{});
 	}
 
 	template <typename Con, typename Ele>
 		requires std::same_as<Ele, get_element_raw_type<Con>>
 	SOAP_INLINE Eigen::ArrayX<bool> less_equal(const Con& ct, const Ele& val) {
 
-		return _Cs compare(ct, val, std::less_equal<Ele>{});
+		return custom::compare(ct, val, std::less_equal<Ele>{});
 	}
 
 	template <typename Con, typename Ele>
@@ -2264,7 +2287,7 @@ namespace custom {
 		requires is_container<Con>
 	bool is_unique(const Con& ct) {
 
-		return _Cs unique_element_number(ct) == std::ranges::size(ct);
+		return custom::unique_element_number(ct) == std::ranges::size(ct);
 	}
 
 	template <typename Ele, typename S>
@@ -2368,7 +2391,7 @@ namespace custom {
 	[[nodiscard]] Eigen::ArrayXX<Ele>
 		sliced(const Eigen::ArrayXX<Ele>& mat, const S1& row_slice, const S2& col_slice) {
 
-		return _Cs row_sliced(_Cs col_sliced(mat, col_slice), row_slice);
+		return custom::row_sliced(custom::col_sliced(mat, col_slice), row_slice);
 	}
 
 	template <typename Ele, typename S1, typename S2>
@@ -2376,7 +2399,7 @@ namespace custom {
 	[[nodiscard]] Eigen::MatrixX<Ele>
 		sliced(const Eigen::MatrixX<Ele>& mat, const S1& row_slice, const S2& col_slice) {
 
-		return _Cs row_sliced(_Cs col_sliced(mat, col_slice), row_slice);
+		return custom::row_sliced(custom::col_sliced(mat, col_slice), row_slice);
 	}
 
 	template <typename Ele, typename S>
@@ -2635,9 +2658,9 @@ namespace custom {
 		ReCon1 _x(std::forward<Con1>(x));
 		ReCon2 _y(std::forward<Con2>(y));
 
-		auto order = _Cs order(_x);
-		_x = _Cs reordered(_x, order);
-		_Cs sort(_y);
+		auto order = custom::order(_x);
+		_x = custom::reordered(_x, order);
+		custom::sort(_y);
 
 		auto iter_x = std::cbegin(_x);
 		auto end_x = std::cend(_x);
@@ -2672,8 +2695,8 @@ namespace custom {
 		requires is_random_access_container<Con>
 	[[nodiscard]] Con intersect(const Con& ct1, const Con& ct2) {
 
-		auto order1 = _Cs order(ct1);
-		auto order2 = _Cs order(ct2);
+		auto order1 = custom::order(ct1);
+		auto order2 = custom::order(ct2);
 
 		const std::size_t size1 = std::ranges::size(ct1);
 		const std::size_t size2 = std::ranges::size(ct2);
@@ -2779,8 +2802,8 @@ namespace custom {
 		requires is_specific_container<Con1, double>&& is_specific_container<Con2, double>
 	double correlation_spearman(const Con1& ct1, const Con2& ct2) {
 
-		auto [rank_x, tie1, n_tie1] = _Cs rank_average(ct1);
-		auto [rank_y, tie2, n_tie2] = _Cs rank_average(ct2);
+		auto [rank_x, tie1, n_tie1] = custom::rank_average(ct1);
+		auto [rank_y, tie2, n_tie2] = custom::rank_average(ct2);
 
 		auto iter1 = rank_x.cbegin();
 		auto end1 = rank_x.cend();
@@ -2791,8 +2814,8 @@ namespace custom {
 
 			const double size = rank_x.size();
 
-			double rank_x_average = _Cs sum(rank_x) / size;
-			double rank_y_average = _Cs sum(rank_y) / size;
+			double rank_x_average = custom::sum(rank_x) / size;
+			double rank_y_average = custom::sum(rank_y) / size;
 
 			double numerator{ 0.0 }, denominator1{ 0.0 }, denominator2{ 0.0 };
 

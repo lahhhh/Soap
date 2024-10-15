@@ -183,83 +183,16 @@ void MainWindow::set_left_layout() {
 	this->left_layout_->setStretchFactor(this->information_area_, 5);
 };
 
+#include "StatisticalTest.h"
 void MainWindow::s_test() {
 
-	//QString cmd = qApp->applicationDirPath() + "/Resources/External/java/jdk-17.0.12/bin/java.exe";
+	Eigen::ArrayXd a(10), b(10);
 
-	////cmd += " -jar E:/novelgene/gatk-4.6.0.0/gatk-package-4.6.0.0-local.jar";
+	a << 20, 21, 22, 23, 24, 25, 22, 21, 20, 23;
+	b << 25, 26, 24, 23, 26, 25, 27, 28, 24, 26;
 
-	//cmd += " -jar E:/novelgene/picard.jar SortSam -CREATE_INDEX true -INPUT E:/novelgene/bn1/BN1_bwa.bam "
-	//	"-OUTPUT E:/novelgene/bn1/BN1_bwa.sorted.bam -SORT_ORDER coordinate -VALIDATION_STRINGENCY STRICT";
+	t_test(a, b);
 
-	//QString cmd = qApp->applicationDirPath() + "/Resources/External/samtools/samtools.exe view -Shb -@ 10 E:/novelgene/bn1/BN1_bwa.sam > E:/novelgene/bn1/BN1_bwa.bam";
-
-	//cmd += " -jar E:/novelgene/picard.jar MarkDuplicates -CREATE_INDEX true -REMOVE_DUPLICATES false -INPUT E:/novelgene/bn1/BN1_bwa.sorted.bam "
-	//	"-OUTPUT E:/novelgene/bn1/BN1_bwa.rp.bam -METRICS_FILE BN1_bwa.bam.metrics";
-
-	//cmd += " -jar E:\\novelgene\\picard.jar CreateSequenceDictionary -R E:\\dataSpace\\gatk_human_genome\\Homo_sapiens_assembly38.fasta"
-	//	" -O E:\\dataSpace\\gatk_human_genome\\Homo_sapiens_assembly38.dict";
-
-	//cmd += " -jar E:\\novelgene\\gatk-4.6.0.0\\gatk-package-4.6.0.0-local.jar BaseRecalibrator"
-	//	" -R E:\\dataSpace\\gatk_human_genome\\Homo_sapiens_assembly38.fasta"
-	//	" --known-sites E:\\dataSpace\\gatk_db\\Mills_and_1000G_gold_standard.indels.hg38.vcf.gz"
-	//	" --known-sites E:\\dataSpace\\gatk_db\\Homo_sapiens_assembly38.dbsnp138.vcf"
-	//	" --known-sites E:\\dataSpace\\gatk_db\\1000G_phase1.snps.high_confidence.hg38.vcf.gz"
-	//	" -I E:\\novelgene\\bn1\\BN1_bwa.rp.bam -O E:\\novelgene\\bn1\\BN1_bwa.bqsr.grp";
-
-	//cmd += " -jar E:\\novelgene\\gatk-4.6.0.0\\gatk-package-4.6.0.0-local.jar ApplyBQSR"
-	//	" -R E:\\dataSpace\\gatk_human_genome\\Homo_sapiens_assembly38.fasta --bqsr-recal-file E:\\novelgene\\bn1\\BN1_bwa.bqsr.grp"
-	//	" -I E:\\novelgene\\bn1\\BN1_bwa.rp.bam -O E:\\novelgene\\bn1\\BN1_bwa.bqsr.bam";
-
-	//cmd += " -jar E:\\novelgene\\gatk-4.6.0.0\\gatk-package-4.6.0.0-local.jar HaplotypeCaller"
-	//	" -R E:\\dataSpace\\gatk_human_genome\\Homo_sapiens_assembly38.fasta"
-	//	" -I E:\\novelgene\\bn1\\BN1_bwa.bqsr.bam -O E:\\novelgene\\bn1\\BN1_bwa.HC.vcf"
-	//	" -D E:\\dataSpace\\gatk_db\\dbsnp_146.hg38.vcf.gz"
-	//	" -stand-call-conf 50 -A QualByDepth -A RMSMappingQuality -A MappingQualityRankSumTest -A ReadPosRankSumTest -A FisherStrand -A StrandOddsRatio -A Coverage";
-
-	//cmd += " -jar E:\\novelgene\\gatk-4.6.0.0\\gatk-package-4.6.0.0-local.jar VariantRecalibrator"
-	//	" -R E:\\dataSpace\\gatk_human_genome\\Homo_sapiens_assembly38.fasta"
-	//	" --variant E:\\novelgene\\bn1\\BN1_bwa.HC.vcf"
-	//	" --resource:hapmap,known=false,training=true,truth=true,prior=15.0 E:\\dataSpace\\gatk_db\\hapmap_3.3.hg38.vcf.gz"
-	//	" --resource:omini,known=false,training=true,truth=false,prior=12.0 E:\\dataSpace\\gatk_db\\1000G_omni2.5.hg38.vcf.gz"
-	//	" --resource:1000G,known=false,training=true,truth=false,prior=10.0 E:\\dataSpace\\gatk_db\\1000G_phase1.snps.high_confidence.hg38.vcf.gz"
-	//	" --resource:dbsnp,known=true,training=false,truth=false,prior=6.0 E:\\dataSpace\\gatk_db\\dbsnp_146.hg38.vcf.gz"
-	//	" -an QD -an MQ -an MQRankSum -an ReadPosRankSum -an FS -an SOR -an DP "
-	//	" -mode SNP"
-	//	" -O E:\\novelgene\\bn1\\BN1_bwa.HC.snps.recal"
-	//	" --tranches-file E:\\novelgene\\bn1\\BN1_bwa.HC.snps.tranches"
-	//	" --rscript-file E:\\novelgene\\bn1\\BN1_bwa.HC.snps.plots.R --dont-run-rscript";
-
-	//cmd += " -jar E:\\novelgene\\gatk-4.6.0.0\\gatk-package-4.6.0.0-local.jar ApplyVQSR"
-	//	" -R E:\\dataSpace\\gatk_human_genome\\Homo_sapiens_assembly38.fasta"
-	//	" --variant E:\\novelgene\\bn1\\BN1_bwa.HC.vcf"
-	//	" --tranches-file E:\\novelgene\\bn1\\BN1_bwa.HC.snps.tranches"
-	//	" --recal-file E:\\novelgene\\bn1\\BN1_bwa.HC.snps.recal"
-	//	" -mode SNP"
-	//	" -O E:\\novelgene\\bn1\\BN1_bwa.HC.snps.VQSR.vcf";
-
-	//cmd += " -jar E:\\novelgene\\gatk-4.6.0.0\\gatk-package-4.6.0.0-local.jar VariantRecalibrator"
-	//	" -R E:\\dataSpace\\gatk_human_genome\\Homo_sapiens_assembly38.fasta"
-	//	" --variant E:\\novelgene\\bn1\\BN1_bwa.HC.snps.VQSR.vcf"
-	//	" --resource:mills,known=false,training=true,truth=true,prior=15.0 E:\\dataSpace\\gatk_db\\Mills_and_1000G_gold_standard.indels.hg38.vcf.gz"
-	//	" -an QD -an MQRankSum -an ReadPosRankSum -an FS -an SOR -an DP "
-	//	" -mode INDEL"
-	//	" -O E:\\novelgene\\bn1\\BN1_bwa.HC.indels.recal"
-	//	" --tranches-file E:\\novelgene\\bn1\\BN1_bwa.HC.indels.tranches"
-	//	" --rscript-file E:\\novelgene\\bn1\\BN1_bwa.HC.indels.plots.R --dont-run-rscript";
-
-	//cmd += " -jar E:\\novelgene\\gatk-4.6.0.0\\gatk-package-4.6.0.0-local.jar ApplyVQSR"
-	//	" -R E:\\dataSpace\\gatk_human_genome\\Homo_sapiens_assembly38.fasta"
-	//	" --variant E:\\novelgene\\bn1\\BN1_bwa.HC.snps.VQSR.vcf"
-	//	" --tranches-file E:\\novelgene\\bn1\\BN1_bwa.HC.indels.tranches"
-	//	" --recal-file E:\\novelgene\\bn1\\BN1_bwa.HC.indels.recal"
-	//	" -mode INDEL"
-	//	" -O E:\\novelgene\\bn1\\BN1_bwa.HC.snps.indels.VQSR.vcf";
-
-
-	//CommandWorker* worker = new CommandWorker(cmd);
-
-	//G_LINK_WORKER_THREAD_NO_RESPONSE(CommandWorker, MainWindow);
 };
 
 void MainWindow::set_utility_menu() {
@@ -272,7 +205,7 @@ void MainWindow::set_utility_menu() {
 
 	menu_create_string_vector->addAction("From Input", this, &MainWindow::s_create_string_vector_from_input);
 
-	//menu_utility->addAction("Test", this, &MainWindow::s_test);
+	menu_utility->addAction("Test", this, &MainWindow::s_test);
 
 	//auto menu_developer = menu_utility->addMenu("Developer");
 	
@@ -299,7 +232,7 @@ void MainWindow::s_create_string_vector_from_input() {
 		return;
 	}
 
-	StringVector* data = new StringVector(_Cs split_lines(settings[1]));
+	StringVector* data = new StringVector(custom::split_lines(settings[1]));
 	this->set_normal_item<StringVector>(data, var_name);
 };
 
@@ -784,7 +717,7 @@ void MainWindow::s_save_pdf_and_png() {
 	std::string pdf_file_name = pdf_name.toStdString();
 	std::string picture_file_name = picture_name.toStdString();
 
-	if (!_Cs save_pdf_page_as_png(pdf_file_name, 0, picture_file_name)) {
+	if (!custom::save_pdf_page_as_png(pdf_file_name, 0, picture_file_name)) {
 		G_WARN("PNG Saving Failed.");
 	}
 	else {
@@ -939,7 +872,7 @@ void MainWindow::s_multiple_group_gsea_plot() {
 		gsea_name << gsea;
 		gsea_paths << ptr->mat_.rownames_;
 	}
-	gsea_paths = _Cs unique(gsea_paths);
+	gsea_paths = custom::unique(gsea_paths);
 
 	auto settings = CommonDialog::get_response(
 		this->signal_emitter_,
@@ -987,34 +920,34 @@ void MainWindow::s_multiple_group_gsea_plot() {
 		}
 	}
 	auto& gs = this->draw_suite_->graph_settings_;
-	auto [draw_area, axis_rect, legend_layout] = _Cp prepare(gs);
-	_CpPatch set_range(axis_rect, QCPRange(0, 20 * gsea_number), QCPRange(0, 20 * (path_number + 1) - 5));
+	auto [draw_area, axis_rect, legend_layout] = custom_plot::prepare(gs);
+	custom_plot::patch::set_range(axis_rect, QCPRange(0, 20 * gsea_number), QCPRange(0, 20 * (path_number + 1) - 5));
 	QColor col;
 	for (int i = 0; i < path_number; ++i) {
 		for (int j = 0; j < gsea_number; ++j) {
 			double val = data(i, j);
 			if (val > 0) {
 				val = std::min(1.0, val / 3.);
-				col = _CpUtility gradient_color(val, gs.get_gradient_middle_color(), gs.get_gradient_high_color());
+				col = custom_plot::utility::gradient_color(val, gs.get_gradient_middle_color(), gs.get_gradient_high_color());
 			}
 			else {
 				val = std::max(-1.0, val / 3.);
-				col = _CpUtility gradient_color(val + 1, gs.get_gradient_low_color(), gs.get_gradient_middle_color());
+				col = custom_plot::utility::gradient_color(val + 1, gs.get_gradient_low_color(), gs.get_gradient_middle_color());
 			}
-			_CpPatch shape_borderless(draw_area, axis_rect, QVector<double>() << j * 20 + 1 << j * 20 + 1 << j * 20 + 19 << j * 20 + 19,
+			custom_plot::patch::shape_borderless(draw_area, axis_rect, QVector<double>() << j * 20 + 1 << j * 20 + 1 << j * 20 + 19 << j * 20 + 19,
 				QVector<double>() << (path_number - i - 1) * 20 + 1 << (path_number - i - 1) * 20 + 19 << (path_number - i - 1) * 20 + 19 << (path_number - i - 1) * 20 + 1,
 				col);
 		}
 	}
 	for (int i = 0; i < gsea_number; ++i) {
-		_CpPatch shape_borderless(draw_area, axis_rect, QVector<double>() << i * 20 + 1 << i * 20 + 1 << i * 20 + 19 << i * 20 + 19,
+		custom_plot::patch::shape_borderless(draw_area, axis_rect, QVector<double>() << i * 20 + 1 << i * 20 + 1 << i * 20 + 19 << i * 20 + 19,
 			QVector<double>() << path_number * 20 + 5 << path_number * 20 + 10 << path_number * 20 + 10 << path_number * 20 + 5, gsea_colors[i]);
 	}
-	_CpPatch remove_left_bottom_axis(axis_rect);
-	_Cp set_left_axis_label(axis_rect, Eigen::ArrayXd::LinSpaced(path_number, path_number * 20 - 10, 10), path_labels, 0, gs);
-	_Cp add_square_legend(draw_area, legend_layout, gsea_labels, gsea_colors, gs.get_legend_label_font(), gs.get_legend_title("Group"), gs.get_legend_title_font(), gs.get_legend_column_width(), gs.get_legend_row_width());
-	_Cp add_gradient_legend(draw_area, legend_layout, -3, 3, "NES", gs);
-	_Cp add_title(draw_area, "GSEA Results", gs);
+	custom_plot::patch::remove_left_bottom_axis(axis_rect);
+	custom_plot::set_left_axis_label(axis_rect, Eigen::ArrayXd::LinSpaced(path_number, path_number * 20 - 10, 10), path_labels, 0, gs);
+	custom_plot::add_square_legend(draw_area, legend_layout, gsea_labels, gsea_colors, gs.get_legend_label_font(), gs.get_legend_title("Group"), gs.get_legend_title_font(), gs.get_legend_column_width(), gs.get_legend_row_width());
+	custom_plot::add_gradient_legend(draw_area, legend_layout, -3, 3, "NES", gs);
+	custom_plot::add_title(draw_area, "GSEA Results", gs);
 
 	this->draw_suite_->update(draw_area);
 
@@ -1028,7 +961,7 @@ void MainWindow::s_multiple_group_enrichment_plot_top_n() {
 		return;
 	}
 
-	auto enrichment_names = _Cs keys(enrichments);
+	auto enrichment_names = custom::keys(enrichments);
 
 	auto settings = CommonDialog::get_response(
 		this->signal_emitter_,
@@ -1060,7 +993,7 @@ void MainWindow::s_multiple_group_enrichment_plot_top_n() {
 	QVector<double> counts;
 	QStringList paths;
 
-	QStringList final_labels = _Cs ifelse<QStringList>(_Cs sapply(label_use, [](auto&& l) {return l.isEmpty(); }), enrichment_use, label_use);
+	QStringList final_labels = custom::ifelse<QStringList>(custom::sapply(label_use, [](auto&& l) {return l.isEmpty(); }), enrichment_use, label_use);
 
 	auto&& gs = this->draw_suite_->graph_settings_;
 
@@ -1088,7 +1021,7 @@ void MainWindow::s_multiple_group_enrichment_plot_top_n() {
 	if (groups.isEmpty()) return;
 
 	if (capitalize_first) {
-		std::ranges::for_each(paths, [](auto&& path) {path = _Cs capitalize_first(path); });
+		std::ranges::for_each(paths, [](auto&& path) {path = custom::capitalize_first(path); });
 	}
 
 	double maximum_length = std::ranges::max(counts);
@@ -1097,7 +1030,7 @@ void MainWindow::s_multiple_group_enrichment_plot_top_n() {
 	QPen pen;
 	pen.setWidth(20);
 
-	auto [draw_area, axis_rect, legend_layout] = _Cp prepare(gs);
+	auto [draw_area, axis_rect, legend_layout] = custom_plot::prepare(gs);
 
 	axis_rect->axis(QCPAxis::atLeft)->setBasePen(QPen(Qt::NoPen));
 	axis_rect->axis(QCPAxis::atLeft)->setTickLength(0);
@@ -1117,10 +1050,10 @@ void MainWindow::s_multiple_group_enrichment_plot_top_n() {
 		draw_area->graph()->setPen(pen);
 		draw_area->graph()->setData(x, y);
 	}
-	_CpPatch set_range(axis_rect, QCPRange(0, maximum_length + 1), QCPRange(0, bar_number + 1));
+	custom_plot::patch::set_range(axis_rect, QCPRange(0, maximum_length + 1), QCPRange(0, bar_number + 1));
 
 	QSharedPointer<QCPAxisTickerText> y_ticker(new QCPAxisTickerText);
-	x = _Cs linspaced(bar_number, 1, bar_number);
+	x = custom::linspaced(bar_number, 1, bar_number);
 	y_ticker->setTicks(QVector<double>(x.rbegin(), x.rend()), paths);
 	axis_rect->axis(QCPAxis::atLeft)->setTicker(y_ticker);
 	axis_rect->axis(QCPAxis::atLeft)->setTickLabelFont(gs.get_left_label_font());
@@ -1132,11 +1065,11 @@ void MainWindow::s_multiple_group_enrichment_plot_top_n() {
 	axis_rect->axis(QCPAxis::atBottom)->setTickPen(pen);
 	axis_rect->axis(QCPAxis::atBottom)->setSubTickPen(pen);
 	axis_rect->axis(QCPAxis::atBottom)->setBasePen(pen);
-	_Cp set_bottom_title(axis_rect, "Gene Number", gs, true);
+	custom_plot::set_bottom_title(axis_rect, "Gene Number", gs, true);
 
-	_Cp add_square_legend(draw_area, legend_layout, groups, group_colors, gs.get_legend_label_font(), gs.get_legend_title("Group"), gs.get_legend_title_font(), gs.get_legend_column_width(), gs.get_legend_row_width());
+	custom_plot::add_square_legend(draw_area, legend_layout, groups, group_colors, gs.get_legend_label_font(), gs.get_legend_title("Group"), gs.get_legend_title_font(), gs.get_legend_column_width(), gs.get_legend_row_width());
 
-	_Cp add_title(draw_area, "Enrichment Results", gs);
+	custom_plot::add_title(draw_area, "Enrichment Results", gs);
 
 	this->draw_suite_->update(draw_area);
 };
@@ -1152,7 +1085,7 @@ void MainWindow::s_multiple_group_enrichment_plot_select_pathway() {
 
 	for (auto&& [name, data] : enrichments) {
 		auto enrichment = static_cast<Enrichment*>(data);
-		en2path[name] = _Cs sorted(enrichment->mat_.get_qstring(METADATA_ENRICHMENT_PATHWAY_GENES));
+		en2path[name] = custom::sorted(enrichment->mat_.get_qstring(METADATA_ENRICHMENT_PATHWAY_GENES));
 	}
 	auto [capitalize_first, settings] = EnrichmentMultiGroupPlotDialog::get_plot_settings(en2path);
 	if (settings.isEmpty())return;
@@ -1192,27 +1125,27 @@ void MainWindow::s_multiple_group_enrichment_plot_select_pathway() {
 		auto ptr_enrichment = static_cast<Enrichment*>(enrichments[orig.first]);
 		auto&& enrichment_pathway_names = ptr_enrichment->mat_.get_const_qstring_reference(METADATA_ENRICHMENT_PATHWAY_NAMES);
 
-		auto filter = _Cs in(path_names, enrichment_pathway_names);
+		auto filter = custom::in(path_names, enrichment_pathway_names);
 		int n_valid_path = filter.count();
 		if (n_valid_path == 0) {
 			continue;
 		}
 
-		QStringList original_names = _Cs sliced(path_names, filter);
-		_Cs assign(path_names, alias.second, _Cs sapply(alias.second, [](auto&& name) {return !name.isEmpty(); }));
+		QStringList original_names = custom::sliced(path_names, filter);
+		custom::assign(path_names, alias.second, custom::sapply(alias.second, [](auto&& name) {return !name.isEmpty(); }));
 
-		path_names = _Cs sliced(path_names, filter);
+		path_names = custom::sliced(path_names, filter);
 		paths << path_names;
 
 		groups << group_name;
 		group_colors << group_color;
 		colors << QVector<QColor>(n_valid_path, group_color);
-		counts << _Cs reordered(ptr_enrichment->mat_.get_double(METADATA_ENRICHMENT_COUNT), _Cs index_of(original_names, enrichment_pathway_names));
+		counts << custom::reordered(ptr_enrichment->mat_.get_double(METADATA_ENRICHMENT_COUNT), custom::index_of(original_names, enrichment_pathway_names));
 	}
 	if (groups.isEmpty()) return;
 
 	if (capitalize_first) {
-		std::ranges::for_each(paths, [](auto&& path) {path = _Cs capitalize_first(path); });
+		std::ranges::for_each(paths, [](auto&& path) {path = custom::capitalize_first(path); });
 	}
 
 	double maximum_length = std::ranges::max(counts);
@@ -1221,7 +1154,7 @@ void MainWindow::s_multiple_group_enrichment_plot_select_pathway() {
 	QPen pen;
 	pen.setWidth(20);
 
-	auto [draw_area, axis_rect, legend_layout] = _Cp prepare(gs);
+	auto [draw_area, axis_rect, legend_layout] = custom_plot::prepare(gs);
 
 	axis_rect->axis(QCPAxis::atLeft)->setBasePen(QPen(Qt::NoPen));
 	axis_rect->axis(QCPAxis::atLeft)->setTickLength(0);
@@ -1241,10 +1174,10 @@ void MainWindow::s_multiple_group_enrichment_plot_select_pathway() {
 		draw_area->graph()->setPen(pen);
 		draw_area->graph()->setData(x, y);
 	}
-	_CpPatch set_range(axis_rect, QCPRange(0, maximum_length + 1), QCPRange(0, bar_number + 1));
+	custom_plot::patch::set_range(axis_rect, QCPRange(0, maximum_length + 1), QCPRange(0, bar_number + 1));
 
 	QSharedPointer<QCPAxisTickerText> y_ticker(new QCPAxisTickerText);
-	x = _Cs linspaced(bar_number, 1, bar_number);
+	x = custom::linspaced(bar_number, 1, bar_number);
 	y_ticker->setTicks(QVector<double>(x.rbegin(), x.rend()), paths);
 	axis_rect->axis(QCPAxis::atLeft)->setTicker(y_ticker);
 	axis_rect->axis(QCPAxis::atLeft)->setTickLabelFont(gs.get_left_label_font());
@@ -1256,11 +1189,11 @@ void MainWindow::s_multiple_group_enrichment_plot_select_pathway() {
 	axis_rect->axis(QCPAxis::atBottom)->setTickPen(pen);
 	axis_rect->axis(QCPAxis::atBottom)->setSubTickPen(pen);
 	axis_rect->axis(QCPAxis::atBottom)->setBasePen(pen);
-	_Cp set_bottom_title(axis_rect, "Gene Number", gs, true);
+	custom_plot::set_bottom_title(axis_rect, "Gene Number", gs, true);
 
-	_Cp add_square_legend(draw_area, legend_layout, groups, group_colors, gs.get_legend_label_font(), gs.get_legend_title("Group"), gs.get_legend_title_font(), gs.get_legend_column_width(), gs.get_legend_row_width());
+	custom_plot::add_square_legend(draw_area, legend_layout, groups, group_colors, gs.get_legend_label_font(), gs.get_legend_title("Group"), gs.get_legend_title_font(), gs.get_legend_column_width(), gs.get_legend_row_width());
 
-	_Cp add_title(draw_area, "Enrichment Results", gs);
+	custom_plot::add_title(draw_area, "Enrichment Results", gs);
 
 	this->draw_suite_->update(draw_area);
 };

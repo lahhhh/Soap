@@ -20,15 +20,15 @@ QVector<int> leiden_cluster(
 	Eigen::MatrixXi knn;
 
 	if (nn_method == "Euclidean") {
-		knn = _Cs get_knn_mt<Euclidean>(mat, n_neighbors, n_trees);
+		knn = custom::get_knn_mt<Euclidean>(mat, n_neighbors, n_trees);
 	}
 	else if (nn_method == "Angular") {
-		knn = _Cs get_knn_mt<Angular>(mat, n_neighbors, n_trees);
+		knn = custom::get_knn_mt<Angular>(mat, n_neighbors, n_trees);
 	}
 	else /* if (nn_method == "Manhattan") */ {
-		knn = _Cs get_knn_mt<Manhattan>(mat, n_neighbors, n_trees);
+		knn = custom::get_knn_mt<Manhattan>(mat, n_neighbors, n_trees);
 	}
-	Eigen::SparseMatrix<double> snn = _Cs create_shared_nearest_neighbors_matrix(knn);
+	Eigen::SparseMatrix<double> snn = custom::create_shared_nearest_neighbors_matrix(knn);
 
 	Optimiser otm;
 
@@ -53,7 +53,7 @@ QVector<int> leiden_cluster(
 	else /* if (method == "Modularity") */ {
 		partition.reset(otm.find_partition<ModularityVertexPartition>(graph));
 	}
-	QVector<int> clusters = _Cs sapply(partition->membership(), [](std::size_t val) { return static_cast<int>(val); });
+	QVector<int> clusters = custom::sapply(partition->membership(), [](std::size_t val) { return static_cast<int>(val); });
 	return clusters;
 };
 
@@ -91,16 +91,16 @@ Graph* create_graph(const Eigen::SparseMatrix<double>& snn) {
 
 void LeidenPartitionWorker::create_shared_nearest_neighbors_matrix() {
 	if (this->nn_method_ == "Euclidean") {
-		this->knn_ = _Cs get_knn_mt<Euclidean>(this->mat_, this->n_neighbors_, this->n_trees_);
+		this->knn_ = custom::get_knn_mt<Euclidean>(this->mat_, this->n_neighbors_, this->n_trees_);
 	}
 	else if (this->nn_method_ == "Angular") {
-		this->knn_ = _Cs get_knn_mt<Angular>(this->mat_, this->n_neighbors_, this->n_trees_);
+		this->knn_ = custom::get_knn_mt<Angular>(this->mat_, this->n_neighbors_, this->n_trees_);
 	}
 	else /* if (this->nn_method_ == "Manhattan") */ {
-		this->knn_ = _Cs get_knn_mt<Manhattan>(this->mat_, this->n_neighbors_, this->n_trees_);
+		this->knn_ = custom::get_knn_mt<Manhattan>(this->mat_, this->n_neighbors_, this->n_trees_);
 	}
 
-	this->snn_ = _Cs create_shared_nearest_neighbors_matrix(this->knn_);
+	this->snn_ = custom::create_shared_nearest_neighbors_matrix(this->knn_);
 };
 
 LeidenPartitionWorker::LeidenPartitionWorker(
@@ -162,9 +162,9 @@ void LeidenPartitionWorker::find_partition() {
 	igraph_destroy(g);
 	delete g;
 
-	QVector<int> classification = _Cs sapply(partition->membership(), [](std::size_t val) { return static_cast<int>(val); });
+	QVector<int> classification = custom::sapply(partition->membership(), [](std::size_t val) { return static_cast<int>(val); });
 
-	G_TASK_LOG(QString::number(_Cs unique_element_number(classification)) + " clusters were found in Leiden Partition.");
+	G_TASK_LOG(QString::number(custom::unique_element_number(classification)) + " clusters were found in Leiden Partition.");
 
 	emit x_leiden_ready(classification);
 

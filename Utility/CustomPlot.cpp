@@ -29,8 +29,8 @@ namespace custom_plot {
 		bool scale,
 		const GraphSettings& gs) {
 
-		auto [draw_area, layout] = _Cp prepare_lg(gs);
-		auto [axis_rect, legend_layout] = _Cp __feature_plot(
+		auto [draw_area, layout] = custom_plot::prepare_lg(gs);
+		auto [axis_rect, legend_layout] = custom_plot::__feature_plot(
 			draw_area,
 			layout,
 			data,
@@ -56,8 +56,8 @@ namespace custom_plot {
 		QString bottom_title = embedding->data_.colnames_[0];
 		QString left_title = embedding->data_.colnames_[1];
 
-		auto [draw_area, layout] = _Cp prepare_lg(gs);
-		auto [axis_rect, legend_layout] = _Cp __feature_plot(
+		auto [draw_area, layout] = custom_plot::prepare_lg(gs);
+		auto [axis_rect, legend_layout] = custom_plot::__feature_plot(
 			draw_area,
 			layout,
 			data,
@@ -99,13 +99,13 @@ namespace custom_plot {
 
 		QCPLayoutGrid* right_layout = new QCPLayoutGrid;
 
-		QCPAxisRect* axis_rect = _CpPatch new_axis_rect(draw_area);
+		QCPAxisRect* axis_rect = custom_plot::patch::new_axis_rect(draw_area);
 		sub_layout->addElement(0, 0, axis_rect);
 		sub_layout->addElement(0, 1, right_layout);
-		auto legend_layout = _CpPatch set_legend_layout(draw_area, right_layout);
+		auto legend_layout = custom_plot::patch::set_legend_layout(draw_area, right_layout);
 
-		_CpPatch set_range(axis_rect, _CpUtility get_range(x, y));
-		_Cp set_scatter_plot_axis_style(draw_area, axis_rect, bottom_title, left_title, x, y, gs);
+		custom_plot::patch::set_range(axis_rect, custom_plot::utility::get_range(x, y));
+		custom_plot::set_scatter_plot_axis_style(draw_area, axis_rect, bottom_title, left_title, x, y, gs);
 		if (data.is_continuous()) {
 
 			QColor low_color = gs.get_gradient_low_color();
@@ -118,12 +118,12 @@ namespace custom_plot {
 				high_color.setAlpha(64);
 			}
 
-			Eigen::ArrayXd d = _Cs cast<Eigen::ArrayX>(data.get_continuous());
+			Eigen::ArrayXd d = custom::cast<Eigen::ArrayX>(data.get_continuous());
 			auto [min, max] = std::ranges::minmax(d);
 
 			if (scale) {
 
-				double sd = _Cs sd(d);
+				double sd = custom::sd(d);
 
 				if (sd != 0.0) {
 
@@ -131,7 +131,7 @@ namespace custom_plot {
 					d -= mean;
 					d /= sd;
 
-					_CpPatch scatter_gradient(
+					custom_plot::patch::scatter_gradient(
 						draw_area,
 						axis_rect,
 						x,
@@ -145,7 +145,7 @@ namespace custom_plot {
 						gs.get_scatter_point_size()
 					);
 
-					_CpPatch add_gradient_legend(
+					custom_plot::patch::add_gradient_legend(
 						draw_area,
 						legend_layout,
 						-1.0,
@@ -160,11 +160,11 @@ namespace custom_plot {
 						high_color
 					);
 
-					_CpPatch add_title(draw_area, sub_layout, data.name, gs.get_title_font());
+					custom_plot::patch::add_title(draw_area, sub_layout, data.name, gs.get_title_font());
 				}
 				else {
 
-					_CpPatch scatter_gradient(
+					custom_plot::patch::scatter_gradient(
 						draw_area,
 						axis_rect,
 						x,
@@ -178,15 +178,15 @@ namespace custom_plot {
 						gs.get_scatter_point_size()
 					);
 
-					_Cp add_gradient_legend(draw_area, legend_layout, min, max, legend_title, gs, low_color, middle_color, high_color);
+					custom_plot::add_gradient_legend(draw_area, legend_layout, min, max, legend_title, gs, low_color, middle_color, high_color);
 
-					_CpPatch add_title(draw_area, sub_layout, data.name, gs.get_title_font());
+					custom_plot::patch::add_title(draw_area, sub_layout, data.name, gs.get_title_font());
 				}
 
 			}
 			else {
 
-				_CpPatch scatter_gradient(
+				custom_plot::patch::scatter_gradient(
 					draw_area,
 					axis_rect,
 					x,
@@ -199,8 +199,8 @@ namespace custom_plot {
 					high_color,
 					gs.get_scatter_point_size()
 				);
-				_Cp add_gradient_legend(draw_area, legend_layout, min, max, legend_title, gs, low_color, middle_color, high_color);
-				_CpPatch add_title(draw_area, sub_layout, data.name, gs.get_title_font());
+				custom_plot::add_gradient_legend(draw_area, legend_layout, min, max, legend_title, gs, low_color, middle_color, high_color);
+				custom_plot::patch::add_title(draw_area, sub_layout, data.name, gs.get_title_font());
 			}
 		}
 		else if (data.is_factor()) {
@@ -215,9 +215,9 @@ namespace custom_plot {
 				}
 			}
 
-			_CpPatch scatter_category(draw_area, axis_rect, x, y, factors, levels, colors, gs.get_scatter_point_size());
+			custom_plot::patch::scatter_category(draw_area, axis_rect, x, y, factors, levels, colors, gs.get_scatter_point_size());
 
-			_Cp add_round_legend(draw_area, legend_layout, levels, colors, data.name, gs);
+			custom_plot::add_round_legend(draw_area, legend_layout, levels, colors, data.name, gs);
 
 			if (gs.is_scatter_labeled()) {
 
@@ -228,13 +228,13 @@ namespace custom_plot {
 					scatter_label->position->setAxes(axis_rect->axis(QCPAxis::atBottom), axis_rect->axis(QCPAxis::atLeft));
 					scatter_label->position->setType(QCPItemPosition::ptPlotCoords);
 					scatter_label->setPositionAlignment(Qt::AlignCenter);
-					scatter_label->position->setCoords(_Cs sliced(x, _Cs equal(factors, level)).mean(), _Cs sliced(y, _Cs equal(factors, level)).mean());
+					scatter_label->position->setCoords(custom::sliced(x, custom::equal(factors, level)).mean(), custom::sliced(y, custom::equal(factors, level)).mean());
 					scatter_label->setText(level);
 					scatter_label->setFont(gs.get_scatter_label_font());
 				}
 			}
 
-			_CpPatch add_title(draw_area, sub_layout, gs.get_title(data.name), gs.get_title_font());
+			custom_plot::patch::add_title(draw_area, sub_layout, gs.get_title(data.name), gs.get_title_font());
 		}
 
 		return { axis_rect, legend_layout };
@@ -280,14 +280,14 @@ namespace custom_plot {
 			loc_multiplier[i] = 1.0 / block_count[block_loc[i]];
 		}
 
-		auto [draw_area, layout] = _Cp prepare_lg(gs);
+		auto [draw_area, layout] = custom_plot::prepare_lg(gs);
 		int ind{ 0 };
 		for (auto&& d : data) {
 			if (!d.is_continuous()) {
 				continue;
 			}
 
-			Eigen::ArrayXd y = _Cs cast<Eigen::ArrayX>(d.get_continuous());
+			Eigen::ArrayXd y = custom::cast<Eigen::ArrayX>(d.get_continuous());
 
 			QString left_title{ "Expression of " + d.name };
 
@@ -304,7 +304,7 @@ namespace custom_plot {
 			int row = ind - col * nrow;
 			QCPLayoutGrid* sub_layout = new QCPLayoutGrid;
 			layout->addElement(row, col, sub_layout);
-			auto [axis_rect, _] = _Cp __feature_plot(draw_area, sub_layout, f, x, y, bottom_title, left_title, false, gs);
+			auto [axis_rect, _] = custom_plot::__feature_plot(draw_area, sub_layout, f, x, y, bottom_title, left_title, false, gs);
 
 			Eigen::ArrayXd x1 = Eigen::ArrayXd::LinSpaced(n_block, min, max);
 			Eigen::ArrayXd y1 = Eigen::ArrayXd::Zero(n_block);
@@ -313,7 +313,7 @@ namespace custom_plot {
 				y1[block_loc[i]] += y[i] * loc_multiplier[i];
 			}
 
-			_CpPatch line(
+			custom_plot::patch::line(
 				draw_area,
 				axis_rect,
 				x1,
@@ -338,7 +338,7 @@ namespace custom_plot {
 		int nrow,
 		const GraphSettings& gs) {
 
-		auto [draw_area, layout] = _Cp prepare_lg(gs);
+		auto [draw_area, layout] = custom_plot::prepare_lg(gs);
 		int ind{ 0 };
 		for (auto&& d : data) {
 			if (!d.is_valid()) {
@@ -348,7 +348,7 @@ namespace custom_plot {
 			int row = ind - col * nrow;
 			QCPLayoutGrid* sub_layout = new QCPLayoutGrid;
 			layout->addElement(row, col, sub_layout);
-			_Cp __feature_plot(draw_area, sub_layout, d, x, y, bottom_title, left_title, scale, gs);
+			custom_plot::__feature_plot(draw_area, sub_layout, d, x, y, bottom_title, left_title, scale, gs);
 			++ind;
 		}
 
@@ -368,7 +368,7 @@ namespace custom_plot {
 		QString bottom_title = embedding->data_.colnames_[0];
 		QString left_title = embedding->data_.colnames_[1];
 
-		auto [draw_area, layout] = _Cp prepare_lg(gs);
+		auto [draw_area, layout] = custom_plot::prepare_lg(gs);
 		int ind{ 0 };
 		for (auto&& d : data) {
 			if (!d.is_valid()) {
@@ -378,7 +378,7 @@ namespace custom_plot {
 			int row = ind - col * nrow;
 			QCPLayoutGrid* sub_layout = new QCPLayoutGrid;
 			layout->addElement(row, col, sub_layout);
-			_Cp __feature_plot(draw_area, sub_layout, d, x, y, bottom_title, left_title, scale, gs);
+			custom_plot::__feature_plot(draw_area, sub_layout, d, x, y, bottom_title, left_title, scale, gs);
 			++ind;
 		}
 
@@ -393,9 +393,9 @@ namespace custom_plot {
 
 		auto& [sequence_name, region_start, region_end] = res.region;
 
-		QVector<double> bottom_axis_value = _Cs linspaced(width, region_start, region_end);
+		QVector<double> bottom_axis_value = custom::linspaced(width, region_start, region_end);
 
-		auto [draw_area, main_layout] = _Cp prepare_lg(gs);
+		auto [draw_area, main_layout] = custom_plot::prepare_lg(gs);
 		draw_area->setNoAntialiasingOnDrag(true);
 
 		QPen annotation_axis_pen(Qt::black), coverage_bottom_axis_pen(Qt::black);
@@ -405,18 +405,18 @@ namespace custom_plot {
 		QCPMarginGroup* first_column_margin = new QCPMarginGroup(draw_area);
 		QCPMarginGroup* second_column_margin = new QCPMarginGroup(draw_area);
 
-		int anno_width = std::ceil(_CpUtility get_max_text_height({ "Coverage", "Gene", "Peak" }, gs.get_left_label_font()) * 1.2);
+		int anno_width = std::ceil(custom_plot::utility::get_max_text_height({ "Coverage", "Gene", "Peak" }, gs.get_left_label_font()) * 1.2);
 
 		QCPAxisRect* coverage_annotation_rect = new QCPAxisRect(draw_area);
 		main_layout->addElement(0, 0, coverage_annotation_rect);
 
-		_CpPatch remove_left_bottom_axis(coverage_annotation_rect);
-		_CpPatch rectangle_borderless(
+		custom_plot::patch::remove_left_bottom_axis(coverage_annotation_rect);
+		custom_plot::patch::rectangle_borderless(
 			draw_area, coverage_annotation_rect, 0, 0, 1, 1, Qt::black
 		);
-		_CpPatch add_label(draw_area, coverage_annotation_rect, "Coverage", -1.0, 0.5, gs.get_left_label_font(), Qt::AlignBottom | Qt::AlignHCenter, -90);
-		_CpPatch set_range(coverage_annotation_rect, { -11.0, 1.0 }, { 0.0, 1.0 });
-		_CpPatch set_fixed_width(coverage_annotation_rect, anno_width);
+		custom_plot::patch::add_label(draw_area, coverage_annotation_rect, "Coverage", -1.0, 0.5, gs.get_left_label_font(), Qt::AlignBottom | Qt::AlignHCenter, -90);
+		custom_plot::patch::set_range(coverage_annotation_rect, { -11.0, 1.0 }, { 0.0, 1.0 });
+		custom_plot::patch::set_fixed_width(coverage_annotation_rect, anno_width);
 		coverage_annotation_rect->setMarginGroup(QCP::msLeft | QCP::msRight, first_column_margin);
 
 		QCPLayoutGrid* coverage_layout = new QCPLayoutGrid;
@@ -438,7 +438,7 @@ namespace custom_plot {
 			group_rect->setMinimumMargins({ 0, 0, 0, 0 });
 			coverage_layout->addElement(i, 0, group_rect);
 
-			_Cp set_left_axis_label(
+			custom_plot::set_left_axis_label(
 				group_rect,
 				group_factor_name_height,
 				{ res.group_factors[i] },
@@ -446,12 +446,12 @@ namespace custom_plot {
 				gs
 			);
 			group_rect->axis(QCPAxis::atLeft)->setBasePen(Qt::NoPen);
-			_CpPatch remove_left_grid(group_rect);
-			_CpPatch clear_bottom_axis(group_rect);
+			custom_plot::patch::remove_left_grid(group_rect);
+			custom_plot::patch::clear_bottom_axis(group_rect);
 			group_rect->axis(QCPAxis::atBottom)->setBasePen(coverage_bottom_axis_pen);
 			group_rect->setMarginGroup(QCP::msLeft | QCP::msRight, second_column_margin);
 
-			QVector<double> normalized_value = _Cs cast<QVector>(res.normalized_matrix.row(i));
+			QVector<double> normalized_value = custom::cast<QVector>(res.normalized_matrix.row(i));
 			const Eigen::Index length = normalized_value.size();
 
 			Eigen::ArrayX<bool> filter = Eigen::ArrayX<bool>::Constant(length, true);
@@ -471,15 +471,15 @@ namespace custom_plot {
 
 			graph->setPen(Qt::NoPen);
 			graph->setBrush(QBrush(colors[i]));
-			graph->setData(_Cs sliced(bottom_axis_value, filter), _Cs sliced(normalized_value, filter), true);
+			graph->setData(custom::sliced(bottom_axis_value, filter), custom::sliced(normalized_value, filter), true);
 
 			if (draw_ccan) {
 				for (auto&& p : res.ccan_locations) {
-					_CpPatch rectangle_borderless(draw_area, group_rect, p.first, 0, p.second - p.first, 1, QColor(221, 221, 221, 32));
+					custom_plot::patch::rectangle_borderless(draw_area, group_rect, p.first, 0, p.second - p.first, 1, QColor(221, 221, 221, 32));
 				}
 			}
 
-			_CpPatch set_range(group_rect, QCPRange(region_start, region_end + 1), QCPRange(0, 1));
+			custom_plot::patch::set_range(group_rect, QCPRange(region_start, region_end + 1), QCPRange(0, 1));
 
 		}
 
@@ -513,13 +513,13 @@ namespace custom_plot {
 			QCPAxisRect* gene_annotation_rect = new QCPAxisRect(draw_area);
 			main_layout->addElement(1, 0, gene_annotation_rect);
 
-			_CpPatch remove_left_bottom_axis(gene_annotation_rect);
-			_CpPatch rectangle_borderless(
+			custom_plot::patch::remove_left_bottom_axis(gene_annotation_rect);
+			custom_plot::patch::rectangle_borderless(
 				draw_area, gene_annotation_rect, 0, 0, 1, 1, Qt::black
 			);
-			_CpPatch add_label(draw_area, gene_annotation_rect, "Gene", -1, 0.5, gs.get_left_label_font(), Qt::AlignBottom | Qt::AlignHCenter, -90);
-			_CpPatch set_range(gene_annotation_rect, { -11.0, 1.0 }, { 0.0, 1.0 });
-			_CpPatch set_fixed_width(gene_annotation_rect, anno_width);
+			custom_plot::patch::add_label(draw_area, gene_annotation_rect, "Gene", -1, 0.5, gs.get_left_label_font(), Qt::AlignBottom | Qt::AlignHCenter, -90);
+			custom_plot::patch::set_range(gene_annotation_rect, { -11.0, 1.0 }, { 0.0, 1.0 });
+			custom_plot::patch::set_fixed_width(gene_annotation_rect, anno_width);
 
 			gene_annotation_rect->setMarginGroup(QCP::msLeft | QCP::msRight, first_column_margin);
 			//--------------------------------//
@@ -534,8 +534,8 @@ namespace custom_plot {
 			QList<std::tuple<QString, int, int>> locs;
 
 			for (const auto& [gene_name, info] : res.gene_structure.asKeyValueRange()) {
-				int s = std::ranges::min(_Cs sapply(info.second, [](auto&& p) {return std::get<0>(p); }));
-				int e = std::ranges::max(_Cs sapply(info.second, [](auto&& p) {return std::get<1>(p); }));
+				int s = std::ranges::min(custom::sapply(info.second, [](auto&& p) {return std::get<0>(p); }));
+				int e = std::ranges::max(custom::sapply(info.second, [](auto&& p) {return std::get<1>(p); }));
 
 				int span = region_end - region_start;
 				s -= span / 20;
@@ -561,8 +561,8 @@ namespace custom_plot {
 				QCPAxisRect* gene_rect = new QCPAxisRect(draw_area);
 				gene_rect->setMarginGroup(QCP::msLeft | QCP::msRight, second_column_margin);
 				gene_layout->addElement(gene_count++, 0, gene_rect);
-				_CpPatch remove_left_bottom_axis(gene_rect);
-				_CpPatch set_fixed_height(gene_rect, 25);
+				custom_plot::patch::remove_left_bottom_axis(gene_rect);
+				custom_plot::patch::set_fixed_height(gene_rect, 25);
 
 				QVector<int> current_loc;
 				current_loc << region_start << region_end;
@@ -624,7 +624,7 @@ namespace custom_plot {
 								}
 							}
 
-							_CpPatch shape_borderless(
+							custom_plot::patch::shape_borderless(
 								draw_area,
 								gene_rect,
 								QVector<double>{ segment_start, segment_start, segment_end, segment_end },
@@ -656,7 +656,7 @@ namespace custom_plot {
 								}
 							}
 
-							_CpPatch shape(draw_area, gene_rect,
+							custom_plot::patch::shape(draw_area, gene_rect,
 								QVector<double>{ segment_start, segment_start, segment_end, segment_end },
 								QVector<double>{2.0, 18.0, 18.0, 2.0},
 								Qt::black, Qt::black, 2);
@@ -686,7 +686,7 @@ namespace custom_plot {
 								}
 							}
 
-							_CpPatch shape(draw_area, gene_rect,
+							custom_plot::patch::shape(draw_area, gene_rect,
 								QVector<double>{ segment_start, segment_start, segment_end, segment_end },
 								QVector<double>{2.0, 18.0, 18.0, 2.0},
 								Qt::black, Qt::white, 2);
@@ -716,10 +716,10 @@ namespace custom_plot {
 								}
 							}
 
-							_CpPatch shape(draw_area, gene_rect,
+							custom_plot::patch::shape(draw_area, gene_rect,
 								QVector<double>{ segment_start, segment_start, segment_end, segment_end },
 								QVector<double>{2.0, 18.0, 18.0, 2.0},
-								_CpColor firebrick3, _CpColor firebrick3, 2);
+								custom_plot::color::firebrick3, custom_plot::color::firebrick3, 2);
 						}
 
 						double span = region_end - region_start;
@@ -733,26 +733,26 @@ namespace custom_plot {
 							double ar_mid2 = ar_end - ar_span / 4;
 
 							if (strand == '+') {
-								_CpPatch shape_borderless(draw_area, gene_rect,
+								custom_plot::patch::shape_borderless(draw_area, gene_rect,
 									QVector<double>{ar_start, ar_mid1, ar_mid, ar_mid1, ar_start, ar_mid1},
 									QVector<double>{2.0, 2.0, 10.0, 18.0, 18.0, 10.0},
-									_CpColor navy);
+									custom_plot::color::navy);
 
-								_CpPatch shape_borderless(draw_area, gene_rect,
+								custom_plot::patch::shape_borderless(draw_area, gene_rect,
 									QVector<double>{ar_mid, ar_mid2, ar_end, ar_mid2, ar_mid, ar_mid2},
 									QVector<double>{2.0, 2.0, 10.0, 18.0, 18.0, 10.0},
-									_CpColor navy);
+									custom_plot::color::navy);
 							}
 							else if (strand == '-') {
-								_CpPatch shape_borderless(draw_area, gene_rect,
+								custom_plot::patch::shape_borderless(draw_area, gene_rect,
 									QVector<double>{ar_mid1, ar_start, ar_mid1, ar_mid, ar_mid1, ar_mid},
 									QVector<double>{2.0, 10.0, 18.0, 18.0, 10.0, 2.0},
-									_CpColor navy);
+									custom_plot::color::navy);
 
-								_CpPatch shape_borderless(draw_area, gene_rect,
+								custom_plot::patch::shape_borderless(draw_area, gene_rect,
 									QVector<double>{ar_mid2, ar_mid, ar_mid2, ar_end, ar_mid2, ar_end},
 									QVector<double>{2.0, 10.0, 18.0, 18.0, 10.0, 2.0},
-									_CpColor navy);
+									custom_plot::color::navy);
 							}
 						}
 
@@ -766,30 +766,30 @@ namespace custom_plot {
 							double ar_mid2 = ar_end - ar_span / 4;
 
 							if (strand == '+') {
-								_CpPatch shape_borderless(draw_area, gene_rect,
+								custom_plot::patch::shape_borderless(draw_area, gene_rect,
 									QVector<double>{ar_start, ar_mid1, ar_mid, ar_mid1, ar_start, ar_mid1},
 									QVector<double>{2.0, 2.0, 10.0, 18.0, 18.0, 10.0},
-									_CpColor navy);
+									custom_plot::color::navy);
 
-								_CpPatch shape_borderless(draw_area, gene_rect,
+								custom_plot::patch::shape_borderless(draw_area, gene_rect,
 									QVector<double>{ar_mid, ar_mid2, ar_end, ar_mid2, ar_mid, ar_mid2},
 									QVector<double>{2.0, 2.0, 10.0, 18.0, 18.0, 10.0},
-									_CpColor navy);
+									custom_plot::color::navy);
 							}
 							else if (strand == '-') {
-								_CpPatch shape_borderless(draw_area, gene_rect,
+								custom_plot::patch::shape_borderless(draw_area, gene_rect,
 									QVector<double>{ar_mid1, ar_start, ar_mid1, ar_mid, ar_mid1, ar_mid},
 									QVector<double>{2.0, 10.0, 18.0, 18.0, 10.0, 2.0},
-									_CpColor navy);
+									custom_plot::color::navy);
 
-								_CpPatch shape_borderless(draw_area, gene_rect,
+								custom_plot::patch::shape_borderless(draw_area, gene_rect,
 									QVector<double>{ar_mid2, ar_mid, ar_mid2, ar_end, ar_mid2, ar_end},
 									QVector<double>{2.0, 10.0, 18.0, 18.0, 10.0, 2.0},
-									_CpColor navy);
+									custom_plot::color::navy);
 							}
 						}
-						_CpPatch set_range(gene_rect, QCPRange(region_start, region_end + 1), QCPRange(0, 20));
-						_CpPatch add_label(draw_area, gene_rect, name, (gene_start + gene_end) / 2, 0, gs.get_bottom_label_font(), Qt::AlignTop | Qt::AlignHCenter);
+						custom_plot::patch::set_range(gene_rect, QCPRange(region_start, region_end + 1), QCPRange(0, 20));
+						custom_plot::patch::add_label(draw_area, gene_rect, name, (gene_start + gene_end) / 2, 0, gs.get_bottom_label_font(), Qt::AlignTop | Qt::AlignHCenter);
 
 						update = true;
 
@@ -819,20 +819,20 @@ namespace custom_plot {
 			main_layout->addElement(layer, 0, link_annotation_rect);
 			main_layout->addElement(layer, 1, link_rect);
 
-			_CpPatch remove_left_bottom_axis(link_annotation_rect);
-			_CpPatch rectangle_borderless(
+			custom_plot::patch::remove_left_bottom_axis(link_annotation_rect);
+			custom_plot::patch::rectangle_borderless(
 				draw_area, link_annotation_rect, 0, 0, 1, 1, Qt::black
 			);
-			_CpPatch add_label(draw_area, link_annotation_rect, "Link", -1, 0.5, gs.get_left_label_font(), Qt::AlignBottom | Qt::AlignHCenter, -90);
-			_CpPatch set_range(link_annotation_rect, { -11.0, 1.0 }, { 0.0, 1.0 });
+			custom_plot::patch::add_label(draw_area, link_annotation_rect, "Link", -1, 0.5, gs.get_left_label_font(), Qt::AlignBottom | Qt::AlignHCenter, -90);
+			custom_plot::patch::set_range(link_annotation_rect, { -11.0, 1.0 }, { 0.0, 1.0 });
 
 			constexpr int link_height = 60;
-			_CpPatch set_fixed_size(link_annotation_rect, anno_width, link_height);
-			_CpPatch set_fixed_height(link_rect, link_height);
+			custom_plot::patch::set_fixed_size(link_annotation_rect, anno_width, link_height);
+			custom_plot::patch::set_fixed_height(link_rect, link_height);
 
 			link_annotation_rect->setMarginGroup(QCP::msLeft | QCP::msRight, first_column_margin);
 
-			auto max_link_val = std::ranges::max(_Cs sapply(res.peak_links, [](auto&& l) {return std::get<2>(l); }));
+			auto max_link_val = std::ranges::max(custom::sapply(res.peak_links, [](auto&& l) {return std::get<2>(l); }));
 
 			for (auto&& [p1, p2, link_val] : res.peak_links) {
 
@@ -844,17 +844,17 @@ namespace custom_plot {
 				double mid = (s + e) / 2;
 				double a = -link_val / ((s - mid) * (s - mid));
 
-				auto link_x = _Cs linspaced(100, s, e);
-				auto link_y = _Cs sapply(link_x, [a, mid, link_val](auto x) {return a * (x - mid) * (x - mid) + link_val; });
+				auto link_x = custom::linspaced(100, s, e);
+				auto link_y = custom::sapply(link_x, [a, mid, link_val](auto x) {return a * (x - mid) * (x - mid) + link_val; });
 
-				_CpPatch line(draw_area, link_rect, link_x, link_y, _CpColor gray, 2);
+				custom_plot::patch::line(draw_area, link_rect, link_x, link_y, custom_plot::color::gray, 2);
 			}
 
-			_CpPatch set_range(link_rect, QCPRange(region_start, region_end + 1), { 0.0, 1.0 });
+			custom_plot::patch::set_range(link_rect, QCPRange(region_start, region_end + 1), { 0.0, 1.0 });
 
-			_CpPatch remove_bottom_axis(link_rect);
+			custom_plot::patch::remove_bottom_axis(link_rect);
 			link_rect->axis(QCPAxis::atLeft)->grid()->setVisible(false);
-			_Cp set_left_axis_label(link_rect, _Cs cast<Eigen::ArrayX>(QVector<double>{0.0, 1.0}), { "0.0", "1.0" }, 2, gs);
+			custom_plot::set_left_axis_label(link_rect, custom::cast<Eigen::ArrayX>(QVector<double>{0.0, 1.0}), { "0.0", "1.0" }, 2, gs);
 
 			QPen p(Qt::black);
 			p.setWidth(2);
@@ -869,46 +869,46 @@ namespace custom_plot {
 		main_layout->addElement(layer, 0, peak_annotation_rect);
 		main_layout->addElement(layer, 1, peak_rect);
 
-		_CpPatch remove_left_bottom_axis(peak_annotation_rect);
-		_CpPatch rectangle_borderless(
+		custom_plot::patch::remove_left_bottom_axis(peak_annotation_rect);
+		custom_plot::patch::rectangle_borderless(
 			draw_area, peak_annotation_rect, 0, 0, 1, 1, Qt::black
 		);
-		_CpPatch add_label(draw_area, peak_annotation_rect, "Peak", -1, 0.5, gs.get_left_label_font(), Qt::AlignBottom | Qt::AlignHCenter, -90);
-		_CpPatch set_range(peak_annotation_rect, { -11.0, 1.0 }, { 0.0, 1.0 });
+		custom_plot::patch::add_label(draw_area, peak_annotation_rect, "Peak", -1, 0.5, gs.get_left_label_font(), Qt::AlignBottom | Qt::AlignHCenter, -90);
+		custom_plot::patch::set_range(peak_annotation_rect, { -11.0, 1.0 }, { 0.0, 1.0 });
 
 		constexpr int peak_height = 80;
-		_CpPatch set_fixed_size(peak_annotation_rect, anno_width, peak_height);
-		_CpPatch set_fixed_height(peak_rect, peak_height);
+		custom_plot::patch::set_fixed_size(peak_annotation_rect, anno_width, peak_height);
+		custom_plot::patch::set_fixed_height(peak_rect, peak_height);
 
 		peak_annotation_rect->setMarginGroup(QCP::msLeft | QCP::msRight, first_column_margin);
 		//------------------------------//
 
 		peak_rect->setMarginGroup(QCP::msLeft | QCP::msRight, second_column_margin);
-		_CpPatch remove_left_axis(peak_rect);
-		_CpPatch remove_bottom_subticks(peak_rect);
-		_CpPatch remove_bottom_grid(peak_rect);
+		custom_plot::patch::remove_left_axis(peak_rect);
+		custom_plot::patch::remove_bottom_subticks(peak_rect);
+		custom_plot::patch::remove_bottom_grid(peak_rect);
 		peak_rect->axis(QCPAxis::atBottom)->setNumberFormat("f");
 		peak_rect->axis(QCPAxis::atBottom)->setNumberPrecision(0);
 		peak_rect->axis(QCPAxis::atBottom)->setBasePen(annotation_axis_pen);
 		peak_rect->axis(QCPAxis::atBottom)->setTickPen(annotation_axis_pen);
 
-		int peak_rect_height = std::ceil(_CpUtility get_max_text_height({ sequence_name }, gs.get_bottom_title_font()) * 2);
-		_CpPatch set_fixed_height(peak_rect, peak_rect_height);
+		int peak_rect_height = std::ceil(custom_plot::utility::get_max_text_height({ sequence_name }, gs.get_bottom_title_font()) * 2);
+		custom_plot::patch::set_fixed_height(peak_rect, peak_rect_height);
 
-		_CpPatch set_range(peak_rect, QCPRange(region_start, region_end + 1), QCPRange(0, 10));
+		custom_plot::patch::set_range(peak_rect, QCPRange(region_start, region_end + 1), QCPRange(0, 10));
 		for (auto&& p : res.peak_locations) {
 
-			_CpPatch rectangle_borderless(draw_area, peak_rect, p.first, 2.5, p.second - p.first, 5, Qt::black);
+			custom_plot::patch::rectangle_borderless(draw_area, peak_rect, p.first, 2.5, p.second - p.first, 5, Qt::black);
 
 		}
 
 		if (draw_ccan) {
 			for (auto&& p : res.ccan_locations) {
-				_CpPatch rectangle_borderless(draw_area, peak_rect, p.first, 2.5, p.second - p.first, 5, _CpColor firebrick3);
+				custom_plot::patch::rectangle_borderless(draw_area, peak_rect, p.first, 2.5, p.second - p.first, 5, custom_plot::color::firebrick3);
 			}
 		}
 
-		_Cp set_bottom_title(peak_rect, sequence_name, gs);
+		custom_plot::set_bottom_title(peak_rect, sequence_name, gs);
 
 		++layer;
 
@@ -917,42 +917,42 @@ namespace custom_plot {
 			QCPLayoutGrid* legend_layout = new QCPLayoutGrid;
 
 			QCPAxisRect* t1 = new QCPAxisRect(draw_area);
-			_CpPatch remove_left_bottom_axis(t1);
+			custom_plot::patch::remove_left_bottom_axis(t1);
 			QCPAxisRect* t2 = new QCPAxisRect(draw_area);
-			_CpPatch remove_left_bottom_axis(t2);
+			custom_plot::patch::remove_left_bottom_axis(t2);
 
 			legend_layout->addElement(0, 0, t1);
 
 			QCPAxisRect* r1 = new QCPAxisRect(draw_area);
-			_CpPatch set_range(r1, QCPRange(-1, 1), QCPRange(0, 1));
-			_CpPatch add_label(draw_area, r1, "CDS", 0, 0.5, QFont("Arial", 16), Qt::AlignVCenter | Qt::AlignLeft);
-			_CpPatch shape(draw_area, r1, QVector<double>{-1, -1, 0, 0}, QVector<double>{0, 1, 1, 0}, _CpColor firebrick3, _CpColor firebrick3, 2);
-			_CpPatch set_fixed_size(r1, 120, 40);
-			_CpPatch remove_left_bottom_axis(r1);
+			custom_plot::patch::set_range(r1, QCPRange(-1, 1), QCPRange(0, 1));
+			custom_plot::patch::add_label(draw_area, r1, "CDS", 0, 0.5, QFont("Arial", 16), Qt::AlignVCenter | Qt::AlignLeft);
+			custom_plot::patch::shape(draw_area, r1, QVector<double>{-1, -1, 0, 0}, QVector<double>{0, 1, 1, 0}, custom_plot::color::firebrick3, custom_plot::color::firebrick3, 2);
+			custom_plot::patch::set_fixed_size(r1, 120, 40);
+			custom_plot::patch::remove_left_bottom_axis(r1);
 			legend_layout->addElement(0, 1, r1);
 
 			QCPAxisRect* r2 = new QCPAxisRect(draw_area);
-			_CpPatch set_range(r2, QCPRange(-1, 1), QCPRange(0, 1));
-			_CpPatch add_label(draw_area, r2, "UTR", 0, 0.5, QFont("Arial", 16), Qt::AlignVCenter | Qt::AlignLeft);
-			_CpPatch shape(draw_area, r2, QVector<double>{-1, -1, 0, 0}, QVector<double>{0, 1, 1, 0}, Qt::black, Qt::white, 2);
-			_CpPatch set_fixed_size(r2, 120, 40);
-			_CpPatch remove_left_bottom_axis(r2);
+			custom_plot::patch::set_range(r2, QCPRange(-1, 1), QCPRange(0, 1));
+			custom_plot::patch::add_label(draw_area, r2, "UTR", 0, 0.5, QFont("Arial", 16), Qt::AlignVCenter | Qt::AlignLeft);
+			custom_plot::patch::shape(draw_area, r2, QVector<double>{-1, -1, 0, 0}, QVector<double>{0, 1, 1, 0}, Qt::black, Qt::white, 2);
+			custom_plot::patch::set_fixed_size(r2, 120, 40);
+			custom_plot::patch::remove_left_bottom_axis(r2);
 			legend_layout->addElement(0, 2, r2);
 
 			QCPAxisRect* r3 = new QCPAxisRect(draw_area);
-			_CpPatch set_range(r3, QCPRange(-1, 1), QCPRange(0, 1));
-			_CpPatch add_label(draw_area, r3, "Exon", 0, 0.5, QFont("Arial", 16), Qt::AlignVCenter | Qt::AlignLeft);
-			_CpPatch shape(draw_area, r3, QVector<double>{-1, -1, 0, 0}, QVector<double>{0, 1, 1, 0}, Qt::black, Qt::black, 2);
-			_CpPatch set_fixed_size(r3, 120, 40);
-			_CpPatch remove_left_bottom_axis(r3);
+			custom_plot::patch::set_range(r3, QCPRange(-1, 1), QCPRange(0, 1));
+			custom_plot::patch::add_label(draw_area, r3, "Exon", 0, 0.5, QFont("Arial", 16), Qt::AlignVCenter | Qt::AlignLeft);
+			custom_plot::patch::shape(draw_area, r3, QVector<double>{-1, -1, 0, 0}, QVector<double>{0, 1, 1, 0}, Qt::black, Qt::black, 2);
+			custom_plot::patch::set_fixed_size(r3, 120, 40);
+			custom_plot::patch::remove_left_bottom_axis(r3);
 			legend_layout->addElement(0, 3, r3);
 
 			QCPAxisRect* r4 = new QCPAxisRect(draw_area);
-			_CpPatch set_range(r4, QCPRange(-1, 1), QCPRange(0, 1));
-			_CpPatch add_label(draw_area, r4, "Gap", 0, 0.5, QFont("Arial", 16), Qt::AlignVCenter | Qt::AlignLeft);
-			_CpPatch shape_borderless(draw_area, r4, QVector<double>{-1, -1, 0, 0}, QVector<double>{0.4, 0.6, 0.6, 0.4}, Qt::black);
-			_CpPatch set_fixed_size(r4, 120, 40);
-			_CpPatch remove_left_bottom_axis(r4);
+			custom_plot::patch::set_range(r4, QCPRange(-1, 1), QCPRange(0, 1));
+			custom_plot::patch::add_label(draw_area, r4, "Gap", 0, 0.5, QFont("Arial", 16), Qt::AlignVCenter | Qt::AlignLeft);
+			custom_plot::patch::shape_borderless(draw_area, r4, QVector<double>{-1, -1, 0, 0}, QVector<double>{0.4, 0.6, 0.6, 0.4}, Qt::black);
+			custom_plot::patch::set_fixed_size(r4, 120, 40);
+			custom_plot::patch::remove_left_bottom_axis(r4);
 			legend_layout->addElement(0, 4, r4);
 
 			legend_layout->addElement(0, 5, t2);
@@ -964,7 +964,7 @@ namespace custom_plot {
 
 		//--------------------------------//
 
-		_Cp add_title(draw_area, res.plot_title, gs);
+		custom_plot::add_title(draw_area, res.plot_title, gs);
 
 		return draw_area;
 	};
@@ -977,9 +977,9 @@ namespace custom_plot {
 		const GraphSettings& gs
 	) {		
 		Eigen::ArrayXd x = embedding_matrix.col(0), y = embedding_matrix.col(1);
-		auto [draw_area, axis_rect, legend_layout] = _Cp prepare(gs);
+		auto [draw_area, axis_rect, legend_layout] = custom_plot::prepare(gs);
 
-		_Cp set_scatter_plot_axis_style(
+		custom_plot::set_scatter_plot_axis_style(
 			draw_area,
 			axis_rect,
 			embedding_names[0],
@@ -989,7 +989,7 @@ namespace custom_plot {
 			gs
 		);
 
-		_CpPatch scatter(
+		custom_plot::patch::scatter(
 			draw_area,
 			axis_rect,
 			x,
@@ -998,7 +998,7 @@ namespace custom_plot {
 			gs.get_scatter_point_size()
 		);
 
-		_Cp add_title(draw_area, title, gs);
+		custom_plot::add_title(draw_area, title, gs);
 
 		return std::make_tuple(draw_area, axis_rect, legend_layout);
 	};
@@ -1019,7 +1019,7 @@ namespace custom_plot {
 		QCustomPlot* draw_area = new QCustomPlot();
 		draw_area->plotLayout()->clear();
 
-		QCPAxisRect* axis_rect = _CpPatch new_axis_rect(draw_area);
+		QCPAxisRect* axis_rect = custom_plot::patch::new_axis_rect(draw_area);
 
 		draw_area->plotLayout()->addElement(0, 0, axis_rect);
 
@@ -1058,7 +1058,7 @@ namespace custom_plot {
 		layout->addElement(0, 0, left_layout);
 		layout->addElement(0, 1, right_layout);
 
-		auto legend_layout = _CpPatch set_legend_layout(draw_area, right_layout);
+		auto legend_layout = custom_plot::patch::set_legend_layout(draw_area, right_layout);
 
 		if (gs.is_transparent_background()) {
 			draw_area->setBackground(Qt::transparent);
@@ -1071,7 +1071,7 @@ namespace custom_plot {
 		QCustomPlot* draw_area = new QCustomPlot();
 		draw_area->plotLayout()->clear();
 
-		QCPAxisRect* axis_rect = _CpPatch new_axis_rect(draw_area);
+		QCPAxisRect* axis_rect = custom_plot::patch::new_axis_rect(draw_area);
 
 		QCPLayoutGrid* layout = new QCPLayoutGrid;
 		QCPLayoutGrid* right_layout = new QCPLayoutGrid;
@@ -1080,7 +1080,7 @@ namespace custom_plot {
 		layout->addElement(0, 0, axis_rect);
 		layout->addElement(0, 1, right_layout);
 
-		auto legend_layout = _CpPatch set_legend_layout(draw_area, right_layout);
+		auto legend_layout = custom_plot::patch::set_legend_layout(draw_area, right_layout);
 
 		if (gs.is_transparent_background()) {
 			draw_area->setBackground(Qt::transparent);
@@ -1097,7 +1097,7 @@ namespace custom_plot {
 		int tick_length,
 		const GraphSettings& gs
 	) {
-		_CpPatch set_axis_label(
+		custom_plot::patch::set_axis_label(
 			type, 
 			axis_rect, 
 			location, 
@@ -1167,7 +1167,7 @@ namespace custom_plot {
 		const GraphSettings& gs
 	) {
 
-		_CpPatch remove_left_bottom_axis(axis_rect);
+		custom_plot::patch::remove_left_bottom_axis(axis_rect);
 
 		double maximum_x = x.maxCoeff(), minimum_x = x.minCoeff(), maximum_y = y.maxCoeff(), minimum_y = y.minCoeff();
 		double x_span = maximum_x - minimum_x, y_span = maximum_y - minimum_y;
@@ -1225,21 +1225,21 @@ namespace custom_plot {
 		const Eigen::ArrayXd& y,
 		const GraphSettings& gs) {
 
-		_CpPatch set_range(axis_rect, _CpUtility get_range(x, y));
+		custom_plot::patch::set_range(axis_rect, custom_plot::utility::get_range(x, y));
 
 		auto axis_style = gs.get_axis_style();
 
 		if (axis_style == GraphSettings::AxisStyle::Arrow) {
-			_Cp set_arrow_axis(draw_area, axis_rect, x, y, bottom_title, left_title, 0.1, 0, gs);
+			custom_plot::set_arrow_axis(draw_area, axis_rect, x, y, bottom_title, left_title, 0.1, 0, gs);
 		}
 		else if (axis_style == GraphSettings::AxisStyle::Arrow2) {
-			_Cp set_arrow_axis(draw_area, axis_rect, x, y, bottom_title, left_title, 0.1, 1, gs);
+			custom_plot::set_arrow_axis(draw_area, axis_rect, x, y, bottom_title, left_title, 0.1, 1, gs);
 		}
 		else if (axis_style == GraphSettings::AxisStyle::NoAxis) {
-			_CpPatch remove_left_bottom_axis(axis_rect);
+			custom_plot::patch::remove_left_bottom_axis(axis_rect);
 		}
 		else {
-			_Cp set_simple_axis(axis_rect, bottom_title, left_title, gs);
+			custom_plot::set_simple_axis(axis_rect, bottom_title, left_title, gs);
 		}
 	};
 	
@@ -1255,14 +1255,14 @@ namespace custom_plot {
 		const GraphSettings& gs,
 		bool vertical
 	) {
-		_Cp set_simple_axis(axis_rect, bottom_title, left_title, gs);
+		custom_plot::set_simple_axis(axis_rect, bottom_title, left_title, gs);
 
-		_CpPatch bar(draw_area, axis_rect, color, bar_location, bar_length, bar_width, vertical);
+		custom_plot::patch::bar(draw_area, axis_rect, color, bar_location, bar_length, bar_width, vertical);
 
 		int ymax = std::max(bar_length.maxCoeff() * 1.1, 0.0);
 		int ymin = std::min(bar_length.minCoeff() * 1.1, 0.0);
 
-		_CpPatch set_range(axis_rect, _CpUtility get_range(bar_location), _CpUtility get_range(ymin, ymax));
+		custom_plot::patch::set_range(axis_rect, custom_plot::utility::get_range(bar_location), custom_plot::utility::get_range(ymin, ymax));
 	};
 
 	void bar_plot_enrichment(
@@ -1278,7 +1278,7 @@ namespace custom_plot {
 		bool vertical 
 	) {
 
-		_CpPatch bar_gradient(
+		custom_plot::patch::bar_gradient(
 			draw_area,
 			axis_rect,
 			bar_location,
@@ -1291,19 +1291,19 @@ namespace custom_plot {
 			vertical
 		);
 
-		_CpPatch remove_left_axis(axis_rect);
+		custom_plot::patch::remove_left_axis(axis_rect);
 
 		QPen pen(Qt::black);
 		pen.setWidth(3);
 		axis_rect->axis(QCPAxis::atBottom)->setTickPen(pen);
 		axis_rect->axis(QCPAxis::atBottom)->setSubTickPen(pen);
 		axis_rect->axis(QCPAxis::atBottom)->setBasePen(pen);
-		_Cp set_bottom_title(axis_rect, "Gene Number", gs, true);
+		custom_plot::set_bottom_title(axis_rect, "Gene Number", gs, true);
 
 		int ymax = std::max(bar_length.maxCoeff() * 1.1, 0.0);
 		int ymin = std::min(bar_length.minCoeff() * 1.1, 0.0);
 
-		_CpPatch set_range(axis_rect, _CpUtility get_range(ymin, ymax), _CpUtility get_range(bar_location));
+		custom_plot::patch::set_range(axis_rect, custom_plot::utility::get_range(ymin, ymax), custom_plot::utility::get_range(bar_location));
 	}
 
 	void histogram_plot(
@@ -1317,13 +1317,13 @@ namespace custom_plot {
 		const QString& left_title,
 		const GraphSettings& gs) 
 	{
-		_Cp set_simple_axis(axis_rect, bottom_title, left_title, gs);
+		custom_plot::set_simple_axis(axis_rect, bottom_title, left_title, gs);
 
-		auto [counts, _, centers] = _Cs histogram(_Cs cast<Eigen::ArrayX>(x), unit);
+		auto [counts, _, centers] = custom::histogram(custom::cast<Eigen::ArrayX>(x), unit);
 
 		double minimum_x = 3 * centers[0] - 2 * centers[1], maximum_x = 3 * centers[unit - 1] - 2 * centers[unit - 2], maximum_y = counts.maxCoeff() * 1.1;
 
-		_CpPatch bar(
+		custom_plot::patch::bar(
 			draw_area,
 			axis_rect,
 			color,
@@ -1333,7 +1333,7 @@ namespace custom_plot {
 			true
 		);
 
-		_CpPatch set_range(axis_rect, { minimum_x, maximum_x }, { 0, maximum_y });
+		custom_plot::patch::set_range(axis_rect, { minimum_x, maximum_x }, { 0, maximum_y });
 	};
 
 	void heatmap_plot2(
@@ -1353,12 +1353,12 @@ namespace custom_plot {
 			middle = (minimum_value + maximum_value) / 2;
 		int nrow = left_labels.size(), ncol = bottom_labels.size();
 
-		_CpPatch remove_left_bottom_axis(axis_rect);
+		custom_plot::patch::remove_left_bottom_axis(axis_rect);
 
 		int all_width = ncol * cell_width + (ncol - 1) * border_width;
 		int all_height = nrow * cell_height + (nrow - 1) * border_width;
 
-		_CpPatch set_range(axis_rect, QCPRange(0, all_width), QCPRange(0, all_height + 10));
+		custom_plot::patch::set_range(axis_rect, QCPRange(0, all_width), QCPRange(0, all_height + 10));
 
 		QColor low_color = gs.get_gradient_low_color(), 
 			high_color = gs.get_gradient_high_color(),
@@ -1369,13 +1369,13 @@ namespace custom_plot {
 				double val = values(i, j);
 				QColor this_color;
 				if (val < middle) {
-					this_color = _CpUtility gradient_color((val - minimum_value) / span, low_color, middle_color);
+					this_color = custom_plot::utility::gradient_color((val - minimum_value) / span, low_color, middle_color);
 				}
 				else {
-					this_color = _CpUtility gradient_color((val - middle) / span, middle_color, high_color);
+					this_color = custom_plot::utility::gradient_color((val - middle) / span, middle_color, high_color);
 				}
 
-				_CpPatch shape_borderless(
+				custom_plot::patch::shape_borderless(
 					draw_area,
 					axis_rect,
 					QVector<double>{ double(j* (cell_width + border_width)),
@@ -1391,7 +1391,7 @@ namespace custom_plot {
 			}
 		}
 
-		_Cp set_left_axis_label(
+		custom_plot::set_left_axis_label(
 			axis_rect,
 			Eigen::ArrayXd::LinSpaced(nrow, 0.5 * cell_height, 0.5 * cell_height + (nrow - 1) * (cell_height + border_width)),
 			left_labels,
@@ -1399,7 +1399,7 @@ namespace custom_plot {
 			gs
 		);
 
-		_Cp set_bottom_axis_label(
+		custom_plot::set_bottom_axis_label(
 			axis_rect,
 			Eigen::ArrayXd::LinSpaced(ncol, 0.5 * cell_width, 0.5 * cell_width + (ncol - 1) * (cell_width + border_width)),
 			bottom_labels,
@@ -1428,7 +1428,7 @@ namespace custom_plot {
 		const HEATMAP_PLOT_ELEMENTS& ele, 
 		const GraphSettings& gs) {
 
-		auto [draw_area, main_layout, legend_layout] = _Cp prepare_lg_lg(gs);
+		auto [draw_area, main_layout, legend_layout] = custom_plot::prepare_lg_lg(gs);
 
 		QCPMarginGroup* margin_group = new QCPMarginGroup(draw_area);
 
@@ -1444,7 +1444,7 @@ namespace custom_plot {
 		double middle = (minimum_value + maximum_value) / 2;
 		int nrow = ele.mat.rows(), ncol = ele.mat.cols();
 
-		_CpPatch remove_all_axis(heatmap_rect);
+		custom_plot::patch::remove_all_axis(heatmap_rect);
 
 		QCPColorMap* heatmap = new QCPColorMap(heatmap_rect->axis(QCPAxis::atBottom), heatmap_rect->axis(QCPAxis::atLeft));
 		heatmap->data()->setSize(ncol, nrow);
@@ -1454,7 +1454,7 @@ namespace custom_plot {
 		else {
 			heatmap->data()->setRange(QCPRange(0, ncol - 1), QCPRange(-1, 1));
 		}
-		_CpPatch set_range(heatmap_rect, QCPRange(-0.5, ncol - 0.5), QCPRange(-0.5, nrow - 0.5));
+		custom_plot::patch::set_range(heatmap_rect, QCPRange(-0.5, ncol - 0.5), QCPRange(-0.5, nrow - 0.5));
 
 		for (int i = 0; i < ncol; ++i) {
 			for (int j = 0; j < nrow; ++j) {
@@ -1463,7 +1463,7 @@ namespace custom_plot {
 		}
 		heatmap->setInterpolate(false);
 		heatmap->setTightBoundary(false);
-		_Cp set_heatmap_color(draw_area, gs, heatmap, minimum_value, maximum_value);
+		custom_plot::set_heatmap_color(draw_area, gs, heatmap, minimum_value, maximum_value);
 
 		heatmap_rect->setupFullAxesBox();
 
@@ -1471,7 +1471,7 @@ namespace custom_plot {
 
 			QCPAxis::AxisType type = ele.show_column_names_at_bottom ? QCPAxis::atBottom : QCPAxis::atTop;
 
-			_Cp set_axis_label(
+			custom_plot::set_axis_label(
 				type,
 				heatmap_rect,
 				Eigen::ArrayXd::LinSpaced(ncol, 0, ncol - 1),
@@ -1485,7 +1485,7 @@ namespace custom_plot {
 
 			QCPAxis::AxisType type = ele.show_row_names_at_left ? QCPAxis::atLeft : QCPAxis::atRight;
 
-			_Cp set_axis_label(
+			custom_plot::set_axis_label(
 				type,
 				heatmap_rect,
 				Eigen::ArrayXd::LinSpaced(nrow, 0, nrow - 1),
@@ -1498,7 +1498,7 @@ namespace custom_plot {
 
 		if (ele.info.contains("Legend Low Label") && ele.info.contains("Legend High Label")) {
 
-			_CpPatch add_gradient_legend(
+			custom_plot::patch::add_gradient_legend(
 				draw_area,
 				legend_layout,
 				minimum_value,
@@ -1514,7 +1514,7 @@ namespace custom_plot {
 			);
 		}
 		else {
-			_Cp add_gradient_legend(
+			custom_plot::add_gradient_legend(
 				draw_area,
 				legend_layout,
 				minimum_value,
@@ -1524,7 +1524,7 @@ namespace custom_plot {
 		}
 
 		if (!ele.column_annotations.isEmpty()) {
-			int n_valid_annotation = std::ranges::count(_Cs sapply(ele.column_annotations, [ncol](auto&& p) {
+			int n_valid_annotation = std::ranges::count(custom::sapply(ele.column_annotations, [ncol](auto&& p) {
 				return p.second.size() == ncol;
 			}), true);
 
@@ -1534,7 +1534,7 @@ namespace custom_plot {
 
 				column_annotation_rect->setMarginGroup(QCP::msLeft | QCP::msRight, margin_group);
 				
-				_CpPatch remove_all_axis(column_annotation_rect);
+				custom_plot::patch::remove_all_axis(column_annotation_rect);
 
 				if (!ele.annotate_column_at_top) {
 					main_layout->addElement(1, 0, column_annotation_rect);
@@ -1558,7 +1558,7 @@ namespace custom_plot {
 					if (p.second.size() != ncol) {
 						return;
 					}
-				auto levels = _Cs unique(p.second);
+				auto levels = custom::unique(p.second);
 				auto color_map = gs.palette_map(levels);
 				auto colors = color_map.values();
 
@@ -1568,7 +1568,7 @@ namespace custom_plot {
 
 				if (ele.show_annotation_legend) {
 
-					_Cp add_round_legend(
+					custom_plot::add_round_legend(
 						draw_area,
 						legend_layout,
 						levels,
@@ -1580,7 +1580,7 @@ namespace custom_plot {
 				++count;
 				});
 
-				all_colors = _Cs unique(all_colors);
+				all_colors = custom::unique(all_colors);
 				QMap<QColor, double> color_value_map;
 				double inc = 1.0 / all_colors.size();
 				int n_color = all_colors.size();
@@ -1598,7 +1598,7 @@ namespace custom_plot {
 				}
 
 				int column_annotation_height = n_valid_annotation;
-				_CpPatch set_range(column_annotation_rect, QCPRange(-0.5, ncol - 0.5), QCPRange(-0.5, column_annotation_height - 0.5));
+				custom_plot::patch::set_range(column_annotation_rect, QCPRange(-0.5, ncol - 0.5), QCPRange(-0.5, column_annotation_height - 0.5));
 
 				count = 0;
 				std::ranges::for_each(ele.column_annotations,
@@ -1627,7 +1627,7 @@ namespace custom_plot {
 
 					QCPAxis::AxisType type = ele.show_column_annotation_name_at_left ? QCPAxis::atLeft : QCPAxis::atRight;
 
-					_CpPatch set_axis_label(
+					custom_plot::patch::set_axis_label(
 						type,
 						column_annotation_rect,
 						Eigen::ArrayXd::LinSpaced(n_valid_annotation, 0, n_valid_annotation - 1),
@@ -1642,7 +1642,7 @@ namespace custom_plot {
 		}
 
 		if (!ele.row_annotations.isEmpty()) {
-			int n_valid_annotation = std::ranges::count(_Cs sapply(ele.row_annotations, [nrow](auto&& p) {
+			int n_valid_annotation = std::ranges::count(custom::sapply(ele.row_annotations, [nrow](auto&& p) {
 				return p.second.size() == nrow;
 			}), true);
 
@@ -1652,7 +1652,7 @@ namespace custom_plot {
 
 				row_annotation_rect->setMarginGroup(QCP::msTop | QCP::msBottom, margin_group);
 
-				_CpPatch remove_all_axis(row_annotation_rect);
+				custom_plot::patch::remove_all_axis(row_annotation_rect);
 
 				int row_anno_row = ele.annotate_column_at_top ? 1 : 0;
 				if (ele.annotate_row_at_left) {
@@ -1678,7 +1678,7 @@ namespace custom_plot {
 					if (p.second.size() != nrow) {
 						return;
 					}
-				auto levels = _Cs unique(p.second);
+				auto levels = custom::unique(p.second);
 				auto color_map = gs.palette_map(levels);
 				auto colors = color_map.values();
 
@@ -1688,7 +1688,7 @@ namespace custom_plot {
 
 				if (ele.show_annotation_legend) {
 
-					_Cp add_round_legend(
+					custom_plot::add_round_legend(
 						draw_area,
 						legend_layout,
 						levels,
@@ -1700,7 +1700,7 @@ namespace custom_plot {
 				++count;
 				});
 
-				all_colors = _Cs unique(all_colors);
+				all_colors = custom::unique(all_colors);
 				QMap<QColor, double> color_value_map;
 				double inc = 1.0 / all_colors.size();
 				int n_color = all_colors.size();
@@ -1718,7 +1718,7 @@ namespace custom_plot {
 				}
 
 				int row_annotation_height = nrow;
-				_CpPatch set_range(row_annotation_rect, QCPRange(-0.5, n_valid_annotation - 0.5), QCPRange(-0.5, row_annotation_height - 0.5));
+				custom_plot::patch::set_range(row_annotation_rect, QCPRange(-0.5, n_valid_annotation - 0.5), QCPRange(-0.5, row_annotation_height - 0.5));
 
 				count = 0;
 				std::ranges::for_each(ele.row_annotations,
@@ -1747,7 +1747,7 @@ namespace custom_plot {
 
 					QCPAxis::AxisType type = ele.show_row_annotation_name_at_bottom ? QCPAxis::atBottom : QCPAxis::atTop;
 
-					_CpPatch set_axis_label(
+					custom_plot::patch::set_axis_label(
 						type,
 						row_annotation_rect,
 						Eigen::ArrayXd::LinSpaced(n_valid_annotation, 0, n_valid_annotation - 1),
@@ -1784,12 +1784,12 @@ namespace custom_plot {
 
 		int annotation_height = annotation_at_top ? 0 : 10;
 
-		_CpPatch remove_left_bottom_axis(axis_rect);
+		custom_plot::patch::remove_left_bottom_axis(axis_rect);
 
 		int all_width = ncol * cell_width + (ncol - 1) * border_width;
 		int all_height = nrow * cell_height + (nrow - 1) * border_width;
 
-		_CpPatch set_range(axis_rect, QCPRange(0, all_width), QCPRange(0, all_height + 10));
+		custom_plot::patch::set_range(axis_rect, QCPRange(0, all_width), QCPRange(0, all_height + 10));
 
 		QColor low_color = gs.get_gradient_low_color(), high_color = gs.get_gradient_high_color(), middle_color = gs.get_gradient_middle_color();
 		for (int i = 0; i < nrow; ++i) {
@@ -1798,13 +1798,13 @@ namespace custom_plot {
 				double val = values(i, j);
 				QColor this_color;
 				if (val < middle) {
-					this_color = _CpUtility gradient_color((val - minimum_value) / span, low_color, middle_color);
+					this_color = custom_plot::utility::gradient_color((val - minimum_value) / span, low_color, middle_color);
 				}
 				else {
-					this_color = _CpUtility gradient_color((val - middle) / span, middle_color, high_color);
+					this_color = custom_plot::utility::gradient_color((val - middle) / span, middle_color, high_color);
 				}
 
-				_CpPatch shape_borderless(
+				custom_plot::patch::shape_borderless(
 					draw_area,
 					axis_rect,
 					QVector<double>{ double(j* (cell_width + border_width)),
@@ -1826,7 +1826,7 @@ namespace custom_plot {
 
 		for (int i = 0; i < ncol; ++i) {
 
-			_CpPatch shape_borderless(
+			custom_plot::patch::shape_borderless(
 				draw_area,
 				axis_rect,
 				QVector<double>{ double(i* (cell_width + border_width)),
@@ -1841,7 +1841,7 @@ namespace custom_plot {
 			);
 		}
 
-		_Cp set_left_axis_label(
+		custom_plot::set_left_axis_label(
 			axis_rect, 
 			Eigen::ArrayXd::LinSpaced(nrow, annotation_height + 0.5 * cell_height , annotation_height + 0.5 * cell_height + (nrow - 1) * (cell_height + border_width)),
 			left_labels, 
@@ -1852,12 +1852,12 @@ namespace custom_plot {
 		if (annotation_at_top) {
 
 			axis_rect->setupFullAxesBox();
-			_CpPatch remove_axis(axis_rect, QCPAxis::atRight);
-			_CpPatch remove_axis(axis_rect, QCPAxis::atTop);
+			custom_plot::patch::remove_axis(axis_rect, QCPAxis::atRight);
+			custom_plot::patch::remove_axis(axis_rect, QCPAxis::atTop);
 			
 			axis_rect->axis(QCPAxis::atTop)->setRange(QCPRange(0, all_width));
 
-			_Cp set_top_axis_label(
+			custom_plot::set_top_axis_label(
 				axis_rect,
 				Eigen::ArrayXd::LinSpaced(ncol, 0.5 * cell_width, 0.5 * cell_width + (ncol - 1) * (cell_width + border_width)),
 				bottom_labels,
@@ -1866,7 +1866,7 @@ namespace custom_plot {
 			);
 		}
 		else {
-			_Cp set_bottom_axis_label(
+			custom_plot::set_bottom_axis_label(
 				axis_rect,
 				Eigen::ArrayXd::LinSpaced(ncol, 0.5 * cell_width, 0.5 * cell_width + (ncol - 1) * (cell_width + border_width)),
 				bottom_labels,
@@ -1876,7 +1876,7 @@ namespace custom_plot {
 		}
 
 		if (normalize_by_row) {
-			_CpPatch add_gradient_legend(
+			custom_plot::patch::add_gradient_legend(
 				draw_area,
 				legend_layout,
 				minimum_value,
@@ -1892,7 +1892,7 @@ namespace custom_plot {
 			);
 		}
 		else {
-			_Cp add_gradient_legend(
+			custom_plot::add_gradient_legend(
 				draw_area,
 				legend_layout,
 				minimum_value,
@@ -1900,7 +1900,7 @@ namespace custom_plot {
 				"Expression",
 				gs);
 		}
-		_Cp add_round_legend(
+		custom_plot::add_round_legend(
 			draw_area,
 			legend_layout,
 			bottom_labels,
@@ -1925,26 +1925,26 @@ namespace custom_plot {
 		double minimum_value = values.minCoeff(), maximum_value = values.maxCoeff(), span = (maximum_value - minimum_value) / 2, middle = (minimum_value + maximum_value) / 2;
 		int nrow = left_labels.size(), ncol = bottom_labels.size();
 
-		_CpPatch set_border_only(axis_rect, Qt::black, 3);
+		custom_plot::patch::set_border_only(axis_rect, Qt::black, 3);
 
-		_CpPatch set_range(axis_rect, QCPRange(0, 2 * ncol), QCPRange(0, 2 * nrow));
+		custom_plot::patch::set_range(axis_rect, QCPRange(0, 2 * ncol), QCPRange(0, 2 * nrow));
 		QColor low_color = gs.get_gradient_low_color(), high_color = gs.get_gradient_high_color(), middle_color = gs.get_gradient_middle_color();
 		for (int i = 0; i < nrow; ++i) {
 			for (int j = 0; j < ncol; ++j) {
 				double val = values(i, j);
 				if (val < middle) {
-					_CpPatch dot(draw_area, axis_rect, j * 2 + 1, i * 2 + 1, dot_size(i, j), _CpUtility gradient_color((val - minimum_value) / span, low_color, middle_color));
+					custom_plot::patch::dot(draw_area, axis_rect, j * 2 + 1, i * 2 + 1, dot_size(i, j), custom_plot::utility::gradient_color((val - minimum_value) / span, low_color, middle_color));
 				}
 				else {
-					_CpPatch dot(draw_area, axis_rect, j * 2 + 1, i * 2 + 1, dot_size(i, j), _CpUtility gradient_color((val - middle) / span, middle_color, high_color));
+					custom_plot::patch::dot(draw_area, axis_rect, j * 2 + 1, i * 2 + 1, dot_size(i, j), custom_plot::utility::gradient_color((val - middle) / span, middle_color, high_color));
 				}
 			}
 		}
 
-		_Cp set_left_axis_label(axis_rect, Eigen::ArrayXd::LinSpaced(nrow, 1, 2 * nrow - 1), left_labels, 6, gs);
-		_Cp set_bottom_axis_label(axis_rect, Eigen::ArrayXd::LinSpaced(ncol, 1, 2 * ncol - 1), bottom_labels, 6, gs);
-		_Cp proportion_legend(draw_area, legend_layout, size_legend_title, gs);
-		_Cp add_gradient_legend(draw_area, legend_layout, minimum_value, maximum_value, value_legend_title, gs);
+		custom_plot::set_left_axis_label(axis_rect, Eigen::ArrayXd::LinSpaced(nrow, 1, 2 * nrow - 1), left_labels, 6, gs);
+		custom_plot::set_bottom_axis_label(axis_rect, Eigen::ArrayXd::LinSpaced(ncol, 1, 2 * ncol - 1), bottom_labels, 6, gs);
+		custom_plot::proportion_legend(draw_area, legend_layout, size_legend_title, gs);
+		custom_plot::add_gradient_legend(draw_area, legend_layout, minimum_value, maximum_value, value_legend_title, gs);
 	};
 
 	void set_simple_axis(
@@ -2031,7 +2031,7 @@ namespace custom_plot {
 		QCPAxisRect* color_scale_left_rect = new QCPAxisRect(draw_area, false);
 		QCPAxisRect* color_scale_right_rect = new QCPAxisRect(draw_area, false);
 		sub_legend_layout->setRowSpacing(30);
-		auto [row, col] = _CpPatch find_next_empty_position(legend_layout);
+		auto [row, col] = custom_plot::patch::find_next_empty_position(legend_layout);
 		legend_layout->addElement(row, col, sub_legend_layout);
 
 		QCPColorGradient gradient;
@@ -2065,7 +2065,7 @@ namespace custom_plot {
 		color_scale_layout->setMinimumSize(200, 200);
 		color_scale_layout->setMaximumSize(200, 200);
 		sub_legend_layout->addElement(0, 0, color_scale_layout);
-		_CpPatch add_title(draw_area, sub_legend_layout, gs.get_legend_title(title), gs.get_legend_title_font());
+		custom_plot::patch::add_title(draw_area, sub_legend_layout, gs.get_legend_title(title), gs.get_legend_title_font());
 	};
 
 	void add_gradient_legend(
@@ -2081,7 +2081,7 @@ namespace custom_plot {
 		QCPAxisRect* color_scale_left_rect = new QCPAxisRect(draw_area, false);
 		QCPAxisRect* color_scale_right_rect = new QCPAxisRect(draw_area, false);
 		sub_legend_layout->setRowSpacing(30);
-		auto [row, col] = _CpPatch find_next_empty_position(legend_layout);
+		auto [row, col] = custom_plot::patch::find_next_empty_position(legend_layout);
 		legend_layout->addElement(row, col, sub_legend_layout);
 
 		QCPColorGradient gradient;
@@ -2112,7 +2112,7 @@ namespace custom_plot {
 		color_scale_layout->setMinimumSize(200, 200);
 		color_scale_layout->setMaximumSize(200, 200);
 		sub_legend_layout->addElement(0, 0, color_scale_layout);
-		_CpPatch add_title(draw_area, sub_legend_layout, gs.get_legend_title(title), gs.get_legend_title_font());
+		custom_plot::patch::add_title(draw_area, sub_legend_layout, gs.get_legend_title(title), gs.get_legend_title_font());
 	};
 
 	void proportion_legend(
@@ -2122,24 +2122,24 @@ namespace custom_plot {
 		const GraphSettings& gs
 	) {
 		QCPLayoutGrid* sub_legend_layout = new QCPLayoutGrid;
-		auto [row, col] = _CpPatch find_next_empty_position(legend_layout);
+		auto [row, col] = custom_plot::patch::find_next_empty_position(legend_layout);
 		legend_layout->addElement(row, col, sub_legend_layout);
 		QCPAxisRect* legend_rect = new QCPAxisRect(draw_area, true);
 		sub_legend_layout->addElement(0, 0, legend_rect);
 		sub_legend_layout->setRowSpacing(10);
-		_CpPatch set_single_round_legend(draw_area, legend_rect, "0%", Qt::black, gs.get_legend_label_font(), 10, 0, 1);
-		_CpPatch set_single_round_legend(draw_area, legend_rect, "25%", Qt::black, gs.get_legend_label_font(), 10, 1, 6);
-		_CpPatch set_single_round_legend(draw_area, legend_rect, "50%", Qt::black, gs.get_legend_label_font(), 10, 2, 11);
-		_CpPatch set_single_round_legend(draw_area, legend_rect, "75%", Qt::black, gs.get_legend_label_font(), 10, 3, 16);
-		_CpPatch set_single_round_legend(draw_area, legend_rect, "100%", Qt::black, gs.get_legend_label_font(), 10, 4, 21);
-		_CpPatch  remove_left_bottom_axis(legend_rect);
+		custom_plot::patch::set_single_round_legend(draw_area, legend_rect, "0%", Qt::black, gs.get_legend_label_font(), 10, 0, 1);
+		custom_plot::patch::set_single_round_legend(draw_area, legend_rect, "25%", Qt::black, gs.get_legend_label_font(), 10, 1, 6);
+		custom_plot::patch::set_single_round_legend(draw_area, legend_rect, "50%", Qt::black, gs.get_legend_label_font(), 10, 2, 11);
+		custom_plot::patch::set_single_round_legend(draw_area, legend_rect, "75%", Qt::black, gs.get_legend_label_font(), 10, 3, 16);
+		custom_plot::patch::set_single_round_legend(draw_area, legend_rect, "100%", Qt::black, gs.get_legend_label_font(), 10, 4, 21);
+		custom_plot::patch:: remove_left_bottom_axis(legend_rect);
 		int legend_column_width = gs.get_legend_column_width();
 		if (legend_column_width == 0) {
 			legend_column_width = 40;
 		}
-		_CpPatch set_fixed_size(legend_rect, legend_column_width, gs.get_legend_row_width() * 5);
-		_CpPatch set_range(legend_rect, QCPRange(-10, legend_column_width - 10), QCPRange(-0.5, 4.5));
-		_CpPatch add_title(draw_area, sub_legend_layout, legend_title, gs.get_legend_title_font());
+		custom_plot::patch::set_fixed_size(legend_rect, legend_column_width, gs.get_legend_row_width() * 5);
+		custom_plot::patch::set_range(legend_rect, QCPRange(-10, legend_column_width - 10), QCPRange(-0.5, 4.5));
+		custom_plot::patch::add_title(draw_area, sub_legend_layout, legend_title, gs.get_legend_title_font());
 	};
 
 	void add_square_legend(
@@ -2157,7 +2157,7 @@ namespace custom_plot {
 		sub_legend_layout->setMargins(QMargins(0, 0, 0, 0));
 		item_layout_->setMargins(QMargins(0, 0, 0, 0));
 		sub_legend_layout->setRowSpacing(0);
-		auto [row, col] = _CpPatch find_next_empty_position(legend_layout);
+		auto [row, col] = custom_plot::patch::find_next_empty_position(legend_layout);
 		legend_layout->addElement(row, col, sub_legend_layout);
 		sub_legend_layout->addElement(0, 0, item_layout_);
 		double size = levels.size();
@@ -2175,7 +2175,7 @@ namespace custom_plot {
 			item_layout_->addElement(0, i, legend_rect);
 			int j;
 			for (j = 0; j < row; ++j, ++index) {
-				_CpPatch set_single_square_legend(draw_area, legend_rect, levels[index], colors[index], font, 15, (row - j - 1) * 25 + 10, 10);
+				custom_plot::patch::set_single_square_legend(draw_area, legend_rect, levels[index], colors[index], font, 15, (row - j - 1) * 25 + 10, 10);
 				td.setHtml(levels[index]);
 				auto [width, _] = td.size().toSize();
 				column_width = column_width > width ? column_width : width;
@@ -2183,11 +2183,11 @@ namespace custom_plot {
 			if (legend_column_width == 0) {
 				legend_column_width = column_width + 25;
 			}
-			_CpPatch remove_left_bottom_axis(legend_rect);
-			_CpPatch set_fixed_size(legend_rect, legend_column_width, legend_row_width * j);
-			_CpPatch set_range(legend_rect, QCPRange(-10, legend_column_width - 10), QCPRange(0, j * 25));
+			custom_plot::patch::remove_left_bottom_axis(legend_rect);
+			custom_plot::patch::set_fixed_size(legend_rect, legend_column_width, legend_row_width * j);
+			custom_plot::patch::set_range(legend_rect, QCPRange(-10, legend_column_width - 10), QCPRange(0, j * 25));
 		}
-		_CpPatch add_title(draw_area, sub_legend_layout, legend_title, legend_title_font);
+		custom_plot::patch::add_title(draw_area, sub_legend_layout, legend_title, legend_title_font);
 	};
 
 	void add_round_legend(
@@ -2199,7 +2199,7 @@ namespace custom_plot {
 		const GraphSettings& gs,
 		int legend_index
 	) {
-		_CpPatch add_round_legend(
+		custom_plot::patch::add_round_legend(
 			draw_area,
 			legend_layout,
 			levels,

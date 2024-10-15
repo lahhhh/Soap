@@ -44,8 +44,8 @@ bool LoadAtacFromFragmentsWorker::read_fragments() {
 		}
 		seq_end = c;
 
-		int start = _Cs atoi_specialized(&c);
-		int end = _Cs atoi_specialized(&c);
+		int start = custom::atoi_specialized(&c);
+		int end = custom::atoi_specialized(&c);
 
 		if (start >= end) {
 			G_TASK_WARN("Invalid Fragments File: " + QString::fromUtf8(buffer));
@@ -62,7 +62,7 @@ bool LoadAtacFromFragmentsWorker::read_fragments() {
 		++c;
 		barcode = QString::fromUtf8(d, c - d - 1);
 
-		QString seq_name = _Cs standardize_chromosome_name(QString::fromUtf8(buffer, seq_end - buffer));
+		QString seq_name = custom::standardize_chromosome_name(QString::fromUtf8(buffer, seq_end - buffer));
 		auto& sequence_matrix = fragments->data_[seq_name];
 
 		auto iter = this->barcode_index_.find(barcode);
@@ -107,9 +107,9 @@ bool LoadAtacFromFragmentsWorker::read_fragments() {
 			insertion.resize(this->n_barcode_);
 		}
 
-		auto chr_insertion_size = _Cs sapply(insertion, [](auto&& i) {return i.first.size(); });
+		auto chr_insertion_size = custom::sapply(insertion, [](auto&& i) {return i.first.size(); });
 
-		insertion_size = _Cs add(insertion_size, chr_insertion_size);
+		insertion_size = custom::add(insertion_size, chr_insertion_size);
 	}
 
 	fragments->cell_names_.resize(this->n_barcode_);
@@ -117,7 +117,7 @@ bool LoadAtacFromFragmentsWorker::read_fragments() {
 		fragments->cell_names_[ind] = name;
 	}
 
-	auto filter = _Cs sapply(insertion_size, [](auto d) {return d > 1000; });
+	auto filter = custom::sapply(insertion_size, [](auto d) {return d > 1000; });
 
 	fragments->slice(filter);
 
@@ -161,7 +161,7 @@ void LoadAtacFromFragmentsWorker::calculate_metadata() {
 
 	counts.data_type_ = SparseInt::DataType::Counts;
 
-	Eigen::ArrayXi col_count = _Cs col_sum_mt(counts.mat_);
+	Eigen::ArrayXi col_count = custom::col_sum_mt(counts.mat_);
 	const int ncol = counts.mat_.cols();
 	Eigen::ArrayXi col_peak(ncol);
 

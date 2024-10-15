@@ -886,7 +886,7 @@ bool VelocytoWorker::filter_mask_intervals() {
 			interval_starts[i] = chr[i * 2];
 		}
 
-		const auto order = _Cs order(interval_starts);		
+		const auto order = custom::order(interval_starts);		
 
 		std::vector<int> new_chr(size);
 
@@ -925,23 +925,23 @@ bool VelocytoWorker::filter_transcript_model() {
 	QList<std::string> target_gene_names;
 
 	if (this->mode_ == WorkMode::SingleCellRna) {
-		target_gene_names = _Cs sapply(this->single_cell_rna_->counts()->rownames_, [](const QString& rowname) {return rowname.toStdString(); });
+		target_gene_names = custom::sapply(this->single_cell_rna_->counts()->rownames_, [](const QString& rowname) {return rowname.toStdString(); });
 	}
 	else {
-		target_gene_names = _Cs sapply(this->single_cell_multiome_->rna_counts()->rownames_, [](const QString& rowname) {return rowname.toStdString(); });
+		target_gene_names = custom::sapply(this->single_cell_multiome_->rna_counts()->rownames_, [](const QString& rowname) {return rowname.toStdString(); });
 	}
 
 	for (auto iter = this->transcript_models_.begin(); iter != this->transcript_models_.end();) {
 
-		auto chromosome_gene_names = _Cs sapply(iter->second, [](const TranscriptModel& tm) {return tm.gene_name_; });
+		auto chromosome_gene_names = custom::sapply(iter->second, [](const TranscriptModel& tm) {return tm.gene_name_; });
 
-		auto filter = _Cs in(chromosome_gene_names, target_gene_names);
+		auto filter = custom::in(chromosome_gene_names, target_gene_names);
 
 		if (filter.count() == 0) {
 			iter = this->transcript_models_.erase(iter);
 		}
 		else {
-			iter->second = _Cs sliced(iter->second, filter);
+			iter->second = custom::sliced(iter->second, filter);
 			std::sort(iter->second.begin(), iter->second.end());
 			++iter;
 		}
@@ -1014,8 +1014,8 @@ bool VelocytoWorker::parse_mask(const char* file_name) {
 			++line_data;
 		}
 
-		current_start = _Cs atoi_specialized(buffer + index[2]);
-		current_end = _Cs atoi_specialized(buffer + index[3]);
+		current_start = custom::atoi_specialized(buffer + index[2]);
+		current_end = custom::atoi_specialized(buffer + index[3]);
 
 		if (strnicmp(buffer, "chr", 3) == 0) {
 				auto& chromosome = this->mask_intervals_[std::string(buffer + 3, index[0] - 4)];
@@ -1135,7 +1135,7 @@ bool VelocytoWorker::parse_gtf(const char* file_name) {
 			current_strand = buffer[index[5]];
 		}
 		else if (strncmp(buffer + index[1], "exon\t", 5) == 0) {
-			current_model.append_exon(_Cs atoi_specialized(buffer + index[2]), _Cs atoi_specialized(buffer + index[3]));
+			current_model.append_exon(custom::atoi_specialized(buffer + index[2]), custom::atoi_specialized(buffer + index[3]));
 		}
 
 	} while (fgets(buffer, 1024, file) != NULL);

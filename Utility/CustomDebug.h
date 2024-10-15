@@ -1,7 +1,4 @@
 #pragma once
-#ifndef _Cs
-#define _Cs ::custom::
-#endif // !_Cs
 
 #include "Identifier.h"
 

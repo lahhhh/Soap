@@ -22,7 +22,7 @@ CoverageTrackWindow::CoverageTrackWindow(
 	QStringList peak_names = single_cell_multiome->atac_counts()->rownames_;
 	const qsizetype size = peak_names.size();
 	for (qsizetype i = 0; i < size; ++i) {
-		auto [sequence_name, start, end, success] = _Cs string_to_peak(peak_names[i]);
+		auto [sequence_name, start, end, success] = custom::string_to_peak(peak_names[i]);
 		if (success) {
 			this->available_peak_locations_ << std::make_tuple(sequence_name, start, end);
 		}
@@ -47,7 +47,7 @@ CoverageTrackWindow::CoverageTrackWindow(
 	QStringList peak_names = single_cell_atac->counts()->rownames_;
 	const qsizetype size = peak_names.size();
 	for (qsizetype i = 0; i < size; ++i) {
-		auto [sequence_name, start, end, success] = _Cs string_to_peak(peak_names[i]);
+		auto [sequence_name, start, end, success] = custom::string_to_peak(peak_names[i]);
 		if (success) {
 			this->available_peak_locations_ << std::make_tuple(sequence_name, start, end);
 		}
@@ -354,7 +354,7 @@ void CoverageTrackWindow::s_save_pdf_and_png() {
 	std::string pdf_file_name = pdf_name.toStdString();
 	std::string picture_file_name = picture_name.toStdString();
 
-	if (!_Cs save_pdf_page_as_png(pdf_file_name, 0, picture_file_name)) {
+	if (!custom::save_pdf_page_as_png(pdf_file_name, 0, picture_file_name)) {
 		G_WARN("PNG Saving Failed.");
 	}
 	else {
@@ -460,7 +460,7 @@ void CoverageTrackWindow::expand_region() {
 };
 
 bool CoverageTrackWindow::get_location() {
-	auto [sequence_name, start, end, success] = _Cs string_to_peak(this->plot_elements_.region_name);
+	auto [sequence_name, start, end, success] = custom::string_to_peak(this->plot_elements_.region_name);
 	if (!success) {
 		return this->get_location_by_gene_name();
 	}
@@ -475,7 +475,7 @@ bool CoverageTrackWindow::get_location() {
 
 bool CoverageTrackWindow::get_location_by_gene_name() {
 	auto [seq_name, start, end, strand, success] = 
-		_Cs find_gene_in_genome(this->plot_elements_.region_name, this->coverage_track_->annotation_);
+		custom::find_gene_in_genome(this->plot_elements_.region_name, this->coverage_track_->annotation_);
 	if (!success) {
 		return false;
 	}
@@ -497,11 +497,11 @@ bool CoverageTrackWindow::find_gene_in_region() {
 		return false;
 	}
 
-	start = _Cs sliced(start, sequence_filter);
-	end = _Cs sliced(end, sequence_filter);
-	strand = _Cs sliced(strand, sequence_filter);
-	QStringList type = _Cs sliced(this->coverage_track_->annotation_.metadata_.get_const_qstring_reference(METADATA_GENOMIC_RANGE_GENE_TYPE), sequence_filter);
-	QStringList gene_name = _Cs sliced(this->coverage_track_->annotation_.metadata_.get_const_qstring_reference(METADATA_GENOMIC_RANGE_GENE_NAME), sequence_filter);
+	start = custom::sliced(start, sequence_filter);
+	end = custom::sliced(end, sequence_filter);
+	strand = custom::sliced(strand, sequence_filter);
+	QStringList type = custom::sliced(this->coverage_track_->annotation_.metadata_.get_const_qstring_reference(METADATA_GENOMIC_RANGE_GENE_TYPE), sequence_filter);
+	QStringList gene_name = custom::sliced(this->coverage_track_->annotation_.metadata_.get_const_qstring_reference(METADATA_GENOMIC_RANGE_GENE_NAME), sequence_filter);
 
 	const qsizetype sequence_size = start.size();
 	int last_start = 0, last_end = 0;
@@ -519,7 +519,7 @@ bool CoverageTrackWindow::find_gene_in_region() {
 			this->plot_elements_.gene_structure[gene_name[i]].second.append(std::make_tuple(local_start, local_end, type[i]));
 		}
 	}
-	if (_Cs sum(_Cs sapply(this->plot_elements_.gene_structure.values(), [](auto&& value) {return value.second.size(); })) == 0) {
+	if (custom::sum(custom::sapply(this->plot_elements_.gene_structure.values(), [](auto&& value) {return value.second.size(); })) == 0) {
 		G_NOTICE("No Gene Found in region : " + this->location_.sequence_name + ":" + QString::number(this->location_.start) + "-" + QString::number(this->location_.end) + ".");
 		return false;
 	}
@@ -586,14 +586,14 @@ bool CoverageTrackWindow::calculate_matrix() {
 	for (int i = 0; i < n_level; ++i) {
 		const auto& track = matrix[i];
 
-		this->plot_elements_.normalized_matrix.row(i) = _Cs cast<Eigen::ArrayX>(track.segment(start, width)).cast<double>();
+		this->plot_elements_.normalized_matrix.row(i) = custom::cast<Eigen::ArrayX>(track.segment(start, width)).cast<double>();
 	}
 	return this->plot_elements_.normalized_matrix.maxCoeff() != 0;
 };
 
 void CoverageTrackWindow::draw_plot() {
 
-	auto draw_area = _Cp coverage_plot(this->plot_elements_, this->draw_suite_->graph_settings_);
+	auto draw_area = custom_plot::coverage_plot(this->plot_elements_, this->draw_suite_->graph_settings_);
 
 	this->draw_suite_->update(draw_area);
 

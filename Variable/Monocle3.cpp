@@ -24,7 +24,9 @@ Monocle3& Monocle3::operator=(const Monocle3& rhs) {
 	this->pseudo_time_ = rhs.pseudo_time_;
 	igraph_copy(&this->pr_graph_, &rhs.pr_graph_);
 	igraph_copy(&this->cell_graph_, &rhs.cell_graph_);
-	_Cs igraph_vector_copy(this->cell_graph_weights_, rhs.cell_graph_weights_);
+	custom::igraph_vector_copy(this->cell_graph_weights_, rhs.cell_graph_weights_);
+
+	return *this;
 };
 
 Monocle3::~Monocle3() {

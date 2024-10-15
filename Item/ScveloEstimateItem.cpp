@@ -174,15 +174,15 @@ std::pair<QCustomPlot*, QCPAxisRect*> ScveloEstimateItem::draw_feature_plot(
 	}
 
 	auto&& gs = this->draw_suite_->graph_settings_;
-	auto [draw_area, axis_rect, legend_layout] = _Cp prepare(gs);	
+	auto [draw_area, axis_rect, legend_layout] = custom_plot::prepare(gs);	
 
 	Eigen::ArrayXd x = embedding.col(0), y = embedding.col(1);
 
-	_Cp set_scatter_plot_axis_style(draw_area, axis_rect, embedding_names[0], embedding_names[1], x, y, gs);
+	custom_plot::set_scatter_plot_axis_style(draw_area, axis_rect, embedding_names[0], embedding_names[1], x, y, gs);
 
 	if (feature_data.is_continuous()) {
 
-		Eigen::ArrayXd feat = _Cs cast<Eigen::ArrayX>(feature_data.get_continuous());
+		Eigen::ArrayXd feat = custom::cast<Eigen::ArrayX>(feature_data.get_continuous());
 
 		QColor low_color = gs.get_gradient_low_color();
 		low_color.setAlpha(64);
@@ -191,7 +191,7 @@ std::pair<QCustomPlot*, QCPAxisRect*> ScveloEstimateItem::draw_feature_plot(
 		QColor high_color = gs.get_gradient_high_color();
 		high_color.setAlpha(64);
 
-		_CpPatch scatter_gradient(
+		custom_plot::patch::scatter_gradient(
 			draw_area,
 			axis_rect,
 			x,
@@ -205,7 +205,7 @@ std::pair<QCustomPlot*, QCPAxisRect*> ScveloEstimateItem::draw_feature_plot(
 			gs.get_scatter_point_size()
 		);
 
-		_Cp add_gradient_legend(draw_area, legend_layout, feat.minCoeff(), feat.maxCoeff(), legend_title, gs);
+		custom_plot::add_gradient_legend(draw_area, legend_layout, feat.minCoeff(), feat.maxCoeff(), legend_title, gs);
 	}
 	else if(feature_data.is_factor()){
 
@@ -213,9 +213,9 @@ std::pair<QCustomPlot*, QCPAxisRect*> ScveloEstimateItem::draw_feature_plot(
 		auto colors = gs.palette(levels);
 		std::ranges::for_each(colors, [](QColor& color) {color.setAlpha(64); });
 
-		_CpPatch scatter_category(draw_area, axis_rect, x, y, feature_data.get_factor(), levels, colors, gs.get_scatter_point_size());
+		custom_plot::patch::scatter_category(draw_area, axis_rect, x, y, feature_data.get_factor(), levels, colors, gs.get_scatter_point_size());
 
-		_CpPatch add_round_legend(
+		custom_plot::patch::add_round_legend(
 			draw_area, 
 			legend_layout, 
 			levels, 
@@ -230,7 +230,7 @@ std::pair<QCustomPlot*, QCPAxisRect*> ScveloEstimateItem::draw_feature_plot(
 		return { nullptr, nullptr };
 	}
 
-	_Cp add_title(draw_area, "Scvelo Graph", gs);
+	custom_plot::add_title(draw_area, "Scvelo Graph", gs);
 
 	return std::make_pair(draw_area, axis_rect);
 };

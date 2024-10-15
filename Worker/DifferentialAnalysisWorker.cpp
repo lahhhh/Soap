@@ -6,10 +6,10 @@
 void DifferentialAnalysisWorker::dense(DifferentialAnalysis::DataType dtype) {
 
 	if (this->comparison_[1] != "ALL") {
-		Eigen::ArrayX<bool> group_1_filter = _Cs equal(this->metadata_, this->comparison_[1]), group_2_filter;
+		Eigen::ArrayX<bool> group_1_filter = custom::equal(this->metadata_, this->comparison_[1]), group_2_filter;
 
 		if (this->comparison_[2] != "REST") {
-			group_2_filter = _Cs equal(this->metadata_, this->comparison_[2]);
+			group_2_filter = custom::equal(this->metadata_, this->comparison_[2]);
 		}
 		else {
 			group_2_filter = !group_1_filter;
@@ -26,8 +26,8 @@ void DifferentialAnalysisWorker::dense(DifferentialAnalysis::DataType dtype) {
 	#pragma omp parallel for
 		for (int i = 0; i < feature_number; ++i) {
 			Eigen::ArrayXd feature_val = this->dense_data_.row(i);
-			Eigen::ArrayXd group_1_val = _Cs sliced(feature_val, group_1_filter);
-			Eigen::ArrayXd group_2_val = _Cs sliced(feature_val, group_2_filter);
+			Eigen::ArrayXd group_1_val = custom::sliced(feature_val, group_1_filter);
+			Eigen::ArrayXd group_2_val = custom::sliced(feature_val, group_2_filter);
 
 			double percentage_1 = group_1_val.count() / n_cell_1;
 			double percentage_2 = group_2_val.count() / n_cell_2;
@@ -43,21 +43,21 @@ void DifferentialAnalysisWorker::dense(DifferentialAnalysis::DataType dtype) {
 			p_adjusted[i] = wilcox_test(group_1_val, group_2_val);
 		}
 
-		this->feature_names_ = _Cs sliced(this->feature_names_, computed);
-		log2_fold_change = _Cs sliced(log2_fold_change, computed);
-		p_adjusted = _Cs sliced(p_adjusted, computed);
+		this->feature_names_ = custom::sliced(this->feature_names_, computed);
+		log2_fold_change = custom::sliced(log2_fold_change, computed);
+		p_adjusted = custom::sliced(p_adjusted, computed);
 		feature_number = this->feature_names_.size();
-		percentage_of_val_in_group_1 = _Cs sliced(percentage_of_val_in_group_1, computed);
-		percentage_of_val_in_group_2 = _Cs sliced(percentage_of_val_in_group_2, computed);
-		p_adjusted = _Cs adjust_p_value(p_adjusted, this->p_adjust_method_);
+		percentage_of_val_in_group_1 = custom::sliced(percentage_of_val_in_group_1, computed);
+		percentage_of_val_in_group_2 = custom::sliced(percentage_of_val_in_group_2, computed);
+		p_adjusted = custom::adjust_p_value(p_adjusted, this->p_adjust_method_);
 		DifferentialAnalysis da;
 		da.data_type_ = dtype;
 		da.mat_.set_rownames(this->feature_names_);
 		da.mat_.update(METADATA_DE_FEATURE_NAME, this->feature_names_);
-		da.mat_.update(METADATA_DE_LOG2_FOLD_CHANGE, _Cs cast<QVector>(log2_fold_change));
-		da.mat_.update(METADATA_DE_ADJUSTED_P_VALUE, _Cs cast<QVector>(p_adjusted));
-		da.mat_.update(METADATA_DE_PERCENTAGE_1, _Cs cast<QVector>(percentage_of_val_in_group_1));
-		da.mat_.update(METADATA_DE_PERCENTAGE_2, _Cs cast<QVector>(percentage_of_val_in_group_2));
+		da.mat_.update(METADATA_DE_LOG2_FOLD_CHANGE, custom::cast<QVector>(log2_fold_change));
+		da.mat_.update(METADATA_DE_ADJUSTED_P_VALUE, custom::cast<QVector>(p_adjusted));
+		da.mat_.update(METADATA_DE_PERCENTAGE_1, custom::cast<QVector>(percentage_of_val_in_group_1));
+		da.mat_.update(METADATA_DE_PERCENTAGE_2, custom::cast<QVector>(percentage_of_val_in_group_2));
 		da.mat_.update(METADATA_DE_COMPARISON_1, QStringList(feature_number, this->comparison_[1]), CustomMatrix::DataType::QStringFactor);
 		da.mat_.update(METADATA_DE_COMPARISON_2, QStringList(feature_number, this->comparison_[2]), CustomMatrix::DataType::QStringFactor);
 		da.mat_.update(METADATA_DE_METADATA_NAME, QStringList(feature_number, this->metadata_name_), CustomMatrix::DataType::QStringFactor);
@@ -65,15 +65,15 @@ void DifferentialAnalysisWorker::dense(DifferentialAnalysis::DataType dtype) {
 	}
 	else {
 
-		QStringList factors = _Cs unique(this->metadata_);
+		QStringList factors = custom::unique(this->metadata_);
 		QStringList all_feature_names;
 		QVector<double> all_log2_fold_change, all_p_adjusted, all_percentage_1, all_percentage_2;
 		QStringList comparison1, comparison2;
 
 		for (auto factor : factors) {
-			Eigen::ArrayX<bool> group_1_filter = _Cs equal(this->metadata_, factor), group_2_filter;
+			Eigen::ArrayX<bool> group_1_filter = custom::equal(this->metadata_, factor), group_2_filter;
 			if (this->comparison_[2] != "REST") {
-				group_2_filter = _Cs equal(this->metadata_, this->comparison_[2]);
+				group_2_filter = custom::equal(this->metadata_, this->comparison_[2]);
 			}
 			else {
 				group_2_filter = !group_1_filter;
@@ -89,8 +89,8 @@ void DifferentialAnalysisWorker::dense(DifferentialAnalysis::DataType dtype) {
 		#pragma omp parallel for
 			for (int i = 0; i < feature_number; ++i) {
 				Eigen::ArrayXd feature_val = this->dense_data_.row(i);
-				Eigen::ArrayXd group_1_val = _Cs sliced(feature_val, group_1_filter);
-				Eigen::ArrayXd group_2_val = _Cs sliced(feature_val, group_2_filter);
+				Eigen::ArrayXd group_1_val = custom::sliced(feature_val, group_1_filter);
+				Eigen::ArrayXd group_2_val = custom::sliced(feature_val, group_2_filter);
 				double percentage_1 = group_1_val.count() / n_cell_1;
 				double percentage_2 = group_2_val.count() / n_cell_2;
 				if (percentage_1 < this->minimum_percentage_ && percentage_2 < this->minimum_percentage_) {
@@ -104,17 +104,17 @@ void DifferentialAnalysisWorker::dense(DifferentialAnalysis::DataType dtype) {
 				computed[i] = true;
 				p_adjusted[i] = wilcox_test(group_1_val, group_2_val);
 			};
-			QStringList feature_names = _Cs sliced(this->feature_names_, computed);
-			log2_fold_change = _Cs sliced(log2_fold_change, computed);
-			p_adjusted = _Cs sliced(p_adjusted, computed);
-			percentage_of_val_in_group_1 = _Cs sliced(percentage_of_val_in_group_1, computed);
-			percentage_of_val_in_group_2 = _Cs sliced(percentage_of_val_in_group_2, computed);
-			p_adjusted = _Cs adjust_p_value(p_adjusted, this->p_adjust_method_);
+			QStringList feature_names = custom::sliced(this->feature_names_, computed);
+			log2_fold_change = custom::sliced(log2_fold_change, computed);
+			p_adjusted = custom::sliced(p_adjusted, computed);
+			percentage_of_val_in_group_1 = custom::sliced(percentage_of_val_in_group_1, computed);
+			percentage_of_val_in_group_2 = custom::sliced(percentage_of_val_in_group_2, computed);
+			p_adjusted = custom::adjust_p_value(p_adjusted, this->p_adjust_method_);
 			all_feature_names.append(feature_names);
-			all_log2_fold_change.append(_Cs cast<QVector>(log2_fold_change));
-			all_p_adjusted.append(_Cs cast<QVector>(p_adjusted));
-			all_percentage_1.append(_Cs cast<QVector>(percentage_of_val_in_group_1));
-			all_percentage_2.append(_Cs cast<QVector>(percentage_of_val_in_group_2));
+			all_log2_fold_change.append(custom::cast<QVector>(log2_fold_change));
+			all_p_adjusted.append(custom::cast<QVector>(p_adjusted));
+			all_percentage_1.append(custom::cast<QVector>(percentage_of_val_in_group_1));
+			all_percentage_2.append(custom::cast<QVector>(percentage_of_val_in_group_2));
 			comparison1.append(QStringList(feature_names.size(), factor));
 			comparison2.append(QStringList(feature_names.size(), this->comparison_[2]));
 		}
@@ -136,10 +136,10 @@ void DifferentialAnalysisWorker::dense(DifferentialAnalysis::DataType dtype) {
 void DifferentialAnalysisWorker::sparse(DifferentialAnalysis::DataType dtype) {
 
 	if (this->comparison_[1] != "ALL") {
-		Eigen::ArrayX<bool> group_1_filter = _Cs equal(this->metadata_, this->comparison_[1]), group_2_filter;
+		Eigen::ArrayX<bool> group_1_filter = custom::equal(this->metadata_, this->comparison_[1]), group_2_filter;
 
 		if (this->comparison_[2] != "REST") {
-			group_2_filter = _Cs equal(this->metadata_, this->comparison_[2]);
+			group_2_filter = custom::equal(this->metadata_, this->comparison_[2]);
 		}
 		else {
 			group_2_filter = !group_1_filter;
@@ -155,8 +155,8 @@ void DifferentialAnalysisWorker::sparse(DifferentialAnalysis::DataType dtype) {
 	#pragma omp parallel for
 		for (int i = 0; i < feature_number; ++i) {
 			Eigen::ArrayXd feature_val = this->sparse_data_.col(i);
-			Eigen::ArrayXd group_1_val = _Cs sliced(feature_val, group_1_filter);
-			Eigen::ArrayXd group_2_val = _Cs sliced(feature_val, group_2_filter);
+			Eigen::ArrayXd group_1_val = custom::sliced(feature_val, group_1_filter);
+			Eigen::ArrayXd group_2_val = custom::sliced(feature_val, group_2_filter);
 
 			double percentage_1 = group_1_val.count() / n_cell_1;
 			double percentage_2 = group_2_val.count() / n_cell_2;
@@ -172,35 +172,35 @@ void DifferentialAnalysisWorker::sparse(DifferentialAnalysis::DataType dtype) {
 			p_adjusted[i] = wilcox_test(group_1_val, group_2_val);
 		}
 
-		this->feature_names_ = _Cs sliced(this->feature_names_, computed);
-		log2_fold_change = _Cs sliced(log2_fold_change, computed);
-		p_adjusted = _Cs sliced(p_adjusted, computed);
+		this->feature_names_ = custom::sliced(this->feature_names_, computed);
+		log2_fold_change = custom::sliced(log2_fold_change, computed);
+		p_adjusted = custom::sliced(p_adjusted, computed);
 		feature_number = this->feature_names_.size();
-		percentage_of_val_in_group_1 = _Cs sliced(percentage_of_val_in_group_1, computed);
-		percentage_of_val_in_group_2 = _Cs sliced(percentage_of_val_in_group_2, computed);
-		p_adjusted = _Cs adjust_p_value(p_adjusted, this->p_adjust_method_);
+		percentage_of_val_in_group_1 = custom::sliced(percentage_of_val_in_group_1, computed);
+		percentage_of_val_in_group_2 = custom::sliced(percentage_of_val_in_group_2, computed);
+		p_adjusted = custom::adjust_p_value(p_adjusted, this->p_adjust_method_);
 		DifferentialAnalysis da;
 		da.data_type_ = dtype;
 		da.mat_.set_rownames(this->feature_names_);
 		da.mat_.update(METADATA_DE_FEATURE_NAME, this->feature_names_);
-		da.mat_.update(METADATA_DE_LOG2_FOLD_CHANGE, _Cs cast<QVector>(log2_fold_change));
-		da.mat_.update(METADATA_DE_ADJUSTED_P_VALUE, _Cs cast<QVector>(p_adjusted));
-		da.mat_.update(METADATA_DE_PERCENTAGE_1, _Cs cast<QVector>(percentage_of_val_in_group_1));
-		da.mat_.update(METADATA_DE_PERCENTAGE_2, _Cs cast<QVector>(percentage_of_val_in_group_2));
+		da.mat_.update(METADATA_DE_LOG2_FOLD_CHANGE, custom::cast<QVector>(log2_fold_change));
+		da.mat_.update(METADATA_DE_ADJUSTED_P_VALUE, custom::cast<QVector>(p_adjusted));
+		da.mat_.update(METADATA_DE_PERCENTAGE_1, custom::cast<QVector>(percentage_of_val_in_group_1));
+		da.mat_.update(METADATA_DE_PERCENTAGE_2, custom::cast<QVector>(percentage_of_val_in_group_2));
 		da.mat_.update(METADATA_DE_COMPARISON_1, QStringList(feature_number, this->comparison_[1]), CustomMatrix::DataType::QStringFactor);
 		da.mat_.update(METADATA_DE_COMPARISON_2, QStringList(feature_number, this->comparison_[2]), CustomMatrix::DataType::QStringFactor);
 		da.mat_.update(METADATA_DE_METADATA_NAME, QStringList(feature_number, this->metadata_name_), CustomMatrix::DataType::QStringFactor);
 		emit x_differential_analysis_ready(da, this->comparison_[1] + " vs. " + this->comparison_[2]);
 	}
 	else {
-		QStringList factors = _Cs unique(this->metadata_);
+		QStringList factors = custom::unique(this->metadata_);
 		QStringList all_feature_names;
 		QVector<double> all_log2_fold_change, all_p_adjusted, all_percentage_1, all_percentage_2;
 		QStringList comparison1, comparison2;
 		for (auto factor : factors) {
-			Eigen::ArrayX<bool> group_1_filter = _Cs equal(this->metadata_, factor), group_2_filter;
+			Eigen::ArrayX<bool> group_1_filter = custom::equal(this->metadata_, factor), group_2_filter;
 			if (this->comparison_[2] != "REST") {
-				group_2_filter = _Cs equal(this->metadata_, this->comparison_[2]);
+				group_2_filter = custom::equal(this->metadata_, this->comparison_[2]);
 			}
 			else {
 				group_2_filter = !group_1_filter;
@@ -216,8 +216,8 @@ void DifferentialAnalysisWorker::sparse(DifferentialAnalysis::DataType dtype) {
 		#pragma omp parallel for
 			for (int i = 0; i < feature_number; ++i) {
 				Eigen::ArrayXd feature_val = this->sparse_data_.col(i);
-				Eigen::ArrayXd group_1_val = _Cs sliced(feature_val, group_1_filter);
-				Eigen::ArrayXd group_2_val = _Cs sliced(feature_val, group_2_filter);
+				Eigen::ArrayXd group_1_val = custom::sliced(feature_val, group_1_filter);
+				Eigen::ArrayXd group_2_val = custom::sliced(feature_val, group_2_filter);
 				double percentage_1 = group_1_val.count() / n_cell_1;
 				double percentage_2 = group_2_val.count() / n_cell_2;
 
@@ -232,17 +232,17 @@ void DifferentialAnalysisWorker::sparse(DifferentialAnalysis::DataType dtype) {
 				p_adjusted[i] = wilcox_test(group_1_val, group_2_val);
 			};
 
-			QStringList feature_names = _Cs sliced(this->feature_names_, computed);
-			log2_fold_change = _Cs sliced(log2_fold_change, computed);
-			p_adjusted = _Cs sliced(p_adjusted, computed);
-			percentage_of_val_in_group_1 = _Cs sliced(percentage_of_val_in_group_1, computed);
-			percentage_of_val_in_group_2 = _Cs sliced(percentage_of_val_in_group_2, computed);
-			p_adjusted = _Cs adjust_p_value(p_adjusted, this->p_adjust_method_);
+			QStringList feature_names = custom::sliced(this->feature_names_, computed);
+			log2_fold_change = custom::sliced(log2_fold_change, computed);
+			p_adjusted = custom::sliced(p_adjusted, computed);
+			percentage_of_val_in_group_1 = custom::sliced(percentage_of_val_in_group_1, computed);
+			percentage_of_val_in_group_2 = custom::sliced(percentage_of_val_in_group_2, computed);
+			p_adjusted = custom::adjust_p_value(p_adjusted, this->p_adjust_method_);
 			all_feature_names.append(feature_names);
-			all_log2_fold_change.append(_Cs cast<QVector>(log2_fold_change));
-			all_p_adjusted.append(_Cs cast<QVector>(p_adjusted));
-			all_percentage_1.append(_Cs cast<QVector>(percentage_of_val_in_group_1));
-			all_percentage_2.append(_Cs cast<QVector>(percentage_of_val_in_group_2));
+			all_log2_fold_change.append(custom::cast<QVector>(log2_fold_change));
+			all_p_adjusted.append(custom::cast<QVector>(p_adjusted));
+			all_percentage_1.append(custom::cast<QVector>(percentage_of_val_in_group_1));
+			all_percentage_2.append(custom::cast<QVector>(percentage_of_val_in_group_2));
 			comparison1.append(QStringList(feature_names.size(), factor));
 			comparison2.append(QStringList(feature_names.size(), this->comparison_[2]));
 		}
@@ -272,10 +272,10 @@ void DifferentialAnalysisWorker::chromvar_mode() {
 
 	this->dense_data_ = this->chrom_var_->z_;
 	if (this->comparison_[1] != "ALL") {
-		Eigen::ArrayX<bool> group_1_filter = _Cs equal(this->metadata_, this->comparison_[1]), group_2_filter;
+		Eigen::ArrayX<bool> group_1_filter = custom::equal(this->metadata_, this->comparison_[1]), group_2_filter;
 
 		if (this->comparison_[2] != "REST") {
-			group_2_filter = _Cs equal(this->metadata_, this->comparison_[2]);
+			group_2_filter = custom::equal(this->metadata_, this->comparison_[2]);
 		}
 		else {
 			group_2_filter = !group_1_filter;
@@ -288,8 +288,8 @@ void DifferentialAnalysisWorker::chromvar_mode() {
 	#pragma omp parallel for
 		for (int i = 0; i < feature_number; ++i) {
 			Eigen::ArrayXd feature_val = this->dense_data_.row(i);
-			Eigen::ArrayXd group_1_val = _Cs sliced(feature_val, group_1_filter);
-			Eigen::ArrayXd group_2_val = _Cs sliced(feature_val, group_2_filter);
+			Eigen::ArrayXd group_1_val = custom::sliced(feature_val, group_1_filter);
+			Eigen::ArrayXd group_2_val = custom::sliced(feature_val, group_2_filter);
 
 			double percentage_1 = group_1_val.count() / n_cell_1;
 			double percentage_2 = group_2_val.count() / n_cell_2;
@@ -299,27 +299,27 @@ void DifferentialAnalysisWorker::chromvar_mode() {
 			z_diff[i] = val1 - val2;
 		}
 
-		p_adjusted = _Cs adjust_p_value(p_adjusted, this->p_adjust_method_);
+		p_adjusted = custom::adjust_p_value(p_adjusted, this->p_adjust_method_);
 		DifferentialAnalysis da;
 		da.data_type_ = DifferentialAnalysis::DataType::ChromVAR;
 		da.mat_.set_rownames(this->feature_names_);
 		da.mat_.update(METADATA_DE_FEATURE_NAME, this->feature_names_);
-		da.mat_.update(METADATA_DE_Z_SCORE_DIFFERENCE, _Cs cast<QVector>(z_diff));
-		da.mat_.update(METADATA_DE_ADJUSTED_P_VALUE, _Cs cast<QVector>(p_adjusted));
+		da.mat_.update(METADATA_DE_Z_SCORE_DIFFERENCE, custom::cast<QVector>(z_diff));
+		da.mat_.update(METADATA_DE_ADJUSTED_P_VALUE, custom::cast<QVector>(p_adjusted));
 		da.mat_.update(METADATA_DE_COMPARISON_1, QStringList(feature_number, this->comparison_[1]), CustomMatrix::DataType::QStringFactor);
 		da.mat_.update(METADATA_DE_COMPARISON_2, QStringList(feature_number, this->comparison_[2]), CustomMatrix::DataType::QStringFactor);
 		da.mat_.update(METADATA_DE_METADATA_NAME, QStringList(feature_number, this->metadata_name_), CustomMatrix::DataType::QStringFactor);
 		emit x_differential_analysis_ready(da, this->comparison_[1] + " vs. " + this->comparison_[2]);
 	}
 	else {
-		QStringList factors = _Cs unique(this->metadata_);
+		QStringList factors = custom::unique(this->metadata_);
 		QStringList all_feature_names;  
 		QVector<double> all_z_diff, all_p_adjusted;
 		QStringList comparison1, comparison2;
 		for (auto&& factor : factors) {
-			Eigen::ArrayX<bool> group_1_filter = _Cs equal(this->metadata_, factor), group_2_filter;
+			Eigen::ArrayX<bool> group_1_filter = custom::equal(this->metadata_, factor), group_2_filter;
 			if (this->comparison_[2] != "REST") {
-				group_2_filter = _Cs equal(this->metadata_, this->comparison_[2]);
+				group_2_filter = custom::equal(this->metadata_, this->comparison_[2]);
 			}
 			else {
 				group_2_filter = !group_1_filter;
@@ -333,18 +333,18 @@ void DifferentialAnalysisWorker::chromvar_mode() {
 		#pragma omp parallel for
 			for (int i = 0; i < feature_number; ++i) {
 				Eigen::ArrayXd feature_val = this->dense_data_.row(i);
-				Eigen::ArrayXd group_1_val = _Cs sliced(feature_val, group_1_filter);
-				Eigen::ArrayXd group_2_val = _Cs sliced(feature_val, group_2_filter);
+				Eigen::ArrayXd group_1_val = custom::sliced(feature_val, group_1_filter);
+				Eigen::ArrayXd group_2_val = custom::sliced(feature_val, group_2_filter);
 
 				double val2 = group_2_val.mean(), val1 = group_1_val.mean();
 				p_adjusted[i] = wilcox_test(group_1_val, group_2_val);
 				z_diff[i] = val1 - val2;
 			};
 
-			p_adjusted = _Cs adjust_p_value(p_adjusted, this->p_adjust_method_);
+			p_adjusted = custom::adjust_p_value(p_adjusted, this->p_adjust_method_);
 			all_feature_names.append(this->feature_names_);
-			all_z_diff.append(_Cs cast<QVector>(z_diff));
-			all_p_adjusted.append(_Cs cast<QVector>(p_adjusted));
+			all_z_diff.append(custom::cast<QVector>(z_diff));
+			all_p_adjusted.append(custom::cast<QVector>(p_adjusted));
 			comparison1.append(QStringList(feature_number, factor));
 			comparison2.append(QStringList(feature_number, this->comparison_[2]));
 		}
@@ -364,28 +364,28 @@ void DifferentialAnalysisWorker::chromvar_mode() {
 
 void DifferentialAnalysisWorker::scatac_mode() {
 
-	this->sparse_data_ = _Cs normalize(this->single_cell_atac_->counts()->mat_, 10000.0).transpose();
+	this->sparse_data_ = custom::normalize(this->single_cell_atac_->counts()->mat_, 10000.0).transpose();
 
 	this->sparse(DifferentialAnalysis::DataType::Peak);
 };
 
 void DifferentialAnalysisWorker::bulkrna_mode() {
 
-	this->dense_data_ = _Cs normalize(this->bulk_rna_->counts()->mat_.cast<double>(), 10000.0);
+	this->dense_data_ = custom::normalize(this->bulk_rna_->counts()->mat_.cast<double>(), 10000.0);
 
 	this->dense(DifferentialAnalysis::DataType::Gene);
 };
 
 void DifferentialAnalysisWorker::scrna_mode() {
 
-	this->sparse_data_ = _Cs normalize(this->single_cell_rna_->counts()->mat_, 10000.0).transpose();
+	this->sparse_data_ = custom::normalize(this->single_cell_rna_->counts()->mat_, 10000.0).transpose();
 
 	this->sparse(DifferentialAnalysis::DataType::Gene);
 };
 
 void DifferentialAnalysisWorker::scmultiome_mode() {
 
-	this->sparse_data_ = _Cs normalize(this->data_field_->counts()->mat_, 10000).transpose();
+	this->sparse_data_ = custom::normalize(this->data_field_->counts()->mat_, 10000).transpose();
 
 	auto field_type = this->data_field_->data_type_;
 

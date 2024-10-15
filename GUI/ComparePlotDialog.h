@@ -17,6 +17,7 @@ struct COMPARE_PLOT_ELEMENT {
     bool normalize{ false };
     bool use_gene_activity{ false };
     bool show_p_value{ false };
+    QString method;
     QString group;
     QString type;
     QList<QPair<QString, QString>> comparisons;
@@ -48,6 +49,9 @@ public:
 
     QLabel* p_value_label_{ nullptr };
     Switch* p_value_{ nullptr };
+
+    QLabel* method_label_{ nullptr };
+    QComboBox* choose_method_{ nullptr };
 
     QLabel* group_label_{ nullptr };
     QComboBox* choose_group_{ nullptr };

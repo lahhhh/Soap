@@ -51,8 +51,8 @@ namespace custom_plot {
 			return shape(
 				draw_area,
 				axis_rect,
-				_Cs cast<QVector>(x),
-				_Cs cast<QVector>(y),
+				custom::cast<QVector>(x),
+				custom::cast<QVector>(y),
 				border_color,
 				fill_color,
 				width
@@ -96,8 +96,8 @@ namespace custom_plot {
 			return shape_borderless(
 				draw_area,
 				axis_rect,
-				_Cs cast<QVector>(x),
-				_Cs cast<QVector>(y),
+				custom::cast<QVector>(x),
+				custom::cast<QVector>(y),
 				fill_color
 			);
 		};
@@ -173,8 +173,8 @@ namespace custom_plot {
 			return scatter(
 				draw_area,
 				axis_rect,
-				_Cs cast<QVector>(x),
-				_Cs cast<QVector>(y),
+				custom::cast<QVector>(x),
+				custom::cast<QVector>(y),
 				color,
 				scatter_size
 			);
@@ -194,9 +194,9 @@ namespace custom_plot {
 
 			for (int i = 0; i < n_level; ++i) {
 
-				auto filter = _Cs equal(values, levels[i]);
-				QVector<double> sub_x = _Cs sliced(x, filter);
-				QVector<double> sub_y = _Cs sliced(y, filter);
+				auto filter = custom::equal(values, levels[i]);
+				QVector<double> sub_x = custom::sliced(x, filter);
+				QVector<double> sub_y = custom::sliced(y, filter);
 
 				scatter(
 					draw_area,
@@ -223,8 +223,8 @@ namespace custom_plot {
 			scatter_category(
 				draw_area,
 				axis_rect,
-				_Cs cast<QVector>(x),
-				_Cs cast<QVector>(y),
+				custom::cast<QVector>(x),
+				custom::cast<QVector>(y),
 				values,
 				levels,
 				colors,
@@ -386,8 +386,8 @@ namespace custom_plot {
 			return line(
 				draw_area,
 				axis_rect,
-				_Cs cast<QVector>(x),
-				_Cs cast<QVector>(y),
+				custom::cast<QVector>(x),
+				custom::cast<QVector>(y),
 				color,
 				width,
 				style
@@ -417,7 +417,7 @@ namespace custom_plot {
 
 			graph->setLineStyle(QCPGraph::lsImpulse);
 			graph->setPen(pen);
-			graph->setData(_Cs cast<QVector>(bar_location), _Cs cast<QVector>(bar_length));
+			graph->setData(custom::cast<QVector>(bar_location), custom::cast<QVector>(bar_length));
 
 			return graph;
 		};
@@ -504,10 +504,10 @@ namespace custom_plot {
 				QColor color;
 				double val = values[i];
 				if (val < middle) {
-					color = _CpUtility gradient_color((val - min) / span, low_color, middle_color);
+					color = custom_plot::utility::gradient_color((val - min) / span, low_color, middle_color);
 				}
 				else {
-					color = _CpUtility gradient_color((val - middle) / span, middle_color, high_color);
+					color = custom_plot::utility::gradient_color((val - middle) / span, middle_color, high_color);
 				}
 
 				bar(
@@ -532,7 +532,7 @@ namespace custom_plot {
 			double width
 		) {
 
-			double sum = _Cs sum(distribution.values());
+			double sum = custom::sum(distribution.values());
 			int size = levels.size();
 			double height{ 0.0 };
 
@@ -540,7 +540,7 @@ namespace custom_plot {
 
 				double sub_height = distribution[levels[i]] / sum;				
 
-				_CpPatch shape_borderless(
+				custom_plot::patch::shape_borderless(
 					draw_area,
 					axis_rect,
 					QVector<double>{start_point_x - width, start_point_x - width, start_point_x + width, start_point_x + width},
@@ -568,13 +568,13 @@ namespace custom_plot {
 
 			for (int i = 0; i < n_level; ++i) {
 
-				auto filter = _Cs equal(group, levels[i]);
-				auto subdata = _Cs sliced(data, filter);
+				auto filter = custom::equal(group, levels[i]);
+				auto subdata = custom::sliced(data, filter);
 				if (subdata.size() == 0) {
 					continue;
 				}
 
-				_CpPatch bar_single_stack(draw_area, axis_rect, _Cs table(subdata), data_levels, colors, start_x + i * margin, width);
+				custom_plot::patch::bar_single_stack(draw_area, axis_rect, custom::table(subdata), data_levels, colors, start_x + i * margin, width);
 			}
 		};
 
@@ -657,33 +657,33 @@ namespace custom_plot {
 		};
 
 		void remove_left_axis(QCPAxisRect* axis_rect) {
-			_CpPatch remove_axis(axis_rect, QCPAxis::atLeft);
+			custom_plot::patch::remove_axis(axis_rect, QCPAxis::atLeft);
 		};
 
 		void remove_bottom_axis(QCPAxisRect* axis_rect) {
-			_CpPatch remove_axis(axis_rect, QCPAxis::atBottom);
+			custom_plot::patch::remove_axis(axis_rect, QCPAxis::atBottom);
 		};
 
 		void clear_left_axis(QCPAxisRect* axis_rect) {
-			_CpPatch clear_axis(axis_rect, QCPAxis::atLeft);
+			custom_plot::patch::clear_axis(axis_rect, QCPAxis::atLeft);
 		};
 
 		void clear_bottom_axis(QCPAxisRect* axis_rect) {
-			_CpPatch clear_axis(axis_rect, QCPAxis::atBottom);
+			custom_plot::patch::clear_axis(axis_rect, QCPAxis::atBottom);
 		};
 
 		void remove_all_axis(QCPAxisRect* axis_rect) {
 
-			_CpPatch remove_axis(axis_rect, QCPAxis::atBottom);
-			_CpPatch remove_axis(axis_rect, QCPAxis::atTop);
-			_CpPatch remove_axis(axis_rect, QCPAxis::atRight);
-			_CpPatch remove_axis(axis_rect, QCPAxis::atLeft);
+			custom_plot::patch::remove_axis(axis_rect, QCPAxis::atBottom);
+			custom_plot::patch::remove_axis(axis_rect, QCPAxis::atTop);
+			custom_plot::patch::remove_axis(axis_rect, QCPAxis::atRight);
+			custom_plot::patch::remove_axis(axis_rect, QCPAxis::atLeft);
 		};
 
 		void remove_left_bottom_axis(QCPAxisRect* axis_rect) {
 
-			_CpPatch remove_axis(axis_rect, QCPAxis::atBottom);
-			_CpPatch remove_axis(axis_rect, QCPAxis::atLeft);
+			custom_plot::patch::remove_axis(axis_rect, QCPAxis::atBottom);
+			custom_plot::patch::remove_axis(axis_rect, QCPAxis::atLeft);
 		};
 
 		void remove_left_ticks(QCPAxisRect* axis_rect) {
@@ -759,7 +759,7 @@ namespace custom_plot {
 				color
 			);
 
-			_CpPatch add_label(
+			custom_plot::patch::add_label(
 				draw_area,
 				legend_rect,
 				label,
@@ -788,7 +788,7 @@ namespace custom_plot {
 			draw_area->graph()->setPen(pen);
 			draw_area->graph()->setData(x, y);
 
-			_CpPatch add_label(
+			custom_plot::patch::add_label(
 				draw_area,
 				legend_rect,
 				label,
@@ -848,7 +848,7 @@ namespace custom_plot {
 				point_y[i + 1] = y + std::sin(start_angle + angle_segment * i) * radius;
 			}
 
-			return _CpPatch shape_borderless(
+			return custom_plot::patch::shape_borderless(
 				draw_area,
 				axis_rect,
 				point_x,
@@ -868,7 +868,7 @@ namespace custom_plot {
 			double radius,
 			bool white_border
 		) {
-			double sum = _Cs sum(distribution.values());
+			double sum = custom::sum(distribution.values());
 			constexpr int control_point_number = 360;
 			int size = levels.size();
 			double angle = 0.0;
@@ -886,7 +886,7 @@ namespace custom_plot {
 						start_point_y + std::sin(start_angle) * radius);
 				}
 
-				 _CpPatch sector(
+				 custom_plot::patch::sector(
 					 draw_area,
 					 axis_rect,
 					 colors[i],
@@ -903,7 +903,7 @@ namespace custom_plot {
 
 				for (int i = 0; i < size; ++i) {
 
-					_CpPatch line(
+					custom_plot::patch::line(
 						draw_area,
 						axis_rect,
 						QVector<double>{start_point_x, end_points[i].first},
@@ -917,7 +917,7 @@ namespace custom_plot {
 
 		static QVector<double> fivenum(const QVector<double>& value) {
 
-			QVector<double> x = _Cs sorted(value);
+			QVector<double> x = custom::sorted(value);
 
 			auto n = x.size();
 
@@ -944,13 +944,13 @@ namespace custom_plot {
 			QVector<double> stats = fivenum(value);
 			constexpr double coef{ 1.5 }; // should be a parameter
 			double iqr = stats[3] - stats[1];
-			auto outs = _Cs sliced(value, _Cs greater_than(value, stats[3] + coef * iqr) +
-				_Cs less_than(value, stats[1] - coef * iqr));
+			auto outs = custom::sliced(value, custom::greater_than(value, stats[3] + coef * iqr) +
+				custom::less_than(value, stats[1] - coef * iqr));
 			QVector<double> filtered = value;
 
 			if (!outs.isEmpty()) {
-				filtered = _Cs sliced(value, _Cs less_equal(value, stats[3] + coef * iqr) *
-					_Cs greater_equal(value, stats[1] - coef * iqr));
+				filtered = custom::sliced(value, custom::less_equal(value, stats[3] + coef * iqr) *
+					custom::greater_equal(value, stats[1] - coef * iqr));
 				auto [min, max] = std::ranges::minmax(filtered);
 				stats[0] = min;
 				stats[4] = max;
@@ -958,30 +958,30 @@ namespace custom_plot {
 
 			constexpr double box_width{ 0.8 };
 			constexpr double staple_width{ 0.4 };
-			_CpPatch line(draw_area, axis_rect,
+			custom_plot::patch::line(draw_area, axis_rect,
 				QVector<double>{ center, center},
 				QVector<double>{ stats[0], stats[1] },
 				Qt::black, 1, Qt::DashLine);
-			_CpPatch line(draw_area, axis_rect,
+			custom_plot::patch::line(draw_area, axis_rect,
 				QVector<double>{ center, center},
 				QVector<double>{ stats[3], stats[4] },
 				Qt::black, 1, Qt::DashLine);
-			_CpPatch line(draw_area, axis_rect, 
+			custom_plot::patch::line(draw_area, axis_rect, 
 				QVector<double>{ center - staple_width, center + staple_width }, 
 				QVector<double>{ stats[0], stats[0] }, 
 				Qt::black);
-			_CpPatch line(draw_area, axis_rect,
+			custom_plot::patch::line(draw_area, axis_rect,
 				QVector<double>{ center - staple_width, center + staple_width },
 				QVector<double>{ stats[4], stats[4] },
 				Qt::black);
-			_CpPatch rectangle(draw_area, axis_rect, center - box_width, stats[1], 2 * box_width, iqr, color, 1, Qt::black);
-			_CpPatch line(draw_area, axis_rect,
+			custom_plot::patch::rectangle(draw_area, axis_rect, center - box_width, stats[1], 2 * box_width, iqr, color, 1, Qt::black);
+			custom_plot::patch::line(draw_area, axis_rect,
 				QVector<double>{ center - box_width, center + box_width },
 				QVector<double>{ stats[2], stats[2] },
 				Qt::black, 3);
 
 			if (draw_outlier && outs.size() > 0) {
-				_CpPatch scatter(
+				custom_plot::patch::scatter(
 					draw_area, axis_rect, QVector<double>(outs.size(), center), outs, color, outlier_scatter_size
 				);
 			}
@@ -1003,17 +1003,17 @@ namespace custom_plot {
 
 			for (int i = 0; i < n_level; ++i) {
 
-				auto filter = _Cs equal(group, levels[i]);
-				auto subdata = _Cs sliced(data, filter);
+				auto filter = custom::equal(group, levels[i]);
+				auto subdata = custom::sliced(data, filter);
 				if (subdata.size() == 0) {
 					continue;
 				}
 
-				_CpPatch box(
+				custom_plot::patch::box(
 					draw_area,
 					axis_rect,
 					colors[i],
-					_Cs cast<QVector>(subdata),
+					custom::cast<QVector>(subdata),
 					start + i * margin,
 					draw_outlier,
 					outlier_scatter_size);
@@ -1029,8 +1029,8 @@ namespace custom_plot {
 			int unit,
 			double zero_space
 		) {
-			auto [x, y] = _CpUtility violin_curve(_Cs cast<Eigen::ArrayX>(value), center, unit, zero_space);
-			_CpPatch shape_borderless(draw_area, axis_rect, x, y, color);
+			auto [x, y] = custom_plot::utility::violin_curve(custom::cast<Eigen::ArrayX>(value), center, unit, zero_space);
+			custom_plot::patch::shape_borderless(draw_area, axis_rect, x, y, color);
 			auto [min, max] = std::ranges::minmax(y);
 
 			return { min, max };
@@ -1046,26 +1046,26 @@ namespace custom_plot {
 			double center,
 			int unit
 		) {
-			auto filter = _Cs equal(group, levels[0]);
-			auto subdata = _Cs sliced(data, filter);
+			auto filter = custom::equal(group, levels[0]);
+			auto subdata = custom::sliced(data, filter);
 			double min = data.minCoeff(), max = data.maxCoeff(), space = (max - min) / unit;
 			double retmin = min, retmax = max;
 
 			if (subdata.size() != 0) {
-				auto [x, y] = _CpUtility left_violin_curve(subdata, center);
-				_CpPatch shape_borderless(draw_area, axis_rect, x, y, colors[0]);
+				auto [x, y] = custom_plot::utility::left_violin_curve(subdata, center);
+				custom_plot::patch::shape_borderless(draw_area, axis_rect, x, y, colors[0]);
 
-				_Cs extend_minmax(y, retmin, retmax);
+				custom::extend_minmax(y, retmin, retmax);
 			}
 
-			filter = _Cs equal(group, levels[1]);
-			subdata = _Cs sliced(data, filter);
+			filter = custom::equal(group, levels[1]);
+			subdata = custom::sliced(data, filter);
 
 			if (subdata.size() != 0) {
-				auto [x, y] = _CpUtility right_violin_curve(subdata, center);
-				_CpPatch shape_borderless(draw_area, axis_rect, x, y, colors[1]);
+				auto [x, y] = custom_plot::utility::right_violin_curve(subdata, center);
+				custom_plot::patch::shape_borderless(draw_area, axis_rect, x, y, colors[1]);
 
-				_Cs extend_minmax(y, retmin, retmax);
+				custom::extend_minmax(y, retmin, retmax);
 			}
 			return { retmin, retmax };
 		};
@@ -1088,17 +1088,17 @@ namespace custom_plot {
 
 			for (int i = 0; i < n_level; ++i) {
 
-				auto filter = _Cs equal(group, levels[i]);
-				auto subdata = _Cs sliced(data, filter);
+				auto filter = custom::equal(group, levels[i]);
+				auto subdata = custom::sliced(data, filter);
 				if (subdata.size() == 0) {
 					continue;
 				}
 
-				auto [min, max] = _CpPatch violin(
+				auto [min, max] = custom_plot::patch::violin(
 					draw_area, 
 					axis_rect, 
 					colors[i], 
-					_Cs cast<QVector>(subdata), 
+					custom::cast<QVector>(subdata), 
 					start + margin * i, 
 					unit);
 
@@ -1118,7 +1118,7 @@ namespace custom_plot {
 		
 			auto axis_rect = new QCPAxisRect(draw_area, true);
 
-			_CpPatch remove_grid(axis_rect);
+			custom_plot::patch::remove_grid(axis_rect);
 
 			return axis_rect;
 		}
@@ -1167,7 +1167,7 @@ namespace custom_plot {
 			QCPAxisRect* color_scale_left_rect = new QCPAxisRect(draw_area, false);
 			QCPAxisRect* color_scale_right_rect = new QCPAxisRect(draw_area, false);
 			sub_legend_layout->setRowSpacing(20);
-			auto [row, col] = _CpPatch find_next_empty_position(legend_layout);
+			auto [row, col] = custom_plot::patch::find_next_empty_position(legend_layout);
 			legend_layout->addElement(row, col, sub_legend_layout);
 
 			QCPColorGradient gradient;
@@ -1200,7 +1200,7 @@ namespace custom_plot {
 			color_scale_layout->setMinimumSize(200, 200);
 			color_scale_layout->setMaximumSize(200, 200);
 			sub_legend_layout->addElement(0, 0, color_scale_layout);
-			_CpPatch add_title(draw_area, sub_legend_layout, title, legend_title_font);
+			custom_plot::patch::add_title(draw_area, sub_legend_layout, title, legend_title_font);
 		}
 
 		void set_fixed_width(QCPAxisRect* axis_rect, int width) {
@@ -1289,7 +1289,7 @@ namespace custom_plot {
 
 			sub_legend_layout->setRowSpacing(0);
 
-			auto [row, col] = _CpPatch find_next_empty_position(legend_layout);
+			auto [row, col] = custom_plot::patch::find_next_empty_position(legend_layout);
 			legend_layout->addElement(row, col, sub_legend_layout);
 
 			sub_legend_layout->addElement(0, 0, item_layout_);
@@ -1309,7 +1309,7 @@ namespace custom_plot {
 				item_layout_->addElement(0, i, legend_rect);
 				int j;
 				for (j = 0; j < row; ++j, ++index) {
-					_CpPatch set_single_round_legend(draw_area, legend_rect, levels[index], colors[index], legend_label_font, 10, row - j - 1);
+					custom_plot::patch::set_single_round_legend(draw_area, legend_rect, levels[index], colors[index], legend_label_font, 10, row - j - 1);
 					td.setHtml(levels[index]);
 					auto [width, _] = td.size().toSize();
 					column_width = column_width > width ? column_width : width;
@@ -1317,11 +1317,11 @@ namespace custom_plot {
 				if (legend_column_width == 0) {
 					legend_column_width = column_width + 20;
 				}
-				_CpPatch remove_left_bottom_axis(legend_rect);
-				_CpPatch set_fixed_size(legend_rect, legend_column_width, legend_row_width * j);
-				_CpPatch set_range(legend_rect, QCPRange(-10, legend_column_width - 10), QCPRange(-0.5, j - 0.5));
+				custom_plot::patch::remove_left_bottom_axis(legend_rect);
+				custom_plot::patch::set_fixed_size(legend_rect, legend_column_width, legend_row_width * j);
+				custom_plot::patch::set_range(legend_rect, QCPRange(-10, legend_column_width - 10), QCPRange(-0.5, j - 0.5));
 			}
-			_CpPatch add_title(draw_area, sub_legend_layout, legend_title, legend_title_font);
+			custom_plot::patch::add_title(draw_area, sub_legend_layout, legend_title, legend_title_font);
 		};
 
 		void single_violin_plot(
@@ -1355,7 +1355,7 @@ namespace custom_plot {
 			axis_rect->axis(QCPAxis::atLeft)->setLabel(left_title);
 			axis_rect->axis(QCPAxis::atLeft)->setLabelFont(QFont("Arial", 18, QFont::Bold));
 
-			auto [min, max] = _CpPatch violin(
+			auto [min, max] = custom_plot::patch::violin(
 				draw_area,
 				axis_rect,
 				color,
@@ -1364,7 +1364,7 @@ namespace custom_plot {
 				unit
 			);
 
-			_CpPatch set_range(axis_rect, { 0.0, 2.0 }, _CpUtility get_range(min, max));
+			custom_plot::patch::set_range(axis_rect, { 0.0, 2.0 }, custom_plot::utility::get_range(min, max));
 		};
 
 		void single_box_plot(
@@ -1398,7 +1398,7 @@ namespace custom_plot {
 			axis_rect->axis(QCPAxis::atLeft)->setLabel(left_title);
 			axis_rect->axis(QCPAxis::atLeft)->setLabelFont(QFont("Arial", 18, QFont::Bold));
 
-			_CpPatch box(
+			custom_plot::patch::box(
 				draw_area,
 				axis_rect,
 				color,
@@ -1408,7 +1408,7 @@ namespace custom_plot {
 				outlier_scatter_size
 			);
 
-			_CpPatch set_range(axis_rect, { 0.0, 2.0 }, _CpUtility get_range(values));
+			custom_plot::patch::set_range(axis_rect, { 0.0, 2.0 }, custom_plot::utility::get_range(values));
 		};
 	};
 };

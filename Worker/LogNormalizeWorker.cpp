@@ -13,7 +13,7 @@ void LogNormalizeWorker::run() {
 
 	auto&& normalized_data = this->normalized_->mat_;
 
-	Eigen::ArrayXd column_sum = _Cs col_sum_mt(normalized_data);
+	Eigen::ArrayXd column_sum = custom::col_sum_mt(normalized_data);
 	int ncol = normalized_data.cols();
 
 #pragma omp parallel for

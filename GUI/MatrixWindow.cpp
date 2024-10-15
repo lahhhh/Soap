@@ -413,7 +413,7 @@ void MatrixWindow::show_mat(QStringList* data) {
 	}
 
 	this->data_type_ = soap::TableType::StringList;
-	this->rownames_ = _Cs cast<QString>(_Cs seq_n(0, data->size()));
+	this->rownames_ = custom::cast<QString>(custom::seq_n(0, data->size()));
 	this->colnames_ = { "0" };
 	this->nrow_ = this->rownames_.size();
 	this->ncol_ = this->colnames_.size();
@@ -718,7 +718,7 @@ void MatrixWindow::show_matrix(
 	int nrow = mat->rows();
 	int ncol = mat->cols();
 
-	show_matrix(mat, _Cs cast<QString>(_Cs seq_n(0, nrow)), _Cs cast<QString>(_Cs seq_n(0, ncol)), title, signal_emitter, copy_data, from);
+	show_matrix(mat, custom::cast<QString>(custom::seq_n(0, nrow)), custom::cast<QString>(custom::seq_n(0, ncol)), title, signal_emitter, copy_data, from);
 };
 
 void MatrixWindow::show_matrix(

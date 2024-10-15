@@ -19,9 +19,9 @@ Monocle3ChooseRootDialog::Monocle3ChooseRootDialog(Monocle3* data):
 	Eigen::ArrayXd x = this->data_->cell_embedding_.row(0);
 	Eigen::ArrayXd y = this->data_->cell_embedding_.row(1);
 
-	_CpPatch set_range(this->axis_rect_, _CpUtility get_range(x, y));
+	custom_plot::patch::set_range(this->axis_rect_, custom_plot::utility::get_range(x, y));
 
-	_CpPatch scatter(
+	custom_plot::patch::scatter(
 		this->draw_area_,
 		this->axis_rect_,
 		x,
@@ -33,7 +33,7 @@ Monocle3ChooseRootDialog::Monocle3ChooseRootDialog(Monocle3* data):
 	x = this->data_->pr_embedding_.row(0);
 	y = this->data_->pr_embedding_.row(1);
 
-	_CpPatch scatter(
+	custom_plot::patch::scatter(
 		this->draw_area_,
 		this->axis_rect_,
 		x,
@@ -42,7 +42,7 @@ Monocle3ChooseRootDialog::Monocle3ChooseRootDialog(Monocle3* data):
 		4
 	);
 
-	_CpPatch remove_left_bottom_axis(this->axis_rect_);
+	custom_plot::patch::remove_left_bottom_axis(this->axis_rect_);
 
 	igraph_vector_int_t edge_list;
 	igraph_vector_int_init(&edge_list, 0);
@@ -54,7 +54,7 @@ Monocle3ChooseRootDialog::Monocle3ChooseRootDialog(Monocle3* data):
 		int v1 = VECTOR(edge_list)[i * 2];
 		int v2 = VECTOR(edge_list)[i * 2 + 1];
 
-		_CpPatch line(this->draw_area_, this->axis_rect_,
+		custom_plot::patch::line(this->draw_area_, this->axis_rect_,
 			this->data_->pr_embedding_(Eigen::all, { v1, v2 }).row(0),
 			this->data_->pr_embedding_(Eigen::all, { v1, v2 }).row(1),
 			Qt::black, 2);
@@ -110,7 +110,7 @@ void Monocle3ChooseRootDialog::s_plot_mouse_press(QMouseEvent* event) {
 		this->draw_area_->removeGraph(this->choosed_graph_[index]);
 	}
 	else {
-		this->choosed_graph_[index] = _CpPatch scatter(
+		this->choosed_graph_[index] = custom_plot::patch::scatter(
 			this->draw_area_,
 			this->axis_rect_,
 			QVector<double>{xx},
@@ -147,7 +147,7 @@ void Monocle3ChooseRootDialog::s_plot_mouse_move(QMouseEvent* event) {
 		this->draw_area_->removeGraph(this->move_graph_);
 	}
 
-	this->move_graph_ = _CpPatch scatter(
+	this->move_graph_ = custom_plot::patch::scatter(
 		this->draw_area_,
 		this->axis_rect_,
 		QVector<double>{xx},
@@ -177,7 +177,7 @@ QVector<int> Monocle3ChooseRootDialog::get_response(Monocle3* data) {
 	Monocle3ChooseRootDialog dlg(data);
 
 	if (dlg.is_accepted_) {
-		return _Cs keys(dlg.choosed_graph_);
+		return custom::keys(dlg.choosed_graph_);
 	}
 	else return {};
 };

@@ -100,10 +100,10 @@ void CiceroItem::s_show_ccan_coverage() {
 		return;
 	}
 
-	QStringList peak_names = _Cs reordered(this->data()->peak_names_, this->data()->regulation_groups_[id]);
+	QStringList peak_names = custom::reordered(this->data()->peak_names_, this->data()->regulation_groups_[id]);
 	QVector<std::pair<int, int>> ccan_locs;
 
-	auto [chr, start, end, success] = _Cs string_to_peak(peak_names[0]);
+	auto [chr, start, end, success] = custom::string_to_peak(peak_names[0]);
 
 	if (!success) {
 		G_WARN("Illegal peak name");
@@ -113,7 +113,7 @@ void CiceroItem::s_show_ccan_coverage() {
 	ccan_locs << std::make_pair(start, end);
 
 	for (auto&& p : peak_names) {
-		auto [c, s, e, suc] = _Cs string_to_peak(p);
+		auto [c, s, e, suc] = custom::string_to_peak(p);
 		if (!suc) {
 			G_WARN("Illegal peak name");
 			return;
@@ -164,7 +164,7 @@ void CiceroItem::s_receive_coverage_plot_data(COVERAGE_PLOT_ELEMENTS res) {
 
 	auto& gs = this->draw_suite_->graph_settings_;
 
-	auto draw_area = _Cp coverage_plot(res, gs);
+	auto draw_area = custom_plot::coverage_plot(res, gs);
 
 	this->draw_suite_->update(draw_area);
 };
@@ -190,7 +190,7 @@ void CiceroItem::s_show_group() {
 		return;
 	}
 
-	QStringList res = _Cs reordered(this->data()->peak_names_, this->data()->regulation_groups_[id]);
+	QStringList res = custom::reordered(this->data()->peak_names_, this->data()->regulation_groups_[id]);
 
 	MatrixWindow::show_matrix(&res, "Regulation Group " + QString::number(id + 1), this->signal_emitter_);
 };
@@ -311,7 +311,7 @@ void CiceroItem::s_receive_umap(Eigen::MatrixXd emb) {
 		Embedding::DataType::Umap,
 		emb,
 		rna_counts->colnames_,
-		_Cs paste("Cicero UMAP-", _Cs cast<QString>(_Cs seq_n(1, emb.cols()))));
+		custom::paste("Cicero UMAP-", custom::cast<QString>(custom::seq_n(1, emb.cols()))));
 
 	auto item = new EmbeddingItem(
 		title,
@@ -369,11 +369,11 @@ void CiceroItem::s_reset_threshold() {
 
 	QVector<QVector<int>> new_regulation_groups;
 
-	Eigen::ArrayXi cluster = _Cs cluster_louvain_igraph(this->data()->connections_, threshold);
+	Eigen::ArrayXi cluster = custom::cluster_louvain_igraph(this->data()->connections_, threshold);
 
 	int n_vertice = cluster.size();
 
-	auto unique_cluster = _Cs unique(cluster);
+	auto unique_cluster = custom::unique(cluster);
 
 	QVector<int> peak_index;
 
@@ -423,7 +423,7 @@ void CiceroItem::s_reset_threshold() {
 	int n_group = this->data()->regulation_group_counts_.rows();
 
 	this->data()->regulation_group_counts_.colnames_ = atac_counts->colnames_;
-	this->data()->regulation_group_counts_.rownames_ = _Cs cast<QString>(_Cs seq_n(1, n_group));
+	this->data()->regulation_group_counts_.rownames_ = custom::cast<QString>(custom::seq_n(1, n_group));
 
 	this->data()->regulation_group_normalized_.colnames_ = this->data()->regulation_group_counts_.colnames_;
 	this->data()->regulation_group_normalized_.rownames_ = this->data()->regulation_group_counts_.rownames_;

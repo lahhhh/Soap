@@ -56,7 +56,7 @@ namespace custom_plot {
 			Eigen::ArrayXd reverse_x = (2 * x_center - left_x).reverse();
 			Eigen::ArrayXd reverse_y = left_y.reverse();
 
-			return std::make_pair(_Cs concatenated(left_x, reverse_x), _Cs concatenated(left_y, reverse_y));
+			return std::make_pair(custom::concatenated(left_x, reverse_x), custom::concatenated(left_y, reverse_y));
 		};
 
 		std::pair<Eigen::ArrayXd, Eigen::ArrayXd > left_violin_smooth(
@@ -79,7 +79,7 @@ namespace custom_plot {
 			Eigen::ArrayXd smooth_x = utility::catmull(new_x, n_interpolation);
 			Eigen::ArrayXd smooth_y = utility::catmull(new_y, n_interpolation);
 
-			smooth_x = _Cs set_upper_bound(smooth_x, x_center);
+			smooth_x = custom::set_upper_bound(smooth_x, x_center);
 			return std::make_pair(smooth_x, smooth_y);
 		};
 
@@ -111,7 +111,7 @@ namespace custom_plot {
 			}
 			auto kde = evaluate_KDE(data, p);
 			Eigen::ArrayXd left = (center - ((kde / kde.maxCoeff()) * 0.8 ));
-			return _CpUtility violin_smooth(left, p, center);
+			return custom_plot::utility::violin_smooth(left, p, center);
 		}
 
 		std::pair<Eigen::ArrayXd, Eigen::ArrayXd > left_violin_curve(
@@ -132,7 +132,7 @@ namespace custom_plot {
 
 			Eigen::ArrayXd left = (center - ((kde / kde.maxCoeff()) * 0.8));
 
-			return _CpUtility left_violin_smooth(left, p, center);
+			return custom_plot::utility::left_violin_smooth(left, p, center);
 		}
 
 		std::pair<Eigen::ArrayXd, Eigen::ArrayXd > right_violin_curve(
@@ -153,7 +153,7 @@ namespace custom_plot {
 
 			Eigen::ArrayXd left = (center - ((kde / kde.maxCoeff()) * 0.8));
 
-			return _CpUtility right_violin_smooth(left, p, center);
+			return custom_plot::utility::right_violin_smooth(left, p, center);
 		}
 
 		std::tuple<Eigen::ArrayXi, Eigen::ArrayXd, Eigen::ArrayXd> histogram(
@@ -449,7 +449,7 @@ namespace custom_plot {
 
 			Eigen::MatrixXd rgb_matrix = (Eigen::MatrixXd::Random(m, 3).array() + 1.0) / 2;
 
-			auto [lab_matrix, _] = _Cs kmeans_hartigan_wong_mt(rgb_to_lab(rgb_matrix).transpose(), n);
+			auto [lab_matrix, _] = custom::kmeans_hartigan_wong_mt(rgb_to_lab(rgb_matrix).transpose(), n);
 			Eigen::MatrixXi srgb_matrix = lab_to_srgb(lab_matrix.transpose());
 
 			for (int i = 0; i < n; ++i) {

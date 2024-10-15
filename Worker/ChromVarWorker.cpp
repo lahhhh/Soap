@@ -37,8 +37,8 @@ bool ChromVARWorker::validate_input() {
 		return false;
 	}
 
-	auto fragments_per_peak = _Cs row_sum(this->atac_counts_->mat_);
-	if (_Cs any(fragments_per_peak, 0)) {
+	auto fragments_per_peak = custom::row_sum(this->atac_counts_->mat_);
+	if (custom::any(fragments_per_peak, 0)) {
 		G_TASK_WARN("Detect peak with no fragments.");
 		return false;
 	}
@@ -163,7 +163,7 @@ Eigen::ArrayXi prob_sample_replace(int seed, int size, Eigen::ArrayXd prob) {
 
 bool ChromVARWorker::get_background_peaks() {
 
-	auto fragments_per_peak = _Cs row_sum(this->atac_counts_->mat_);
+	auto fragments_per_peak = custom::row_sum(this->atac_counts_->mat_);
 
 	Eigen::ArrayXd intensity = log10(fragments_per_peak.cast<double>());
 
@@ -173,7 +173,7 @@ bool ChromVARWorker::get_background_peaks() {
 
 	norm_mat << intensity, this->gc_;
 
-	Eigen::LLT<Eigen::MatrixXd> llt(_Cs cov(norm_mat));
+	Eigen::LLT<Eigen::MatrixXd> llt(custom::cov(norm_mat));
 	if (llt.info() != Eigen::Success) {
 		G_TASK_WARN("LLT decomposition failed!");
 		return false;
@@ -199,10 +199,10 @@ bool ChromVARWorker::get_background_peaks() {
 		bin_data.col(1).segment(i * bs, bs) = bin2;
 	}
 
-	auto bin_dist = _Cs euclidean_distance_mt(bin_data, false);
+	auto bin_dist = custom::euclidean_distance_mt(bin_data, false);
 	constexpr double w = 0.1;
 	auto bin_p = dnorm(bin_dist, 0, w);
-	auto bin_membership = _Cs find_nearest(trans_norm_mat, bin_data, false);
+	auto bin_membership = custom::find_nearest(trans_norm_mat, bin_data, false);
 	Eigen::ArrayXd bin_density = Eigen::ArrayXd::Zero(bs * bs);
 	std::ranges::for_each(bin_membership, [&bin_density](auto t) {++bin_density[t]; });
 	constexpr int n_iteration = 50;
@@ -210,7 +210,7 @@ bool ChromVARWorker::get_background_peaks() {
 
 #pragma omp parallel for
 	for (int i = 0; i < bs * bs; ++i) {
-		auto ix = _Cs which(bin_membership == i);
+		auto ix = custom::which(bin_membership == i);
 		int n_ix_ele = ix.size();
 
 		if (n_ix_ele == 0) {
@@ -233,7 +233,7 @@ bool ChromVARWorker::compute_deviations() {
 
 	auto motif_match = this->motif_position_->get_motif_matrix();
 
-	Eigen::ArrayXd fragments_per_sample = _Cs col_sum(this->atac_counts_->mat_).cast<double>();
+	Eigen::ArrayXd fragments_per_sample = custom::col_sum(this->atac_counts_->mat_).cast<double>();
 
 	int n_peak = motif_match.rows();
 	int n_motif = motif_match.cols();
@@ -247,7 +247,7 @@ bool ChromVARWorker::compute_deviations() {
 #pragma omp parallel for
 	for (int i = 0; i < n_motif; ++i) {
 
-		auto peak_index = _Cs which(motif_match.col(i).array() > 0);
+		auto peak_index = custom::which(motif_match.col(i).array() > 0);
 
 		if (peak_index.isEmpty()) {
 			continue;
@@ -263,12 +263,12 @@ bool ChromVARWorker::compute_deviations() {
 			expected = this->expectations_[peak_index[0]] * fragments_per_sample;
 			observed_deviation = (observed - expected) / expected;
 
-			Eigen::MatrixXd sampled = _Cs row_reordered(this->atac_counts_->mat_, this->background_peaks_.row(peak_index[0])).toDense().cast<double>();
+			Eigen::MatrixXd sampled = custom::row_reordered(this->atac_counts_->mat_, this->background_peaks_.row(peak_index[0])).toDense().cast<double>();
 			Eigen::MatrixXd sampled_expected = this->expectations_(this->background_peaks_.row(peak_index[0])).matrix() * fragments_per_sample.matrix().transpose();
 			sampled_deviation = (sampled - sampled_expected).array() / sampled_expected.array();
 		}
 		else {
-			Eigen::ArrayXd observed = _Cs row_reorder_and_column_sum(this->atac_counts_->mat_, peak_index).cast<double>();
+			Eigen::ArrayXd observed = custom::row_reorder_and_column_sum(this->atac_counts_->mat_, peak_index).cast<double>();
 
 			expected = this->expectations_(peak_index).sum() * fragments_per_sample;
 			observed_deviation = (observed - expected) / expected;
@@ -300,21 +300,21 @@ bool ChromVARWorker::compute_deviations() {
 		}
 
 		constexpr double threshold = 1.0;
-		auto fail_filter = _Cs which(expected < threshold);
+		auto fail_filter = custom::which(expected < threshold);
 
 		Eigen::ArrayXd mean_sampled_deviation = sampled_deviation.colwise().mean();
 
 		Eigen::ArrayXd sd_sampled_deviation(n_cell);
 		for (int i = 0; i < n_cell; ++i) {
-			sd_sampled_deviation[i] = _Cs sd(sampled_deviation.col(i));
+			sd_sampled_deviation[i] = custom::sd(sampled_deviation.col(i));
 		}
 
 		Eigen::ArrayXd normdev = observed_deviation - mean_sampled_deviation;
 		Eigen::ArrayXd z = normdev / sd_sampled_deviation;
 
 		if (!fail_filter.isEmpty()) {
-			_Cs assign(normdev, 0.0 /*std::nan("0")*/, fail_filter);
-			_Cs assign(z, 0.0 /*std::nan("0")*/, fail_filter);
+			custom::assign(normdev, 0.0 /*std::nan("0")*/, fail_filter);
+			custom::assign(z, 0.0 /*std::nan("0")*/, fail_filter);
 		}
 
 		chrom_var->z_.row(i) = z;

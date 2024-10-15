@@ -73,7 +73,7 @@ void PageWindow::get_content() {
 			break;
 		}
 
-		QPushButton* button = new QPushButton(_Cs string_next_line(fm, question, width - 30), this->scroll_area_);
+		QPushButton* button = new QPushButton(custom::string_next_line(fm, question, width - 30), this->scroll_area_);
 		button->setFixedWidth(width);
 		button->setFont(question_font);
 		button->adjustSize();

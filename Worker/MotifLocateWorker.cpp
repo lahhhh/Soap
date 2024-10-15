@@ -37,7 +37,7 @@ void MotifLocateWorker::get_result() {
 	mp.peak_locations_ = this->peak_;
 	mp.motifs_ = read_motif_database(this->database_name_);
 	mp.peak_names_ = this->peak_names_;
-	mp.motif_names_ = _Cs keys(mp.motifs_);
+	mp.motif_names_ = custom::keys(mp.motifs_);
 
 	match_motif(mp, this->peak_sequences_, this->sequence_background_, 5e-5, 7);
 
@@ -46,7 +46,7 @@ void MotifLocateWorker::get_result() {
 
 void MotifLocateWorker::get_base_background() {
 
-	this->sequence_background_ = _Cs get_nucleic_acid_frequency(this->peak_sequences_);
+	this->sequence_background_ = custom::get_nucleic_acid_frequency(this->peak_sequences_);
 }
 
 bool MotifLocateWorker::get_peak_sequence() {
@@ -81,5 +81,5 @@ bool MotifLocateWorker::get_peak_sequence() {
 
 void MotifLocateWorker::get_peak() {
 
-	this->peak_ = _Cs stringlist_to_genomic_range(this->peak_names_);
+	this->peak_ = custom::stringlist_to_genomic_range(this->peak_names_);
 };

@@ -20,7 +20,7 @@ public:
 	{};
 
 	template<typename ContainerType>
-		requires _Cs is_container<ContainerType>
+		requires custom::is_container<ContainerType>
 	RunLengthEncoding(const ContainerType& vec) {
 
 		auto iter = std::cbegin(vec);
@@ -108,8 +108,8 @@ public:
 		return this->compare(val, std::greater{});
 	}
 
-	template<typename ContainerType, typename ElementType = _Cs get_element_raw_type<ContainerType>>
-	requires _Cs is_container<ContainerType>
+	template<typename ContainerType, typename ElementType = custom::get_element_raw_type<ContainerType>>
+	requires custom::is_container<ContainerType>
 	static RunLengthEncoding<ElementType> from_container(const ContainerType& vec) {
 
 		RunLengthEncoding<ElementType> ret;
@@ -126,10 +126,10 @@ public:
 
 	// TODO : optimize
 	template<typename S>
-	requires _Cs is_slice_container<S>
+	requires custom::is_slice_container<S>
 	RunLengthEncoding<T> sliced(const S& slice) const{
 
-		return RunLengthEncoding<T>::from_container(_Cs sliced(this->to_qvector(), slice));
+		return RunLengthEncoding<T>::from_container(custom::sliced(this->to_qvector(), slice));
 	};
 
 	// TODO : optimize
@@ -139,14 +139,14 @@ public:
 	};
 
 	template <typename Order>
-		requires _Cs is_order_container<Order>
+		requires custom::is_order_container<Order>
 	RunLengthEncoding<T> reordered(const Order& order) const {
 
-		return RunLengthEncoding<T>::from_container(_Cs reordered(this->to_qvector(), order));
+		return RunLengthEncoding<T>::from_container(custom::reordered(this->to_qvector(), order));
 	};
 
 	template <typename Order>
-		requires _Cs is_order_container<Order>
+		requires custom::is_order_container<Order>
 	void reorder(const Order& order) {
 
 		*this = this->reordered(order);
@@ -165,12 +165,12 @@ public:
 
 	QVector<int> match(const T& val) const {
 
-		return _Cs which(*this == val);
+		return custom::which(*this == val);
 	};
 
 	[[nodiscard]] QVector<T> unique() const{
 
-		return _Cs unique(this->data_);
+		return custom::unique(this->data_);
 	}
 
 	qsizetype size() const {
@@ -238,14 +238,14 @@ public:
 			else {
 				this->data_ << rle.data_.sliced(1);
 				this->index_[this->encoding_size_] += rle.index_[1];
-				this->index_ << _Cs add(rle.index_.sliced(2), this->size());
+				this->index_ << custom::add(rle.index_.sliced(2), this->size());
 				this->encoding_size_ += (rle.encoding_size_ - 1);
 				this->size_ += rle.size();
 			}
 		}
 		else {
 			this->data_ << rle.data_;
-			this->index_ << _Cs add(rle.index_.sliced(1), this->size());
+			this->index_ << custom::add(rle.index_.sliced(1), this->size());
 			this->encoding_size_ += rle.encoding_size_;
 			this->size_ += rle.size();
 		}

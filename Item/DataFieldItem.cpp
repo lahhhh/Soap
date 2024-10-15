@@ -161,20 +161,20 @@ Eigen::ArrayX<bool> find_variable_features(const Eigen::SparseMatrix<double>& ma
 	const int ncol = mat.cols();
 	const int nrow = mat.rows();
 	double clipmax = std::sqrt(ncol);
-	Eigen::ArrayXd row_mean = _Cs row_mean(mat);
-	Eigen::ArrayXd row_var = _Cs row_var(mat);
+	Eigen::ArrayXd row_mean = custom::row_mean(mat);
+	Eigen::ArrayXd row_var = custom::row_var(mat);
 
 	Eigen::ArrayX<bool> not_const = row_var > 0;
 	const int not_const_row = not_const.count();
 	if (not_const_row < 1000) {
 		return Eigen::ArrayX<bool>();
 	}
-	auto not_const_index = _Cs which(not_const);
+	auto not_const_index = custom::which(not_const);
 
-	Eigen::ArrayXd not_const_row_means = _Cs sliced(row_mean, not_const);
-	Eigen::ArrayXd not_const_row_var = _Cs sliced(row_var, not_const);
+	Eigen::ArrayXd not_const_row_means = custom::sliced(row_mean, not_const);
+	Eigen::ArrayXd not_const_row_var = custom::sliced(row_var, not_const);
 
-	Eigen::ArrayXd fitted = _Cs loess_mt(log10(not_const_row_var), log10(not_const_row_means), 2, 0.3, 50);
+	Eigen::ArrayXd fitted = custom::loess_mt(log10(not_const_row_var), log10(not_const_row_means), 2, 0.3, 50);
 
 	Eigen::ArrayXd expected_var = Eigen::ArrayXd::Zero(nrow);
 	expected_var(not_const_index) = pow(10, fitted);
@@ -196,7 +196,7 @@ Eigen::ArrayX<bool> find_variable_features(const Eigen::SparseMatrix<double>& ma
 		standardized_row_var[i] += std::pow(row_mean[i] / expected_sd[i], 2) * n_zero[i];
 	}
 	standardized_row_var /= (ncol - 1);
-	Eigen::ArrayXi standardized_row_var_sorted_index = _Cs order(standardized_row_var, true);
+	Eigen::ArrayXi standardized_row_var_sorted_index = custom::order(standardized_row_var, true);
 	Eigen::ArrayX<bool> res = Eigen::ArrayX<bool>::Constant(nrow, false);
 
 
@@ -536,7 +536,7 @@ void DataFieldItem::s_receive_umap(Eigen::MatrixXd mat) {
 		Embedding::DataType::Umap,
 		mat,
 		this->data()->counts()->colnames_,
-		_Cs paste(umap_name, _Cs cast<QString>(_Cs seq_n(1, mat.cols())), "-")
+		custom::paste(umap_name, custom::cast<QString>(custom::seq_n(1, mat.cols())), "-")
 	);
 
 	auto item = new EmbeddingItem(
@@ -582,7 +582,7 @@ void DataFieldItem::s_receive_svd(Eigen::MatrixXd mat, QVector<double> sd) {
 		Embedding::DataType::Pca,
 		mat,
 		this->data()->counts()->colnames_,
-		_Cs paste(pca_name, _Cs cast<QString>(_Cs seq_n(1, mat.cols())), "-")
+		custom::paste(pca_name, custom::cast<QString>(custom::seq_n(1, mat.cols())), "-")
 	);
 
 	single_cell_multiome->double_vectors_[sd_name] = sd;
@@ -630,7 +630,7 @@ void DataFieldItem::s_receive_pca(Eigen::MatrixXd mat, QVector<double> sd) {
 		Embedding::DataType::Pca,
 		mat,
 		this->data()->counts()->colnames_,
-		_Cs paste(pca_name, _Cs cast<QString>(_Cs seq_n(1, mat.cols())), "-")
+		custom::paste(pca_name, custom::cast<QString>(custom::seq_n(1, mat.cols())), "-")
 	);
 
 	single_cell_multiome->double_vectors_[sd_name] = sd;
@@ -705,7 +705,7 @@ void DataFieldItem::s_receive_louvain(std::vector<int> cluster) {
 		break;
 	}
 
-	single_cell_multiome->metadata()->mat_.update(cluster_name, _Cs cast<QVector>(cluster), CustomMatrix::DataType::IntegerFactor);
+	single_cell_multiome->metadata()->mat_.update(cluster_name, custom::cast<QVector>(cluster), CustomMatrix::DataType::IntegerFactor);
 };
 
 void DataFieldItem::s_receive_modified_louvain(std::vector<int> cluster) {
@@ -735,7 +735,7 @@ void DataFieldItem::s_receive_modified_louvain(std::vector<int> cluster) {
 		break;
 	}
 
-	single_cell_multiome->metadata()->mat_.update(cluster_name, _Cs cast<QVector>(cluster), CustomMatrix::DataType::IntegerFactor);
+	single_cell_multiome->metadata()->mat_.update(cluster_name, custom::cast<QVector>(cluster), CustomMatrix::DataType::IntegerFactor);
 };
 
 void DataFieldItem::s_receive_slm(std::vector<int> cluster) {
@@ -765,7 +765,7 @@ void DataFieldItem::s_receive_slm(std::vector<int> cluster) {
 		break;
 	}
 
-	single_cell_multiome->metadata()->mat_.update(cluster_name, _Cs cast<QVector>(cluster), CustomMatrix::DataType::IntegerFactor);
+	single_cell_multiome->metadata()->mat_.update(cluster_name, custom::cast<QVector>(cluster), CustomMatrix::DataType::IntegerFactor);
 };
 
 void DataFieldItem::s_smart_local_moving_custom() {
@@ -1425,7 +1425,7 @@ void DataFieldItem::s_harmony() {
 		return;
 	}
 
-	factor_names = _Cs unique(factor_names);
+	factor_names = custom::unique(factor_names);
 	QList<QStringList> factor_list;
 	for (const auto& factor_name : factor_names) {
 		factor_list << single_cell_multiome->metadata()->mat_.get_qstring(factor_name);
@@ -1754,7 +1754,7 @@ void DataFieldItem::s_receive_harmony(Eigen::MatrixXd mat) {
 			Embedding::DataType::Harmony,
 			mat,
 			this->data()->counts()->colnames_,
-			_Cs paste(harmony_name, _Cs cast<QString>(_Cs seq_n(1, mat.cols())), "-")
+			custom::paste(harmony_name, custom::cast<QString>(custom::seq_n(1, mat.cols())), "-")
 		);
 
 	auto item = new EmbeddingItem(
@@ -1920,7 +1920,7 @@ void DataFieldItem::s_receive_tsne(Eigen::MatrixXd mat) {
 		Embedding::DataType::Tsne,
 		mat,
 		this->data()->counts()->colnames_,
-		_Cs paste(tsne_name, _Cs cast<QString>(_Cs seq_n(1, mat.cols())), "-")
+		custom::paste(tsne_name, custom::cast<QString>(custom::seq_n(1, mat.cols())), "-")
 	);
 
 	auto item = new EmbeddingItem(
@@ -2310,33 +2310,33 @@ void DataFieldItem::atac_view_quality() {
 	int control_point_number = 24;
 
 	auto&& gs = this->draw_suite_->graph_settings_;
-	auto [draw_area, layout] = _Cp prepare_lg(gs);
+	auto [draw_area, layout] = custom_plot::prepare_lg(gs);
 	
 	auto colors = gs.palette({ METADATA_ATAC_UMI_NUMBER , METADATA_ATAC_UNIQUE_PEAK_NUMBER });
 
-	QCPAxisRect* axis_rect = _CpPatch new_axis_rect(draw_area);
+	QCPAxisRect* axis_rect = custom_plot::patch::new_axis_rect(draw_area);
 	layout->addElement(0, 0, axis_rect);
 
 	if (gs.use_boxplot()) {
-		_CpPatch single_box_plot(draw_area, axis_rect, trans, colors[0], "", "UMI Count");
+		custom_plot::patch::single_box_plot(draw_area, axis_rect, trans, colors[0], "", "UMI Count");
 	}
 	else {
-		_CpPatch single_violin_plot(draw_area, axis_rect, trans, control_point_number, colors[0], "", "UMI Count");
+		custom_plot::patch::single_violin_plot(draw_area, axis_rect, trans, control_point_number, colors[0], "", "UMI Count");
 	}
-	_CpPatch clear_bottom_axis(axis_rect);
+	custom_plot::patch::clear_bottom_axis(axis_rect);
 
 	trans = metadata.get_double(METADATA_ATAC_UNIQUE_PEAK_NUMBER);
-	axis_rect = _CpPatch new_axis_rect(draw_area);
+	axis_rect = custom_plot::patch::new_axis_rect(draw_area);
 	layout->addElement(0, 1, axis_rect);
 	if (gs.use_boxplot()) {
-		_CpPatch single_box_plot(draw_area, axis_rect, trans, colors[1], "", "Peak Count");
+		custom_plot::patch::single_box_plot(draw_area, axis_rect, trans, colors[1], "", "Peak Count");
 	}
 	else {
-		_CpPatch single_violin_plot(draw_area, axis_rect, trans, control_point_number, colors[1], "", "Peak Count");
+		custom_plot::patch::single_violin_plot(draw_area, axis_rect, trans, control_point_number, colors[1], "", "Peak Count");
 	}
-	_CpPatch clear_bottom_axis(axis_rect);
+	custom_plot::patch::clear_bottom_axis(axis_rect);
 
-	_Cp add_title(draw_area, "ATAC Data Quality", gs);
+	custom_plot::add_title(draw_area, "ATAC Data Quality", gs);
 
 	this->draw_suite_->update(draw_area);
 }
@@ -2366,47 +2366,47 @@ void DataFieldItem::rna_view_quality() {
 		return;
 	}
 
-	auto colors = _CpUtility kmeans_palette(3);
+	auto colors = custom_plot::utility::kmeans_palette(3);
 
 	auto trans = metadata.get_double(METADATA_RNA_UMI_NUMBER);
 	int control_point_number = 24;
 
 	const auto& gs = this->draw_suite_->graph_settings_;
-	auto [draw_area, layout] = _Cp prepare_lg(gs);
+	auto [draw_area, layout] = custom_plot::prepare_lg(gs);
 
-	QCPAxisRect* axis_rect = _CpPatch new_axis_rect(draw_area);
+	QCPAxisRect* axis_rect = custom_plot::patch::new_axis_rect(draw_area);
 	layout->addElement(0, 0, axis_rect);
 	if (gs.use_boxplot()) {
-		_CpPatch single_box_plot(draw_area, axis_rect, trans, colors[0], "", "UMI Count");
+		custom_plot::patch::single_box_plot(draw_area, axis_rect, trans, colors[0], "", "UMI Count");
 	}
 	else {
-		_CpPatch single_violin_plot(draw_area, axis_rect, trans, control_point_number, colors[0], "", "UMI Count");
+		custom_plot::patch::single_violin_plot(draw_area, axis_rect, trans, control_point_number, colors[0], "", "UMI Count");
 	}
-	_CpPatch clear_bottom_axis(axis_rect);
+	custom_plot::patch::clear_bottom_axis(axis_rect);
 
 	trans = metadata.get_double(METADATA_RNA_UNIQUE_GENE_NUMBER);
-	axis_rect = _CpPatch new_axis_rect(draw_area);
+	axis_rect = custom_plot::patch::new_axis_rect(draw_area);
 	layout->addElement(0, 1, axis_rect);
 	if (gs.use_boxplot()) {
-		_CpPatch single_box_plot(draw_area, axis_rect, trans, colors[1], "", "Gene Count");
+		custom_plot::patch::single_box_plot(draw_area, axis_rect, trans, colors[1], "", "Gene Count");
 	}
 	else {
-		_CpPatch single_violin_plot(draw_area, axis_rect, trans, control_point_number, colors[1], "", "Gene Count");
+		custom_plot::patch::single_violin_plot(draw_area, axis_rect, trans, control_point_number, colors[1], "", "Gene Count");
 	}
-	_CpPatch clear_bottom_axis(axis_rect);
+	custom_plot::patch::clear_bottom_axis(axis_rect);
 
 	trans = metadata.get_double(METADATA_RNA_MITOCHONDRIAL_CONTENT);
-	axis_rect = _CpPatch new_axis_rect(draw_area);
+	axis_rect = custom_plot::patch::new_axis_rect(draw_area);
 	layout->addElement(0, 2, axis_rect);
 	if (gs.use_boxplot()) {
-		_CpPatch single_box_plot(draw_area, axis_rect, trans, colors[2], "", "Mitochondrial Count");
+		custom_plot::patch::single_box_plot(draw_area, axis_rect, trans, colors[2], "", "Mitochondrial Count");
 	}
 	else {
-		_CpPatch single_violin_plot(draw_area, axis_rect, trans, control_point_number, colors[2], "", "Mitochondrial Count");
+		custom_plot::patch::single_violin_plot(draw_area, axis_rect, trans, control_point_number, colors[2], "", "Mitochondrial Count");
 	}
-	_CpPatch clear_bottom_axis(axis_rect);
+	custom_plot::patch::clear_bottom_axis(axis_rect);
 
-	_Cp add_title(draw_area, "RNA Data Quality", gs);
+	custom_plot::add_title(draw_area, "RNA Data Quality", gs);
 
 	this->draw_suite_->update(draw_area);
 }
@@ -2482,7 +2482,7 @@ void DataFieldItem::s_correlation_heatmap_plot() {
 		auto&& mat = normalized->mat_;
 
 		for (int i = 0; i < n_level; ++i) {
-			data.col(i) = _Cs column_slice_and_row_mean(mat, _Cs equal(factor, levels[i]));
+			data.col(i) = custom::column_slice_and_row_mean(mat, custom::equal(factor, levels[i]));
 		}
 	}
 	else {
@@ -2496,16 +2496,16 @@ void DataFieldItem::s_correlation_heatmap_plot() {
 		auto&& mat = counts->mat_;
 
 		for (int i = 0; i < n_level; ++i) {
-			data.col(i) = _Cs column_slice_and_row_mean(mat, _Cs equal(factor, levels[i]));
+			data.col(i) = custom::column_slice_and_row_mean(mat, custom::equal(factor, levels[i]));
 		}
 	}
 
-	auto cor = _Cs cor(data);
+	auto cor = custom::cor(data);
 
 	auto&& gs = this->draw_suite_->graph_settings_;
-	auto [draw_area, axis_rect, legend_layout] = _Cp prepare(gs);
+	auto [draw_area, axis_rect, legend_layout] = custom_plot::prepare(gs);
 
-	_Cp heatmap_plot2(
+	custom_plot::heatmap_plot2(
 		draw_area,
 		axis_rect,
 		10,
@@ -2517,7 +2517,7 @@ void DataFieldItem::s_correlation_heatmap_plot() {
 		gs
 	);
 
-	_Cp add_gradient_legend(
+	custom_plot::add_gradient_legend(
 		draw_area,
 		legend_layout,
 		cor.minCoeff(),
@@ -2573,15 +2573,15 @@ void DataFieldItem::s_distribution_plot() {
 
 	FeatureHandler handler(single_cell_multiome);
 
-	auto data = _Cs sapply(
+	auto data = custom::sapply(
 		features,
 		[&handler, normalized, this](auto&& s) {
 		return handler.get_data(QUERY_INFO{ s, normalized, this->data()->data_type_ == DataField::DataType::Trans });
 	}
 	);
 
-	auto filter = _Cs sapply(data, [](auto&& d) {return d.is_continuous(); });
-	data = _Cs sliced(data, filter);
+	auto filter = custom::sapply(data, [](auto&& d) {return d.is_continuous(); });
+	data = custom::sliced(data, filter);
 
 	if (data.isEmpty()) {
 		G_WARN("No valid data.");
@@ -2589,7 +2589,7 @@ void DataFieldItem::s_distribution_plot() {
 	}
 
 	const auto& gs = this->draw_suite_->graph_settings_;
-	QCustomPlot* draw_area = _Cp initialize_plot(gs);
+	QCustomPlot* draw_area = custom_plot::initialize_plot(gs);
 	auto colors = gs.palette(levels);
 
 	QCPMarginGroup* margin_group = new QCPMarginGroup(draw_area);
@@ -2605,23 +2605,23 @@ void DataFieldItem::s_distribution_plot() {
 		axis_rect->setMarginGroup(QCP::msLeft, margin_group);
 		draw_area->plotLayout()->addElement(i, 0, axis_rect);
 
-		auto [min, max] = _CpPatch violin_batch(
+		auto [min, max] = custom_plot::patch::violin_batch(
 			draw_area,
 			axis_rect,
 			factors,
 			levels,
 			colors,
-			_Cs cast<Eigen::ArrayX>(feature_data),
+			custom::cast<Eigen::ArrayX>(feature_data),
 			1.0,
 			2.0,
 			16
 		);
 
-		_CpPatch set_range(axis_rect, QCPRange(0, 2 * group_number), _CpUtility get_range(min, max));
-		_CpPatch remove_bottom_axis(axis_rect);
-		_CpPatch clear_left_axis(axis_rect);
+		custom_plot::patch::set_range(axis_rect, QCPRange(0, 2 * group_number), custom_plot::utility::get_range(min, max));
+		custom_plot::patch::remove_bottom_axis(axis_rect);
+		custom_plot::patch::clear_left_axis(axis_rect);
 		axis_rect->axis(QCPAxis::atLeft)->setBasePen(QPen(Qt::black, 3));
-		_Cp set_left_title(axis_rect, data[i].name, gs);
+		custom_plot::set_left_title(axis_rect, data[i].name, gs);
 		if (show_value) {
 			axis_rect->axis(QCPAxis::atLeft)->setTicks(true);
 			axis_rect->axis(QCPAxis::atLeft)->setTickLabels(true);
@@ -2631,16 +2631,16 @@ void DataFieldItem::s_distribution_plot() {
 	}
 
 	QCPAxisRect* axis_rect = new QCPAxisRect(draw_area, true);
-	_CpPatch set_fixed_height(axis_rect, 1);
+	custom_plot::patch::set_fixed_height(axis_rect, 1);
 	axis_rect->setMarginGroup(QCP::msLeft, margin_group);
 	draw_area->plotLayout()->addElement(n_valid_feature, 0, axis_rect);
 	draw_area->plotLayout()->setRowStretchFactor(n_valid_feature, 0.1);
 	axis_rect->axis(QCPAxis::atBottom)->setRange(QCPRange(0, 2 * group_number));
-	_CpPatch clear_bottom_axis(axis_rect);
-	_CpPatch remove_left_axis(axis_rect);
+	custom_plot::patch::clear_bottom_axis(axis_rect);
+	custom_plot::patch::remove_left_axis(axis_rect);
 	axis_rect->axis(QCPAxis::atBottom)->grid()->setVisible(false);
 	axis_rect->axis(QCPAxis::atBottom)->setBasePen(QPen(Qt::black, 3));
-	_Cp set_bottom_axis_label(
+	custom_plot::set_bottom_axis_label(
 		axis_rect,
 		Eigen::ArrayXd::LinSpaced(group_number, 1, 2 * group_number - 1),
 		levels,
@@ -2702,7 +2702,7 @@ void DataFieldItem::s_cell_heatmap_plot() {
 
 	QVector<int> index;
 	for (auto&& level : levels) {
-		auto sub_index = _Cs match(factor_data, level);
+		auto sub_index = custom::match(factor_data, level);
 		index << sub_index;
 	}
 
@@ -2716,15 +2716,15 @@ void DataFieldItem::s_cell_heatmap_plot() {
 			return;
 		}
 
-		auto filter = _Cs in(feature_names, normalized->rownames_);
+		auto filter = custom::in(feature_names, normalized->rownames_);
 		if (filter.count() == 0) {
 			G_NOTICE("No Feature Found in data.");
 			return;
 		}
 
-		feature_names = _Cs sliced(feature_names, filter);
+		feature_names = custom::sliced(feature_names, filter);
 
-		auto feature_index = _Cs index_of(feature_names, normalized->rownames_);
+		auto feature_index = custom::index_of(feature_names, normalized->rownames_);
 
 		int n_feature = feature_names.size();
 
@@ -2732,20 +2732,20 @@ void DataFieldItem::s_cell_heatmap_plot() {
 		Eigen::MatrixXd values(n_feature, n_cell_use);
 		for (int i = 0; i < n_feature; ++i) {
 			Eigen::ArrayXd exp = normalized->mat_.row(feature_index[i]);
-			values.row(i) = _Cs reordered(exp, index);
+			values.row(i) = custom::reordered(exp, index);
 		}
 
 		const auto& gs = this->draw_suite_->graph_settings_;
 
 		ele.mat = values;
 		ele.legend_title = "Expression";
-		ele.column_names = _Cs reordered(normalized->colnames_, index);
+		ele.column_names = custom::reordered(normalized->colnames_, index);
 		ele.row_names = feature_names;
 		for (auto&& annotation : annotation_names) {
-			ele.column_annotations << qMakePair(annotation, _Cs reordered(metadata.get_qstring(annotation), index));
+			ele.column_annotations << qMakePair(annotation, custom::reordered(metadata.get_qstring(annotation), index));
 		}
 		
-		auto draw_area = _Cp heatmap_plot(ele, gs);
+		auto draw_area = custom_plot::heatmap_plot(ele, gs);
 
 		this->draw_suite_->update(draw_area);
 	}
@@ -2756,15 +2756,15 @@ void DataFieldItem::s_cell_heatmap_plot() {
 			return;
 		}
 
-		auto filter = _Cs in(feature_names, counts->rownames_);
+		auto filter = custom::in(feature_names, counts->rownames_);
 		if (filter.count() == 0) {
 			G_NOTICE("No Feature Found in data.");
 			return;
 		}
 
-		feature_names = _Cs sliced(feature_names, filter);
+		feature_names = custom::sliced(feature_names, filter);
 
-		auto feature_index = _Cs index_of(feature_names, counts->rownames_);
+		auto feature_index = custom::index_of(feature_names, counts->rownames_);
 
 		int n_feature = feature_names.size();
 
@@ -2772,20 +2772,20 @@ void DataFieldItem::s_cell_heatmap_plot() {
 		Eigen::MatrixXd values(n_feature, n_cell_use);
 		for (int i = 0; i < n_feature; ++i) {
 			Eigen::ArrayXd exp = counts->mat_.row(feature_index[i]).cast<double>();
-			values.row(i) = _Cs reordered(exp, index);
+			values.row(i) = custom::reordered(exp, index);
 		}
 
 		const auto& gs = this->draw_suite_->graph_settings_;
 
 		ele.mat = values;
 		ele.legend_title = "Expression";
-		ele.column_names = _Cs reordered(counts->colnames_, index);
+		ele.column_names = custom::reordered(counts->colnames_, index);
 		ele.row_names = feature_names;
 		for (auto&& annotation : annotation_names) {
-			ele.column_annotations << qMakePair(annotation, _Cs reordered(metadata.get_qstring(annotation), index));
+			ele.column_annotations << qMakePair(annotation, custom::reordered(metadata.get_qstring(annotation), index));
 		}
 
-		auto draw_area = _Cp heatmap_plot(ele, gs);
+		auto draw_area = custom_plot::heatmap_plot(ele, gs);
 
 		this->draw_suite_->update(draw_area);
 	}
@@ -2861,24 +2861,24 @@ void DataFieldItem::s_heatmap_plot() {
 			return;
 		}
 
-		auto filter = _Cs in(feature_names, normalized->rownames_);
+		auto filter = custom::in(feature_names, normalized->rownames_);
 		if (filter.count() == 0) {
 			G_NOTICE("No Feature Found in data.");
 			return;
 		}
 
-		feature_names = _Cs sliced(feature_names, filter);
+		feature_names = custom::sliced(feature_names, filter);
 
-		auto feature_index = _Cs index_of(feature_names, normalized->rownames_);
+		auto feature_index = custom::index_of(feature_names, normalized->rownames_);
 
 		int n_feature = feature_names.size();
 
 		Eigen::MatrixXd values(n_feature, n_level);
 		for (int i = 0; i < n_level; ++i) {
-			filter = _Cs equal(factor, levels[i]);
+			filter = custom::equal(factor, levels[i]);
 			for (int j = 0; j < n_feature; ++j) {
 				Eigen::ArrayXd exp = normalized->mat_.row(feature_index[j]);
-				exp = _Cs sliced(exp, filter);
+				exp = custom::sliced(exp, filter);
 				values(j, i) = exp.mean();
 			}
 		}
@@ -2892,16 +2892,16 @@ void DataFieldItem::s_heatmap_plot() {
 				}
 				else {
 					double mean = values.row(j).mean();
-					double std = _Cs sd(values.row(j));
+					double std = custom::sd(values.row(j));
 					values.row(j) = (values.row(j).array() - mean) / std;
 				}
 			}
 		}
 
 		const auto& gs = this->draw_suite_->graph_settings_;
-		auto [draw_area, axis_rect, legend_layout] = _Cp prepare(gs);
+		auto [draw_area, axis_rect, legend_layout] = custom_plot::prepare(gs);
 
-		_Cp heatmap_plot(
+		custom_plot::heatmap_plot(
 			draw_area,
 			axis_rect,
 			legend_layout,
@@ -2926,25 +2926,25 @@ void DataFieldItem::s_heatmap_plot() {
 			return;
 		}
 
-		auto filter = _Cs in(feature_names, counts->rownames_);
+		auto filter = custom::in(feature_names, counts->rownames_);
 		if (filter.count() == 0) {
 			G_NOTICE("No Feature Found in data.");
 			return;
 		}
 
-		feature_names = _Cs sliced(feature_names, filter);
+		feature_names = custom::sliced(feature_names, filter);
 
-		auto feature_index = _Cs index_of(feature_names, counts->rownames_);
+		auto feature_index = custom::index_of(feature_names, counts->rownames_);
 
 		int n_feature = feature_names.size();
 
 		Eigen::MatrixXd values(n_level, n_feature);
 
 		for (int i = 0; i < n_level; ++i) {
-			filter = _Cs equal(factor, levels[i]);
+			filter = custom::equal(factor, levels[i]);
 			for (int j = 0; j < n_feature; ++j) {
 				Eigen::ArrayXi exp = counts->mat_.row(feature_index[j]);
-				exp = _Cs sliced(exp, filter);
+				exp = custom::sliced(exp, filter);
 				values(i, j) = exp.cast<double>().mean();
 			}
 		}
@@ -2958,16 +2958,16 @@ void DataFieldItem::s_heatmap_plot() {
 				}
 				else {
 					double mean = values.row(j).mean();
-					double std = _Cs sd(values.row(j));
+					double std = custom::sd(values.row(j));
 					values.row(j) = (values.row(j).array() - mean) / std;
 				}
 			}
 		}
 
 		const auto& gs = this->draw_suite_->graph_settings_;
-		auto [draw_area, axis_rect, legend_layout] = _Cp prepare(gs);
+		auto [draw_area, axis_rect, legend_layout] = custom_plot::prepare(gs);
 
-		_Cp heatmap_plot(
+		custom_plot::heatmap_plot(
 			draw_area,
 			axis_rect,
 			legend_layout,
@@ -3031,34 +3031,34 @@ void DataFieldItem::s_bubble_plot() {
 			return;
 		}
 
-		auto filter = _Cs in(feature_names, normalized->rownames_);
+		auto filter = custom::in(feature_names, normalized->rownames_);
 		if (filter.count() == 0) {
 			G_NOTICE("No Feature Found in data.");
 			return;
 		}
 
-		feature_names = _Cs sliced(feature_names, filter);
+		feature_names = custom::sliced(feature_names, filter);
 
-		auto feature_index = _Cs index_of(feature_names, normalized->rownames_);
+		auto feature_index = custom::index_of(feature_names, normalized->rownames_);
 
 		int n_feature = feature_names.size();
 
 		Eigen::MatrixXd values(n_level, n_feature);
 		Eigen::MatrixXi proportion(n_level, n_feature);
 		for (int i = 0; i < n_level; ++i) {
-			filter = _Cs equal(factor, levels[i]);
+			filter = custom::equal(factor, levels[i]);
 			for (int j = 0; j < n_feature; ++j) {
 				Eigen::ArrayXd exp = normalized->mat_.row(feature_index[j]);
-				exp = _Cs sliced(exp, filter);
+				exp = custom::sliced(exp, filter);
 				values(i, j) = exp.mean();
 				proportion(i, j) = ceil((exp > 0).count() / (double)exp.size() * 50) + 1;
 			}
 		}
 
 		const auto& gs = this->draw_suite_->graph_settings_;
-		auto [draw_area, axis_rect, legend_layout] = _Cp prepare(gs);
+		auto [draw_area, axis_rect, legend_layout] = custom_plot::prepare(gs);
 
-		_Cp bubble_plot(
+		custom_plot::bubble_plot(
 			draw_area,
 			axis_rect,
 			legend_layout,
@@ -3080,15 +3080,15 @@ void DataFieldItem::s_bubble_plot() {
 			return;
 		}
 
-		auto filter = _Cs in(feature_names, counts->rownames_);
+		auto filter = custom::in(feature_names, counts->rownames_);
 		if (filter.count() == 0) {
 			G_NOTICE("No Feature Found in data.");
 			return;
 		}
 
-		feature_names = _Cs sliced(feature_names, filter);
+		feature_names = custom::sliced(feature_names, filter);
 
-		auto feature_index = _Cs index_of(feature_names, counts->rownames_);
+		auto feature_index = custom::index_of(feature_names, counts->rownames_);
 
 		int n_feature = feature_names.size();
 
@@ -3096,23 +3096,23 @@ void DataFieldItem::s_bubble_plot() {
 		Eigen::MatrixXi proportion(n_level, n_feature);
 
 		for (int i = 0; i < n_level; ++i) {
-			filter = _Cs equal(factor, levels[i]);
+			filter = custom::equal(factor, levels[i]);
 			for (int j = 0; j < n_feature; ++j) {
 				Eigen::ArrayXi exp = counts->mat_.row(feature_index[j]);
-				exp = _Cs sliced(exp, filter);
+				exp = custom::sliced(exp, filter);
 				values(i, j) = exp.cast<double>().mean();
 				proportion(i, j) = ceil((exp > 0).count() / (double)exp.size() * 50) + 1;
 			}
 		}
 
 		const auto& gs = this->draw_suite_->graph_settings_;
-		auto [draw_area, axis_rect, legend_layout] = _Cp prepare(gs);
+		auto [draw_area, axis_rect, legend_layout] = custom_plot::prepare(gs);
 
-		_Cp bubble_plot(
+		custom_plot::bubble_plot(
 			draw_area,
 			axis_rect,
 			legend_layout,
-			_Cs reversed(levels),
+			custom::reversed(levels),
 			feature_names,
 			values,
 			proportion,
@@ -3141,7 +3141,7 @@ bool DataFieldItem::atac_re_estimate_quality_parameters() {
 
 	const int n_cell = atac_counts->cols();
 
-	Eigen::ArrayXi peak_count = _Cs col_sum_mt(atac_counts->mat_);
+	Eigen::ArrayXi peak_count = custom::col_sum_mt(atac_counts->mat_);
 	Eigen::ArrayXi peak_gene(n_cell);
 
 	for (std::size_t i = 0; i < n_cell; ++i) {
@@ -3150,8 +3150,8 @@ bool DataFieldItem::atac_re_estimate_quality_parameters() {
 
 	auto metadata = single_cell_multiome->metadata();
 
-	metadata->mat_.update(METADATA_ATAC_UMI_NUMBER, _Cs cast<QVector>(peak_count));
-	metadata->mat_.update(METADATA_ATAC_UNIQUE_PEAK_NUMBER, _Cs cast<QVector>(peak_gene));
+	metadata->mat_.update(METADATA_ATAC_UMI_NUMBER, custom::cast<QVector>(peak_count));
+	metadata->mat_.update(METADATA_ATAC_UNIQUE_PEAK_NUMBER, custom::cast<QVector>(peak_gene));
 
 	return true;
 };
@@ -3173,7 +3173,7 @@ bool DataFieldItem::rna_re_estimate_quality_parameters() {
 
 	const int n_cell = rna_counts->cols();
 
-	Eigen::ArrayXi col_count = _Cs col_sum_mt(rna_counts->mat_);
+	Eigen::ArrayXi col_count = custom::col_sum_mt(rna_counts->mat_);
 	Eigen::ArrayXi col_gene(n_cell);
 	Eigen::ArrayXd mitochondrial_content = Eigen::ArrayXd::Zero(n_cell);
 	Eigen::ArrayXd ribosomal_content = Eigen::ArrayXd::Zero(n_cell);
@@ -3222,14 +3222,14 @@ bool DataFieldItem::rna_re_estimate_quality_parameters() {
 		ribosomal_content /= col_count.cast<double>();
 	}
 
-	_Cs remove_na(mitochondrial_content);
-	_Cs remove_na(ribosomal_content);
+	custom::remove_na(mitochondrial_content);
+	custom::remove_na(ribosomal_content);
 
 	auto metadata = single_cell_multiome->metadata();
-	metadata->mat_.update(METADATA_RNA_UMI_NUMBER, _Cs cast<QVector>(col_count));
-	metadata->mat_.update(METADATA_RNA_UNIQUE_GENE_NUMBER, _Cs cast<QVector>(col_gene));
-	metadata->mat_.update(METADATA_RNA_MITOCHONDRIAL_CONTENT, _Cs cast<QVector>(mitochondrial_content));
-	metadata->mat_.update(METADATA_RNA_RIBOSOMAL_CONTENT, _Cs cast<QVector>(ribosomal_content));
+	metadata->mat_.update(METADATA_RNA_UMI_NUMBER, custom::cast<QVector>(col_count));
+	metadata->mat_.update(METADATA_RNA_UNIQUE_GENE_NUMBER, custom::cast<QVector>(col_gene));
+	metadata->mat_.update(METADATA_RNA_MITOCHONDRIAL_CONTENT, custom::cast<QVector>(mitochondrial_content));
+	metadata->mat_.update(METADATA_RNA_RIBOSOMAL_CONTENT, custom::cast<QVector>(ribosomal_content));
 
 	return true;
 };

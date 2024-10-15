@@ -111,7 +111,7 @@ void SingleCellMultiomeItem::rna_update_quality_control_information() {
 		return;
 	}
 
-	Eigen::ArrayXi rna_count = _Cs col_sum_mt(rna_counts->mat_);
+	Eigen::ArrayXi rna_count = custom::col_sum_mt(rna_counts->mat_);
 	const int ncol_rna = rna_counts->mat_.cols();
 	Eigen::ArrayXi rna_gene(ncol_rna);
 	Eigen::ArrayXd mitochondrial_content = Eigen::ArrayXd::Zero(ncol_rna);
@@ -159,14 +159,14 @@ void SingleCellMultiomeItem::rna_update_quality_control_information() {
 		}
 		ribosomal_content /= rna_count.cast<double>();
 	}
-	_Cs remove_na(mitochondrial_content);
-	_Cs remove_na(ribosomal_content);
+	custom::remove_na(mitochondrial_content);
+	custom::remove_na(ribosomal_content);
 
 	auto&& metadata = *this->data()->metadata();
-	metadata.mat_.update(METADATA_RNA_UMI_NUMBER, _Cs cast<QVector>(rna_count));
-	metadata.mat_.update(METADATA_RNA_UNIQUE_GENE_NUMBER, _Cs cast<QVector>(rna_gene));
-	metadata.mat_.update(METADATA_RNA_MITOCHONDRIAL_CONTENT, _Cs cast<QVector>(mitochondrial_content));
-	metadata.mat_.update(METADATA_RNA_RIBOSOMAL_CONTENT, _Cs cast<QVector>(ribosomal_content));
+	metadata.mat_.update(METADATA_RNA_UMI_NUMBER, custom::cast<QVector>(rna_count));
+	metadata.mat_.update(METADATA_RNA_UNIQUE_GENE_NUMBER, custom::cast<QVector>(rna_gene));
+	metadata.mat_.update(METADATA_RNA_MITOCHONDRIAL_CONTENT, custom::cast<QVector>(mitochondrial_content));
+	metadata.mat_.update(METADATA_RNA_RIBOSOMAL_CONTENT, custom::cast<QVector>(ribosomal_content));
 }
 
 void SingleCellMultiomeItem::atac_update_quality_control_information() {
@@ -176,7 +176,7 @@ void SingleCellMultiomeItem::atac_update_quality_control_information() {
 		return;
 	}
 
-	Eigen::ArrayXi peak_count = _Cs col_sum_mt(atac_counts->mat_);
+	Eigen::ArrayXi peak_count = custom::col_sum_mt(atac_counts->mat_);
 	const int ncol_atac = atac_counts->mat_.cols();
 	Eigen::ArrayXi peak_gene(ncol_atac);
 
@@ -186,8 +186,8 @@ void SingleCellMultiomeItem::atac_update_quality_control_information() {
 
 	Metadata& metadata = *this->data()->metadata();
 
-	metadata.mat_.update(METADATA_ATAC_UMI_NUMBER, _Cs cast<QVector>(peak_count));
-	metadata.mat_.update(METADATA_ATAC_UNIQUE_PEAK_NUMBER, _Cs cast<QVector>(peak_gene));
+	metadata.mat_.update(METADATA_ATAC_UMI_NUMBER, custom::cast<QVector>(peak_count));
+	metadata.mat_.update(METADATA_ATAC_UNIQUE_PEAK_NUMBER, custom::cast<QVector>(peak_gene));
 }
 
 void SingleCellMultiomeItem::update_quality_control_information(DataField::DataType type) {
@@ -504,7 +504,7 @@ void SingleCellMultiomeItem::s_tss_plot() {
 void SingleCellMultiomeItem::s_receive_tss_plot_data(Eigen::ArrayXXd tss_matrix, QVector<double> tss_vector) {
 	const auto& gs = this->draw_suite_->graph_settings_;
 
-	auto [draw_area, main_layout] = _Cp prepare_lg(gs);
+	auto [draw_area, main_layout] = custom_plot::prepare_lg(gs);
 
 	QCPMarginGroup* vertical_margin = new QCPMarginGroup(draw_area);
 	QCPMarginGroup* horizontal_margin = new QCPMarginGroup(draw_area);
@@ -539,15 +539,15 @@ void SingleCellMultiomeItem::s_receive_tss_plot_data(Eigen::ArrayXXd tss_matrix,
 
 	int n_tss = tss_vector.size();
 
-	_CpPatch line(draw_area, tss_line_rect, _Cs linspaced(n_tss, 0, n_tss - 1), tss_vector, Qt::red, 3);
-	_CpPatch set_range(tss_line_rect, QCPRange(0, n_tss - 1), QCPRange(0, 1.1 * std::ranges::max(tss_vector)));
+	custom_plot::patch::line(draw_area, tss_line_rect, custom::linspaced(n_tss, 0, n_tss - 1), tss_vector, Qt::red, 3);
+	custom_plot::patch::set_range(tss_line_rect, QCPRange(0, n_tss - 1), QCPRange(0, 1.1 * std::ranges::max(tss_vector)));
 
 	Eigen::ArrayXd bottom_axis_location(3);
 	bottom_axis_location[0] = 0;
 	bottom_axis_location[1] = (n_tss - 1) / 2.0;
 	bottom_axis_location[2] = n_tss - 1;
 
-	_Cp set_bottom_axis_label(
+	custom_plot::set_bottom_axis_label(
 		tss_line_rect, 
 		bottom_axis_location, 
 		{ "-3kb" , "Start Site" , "3kb" }, 
@@ -564,8 +564,8 @@ void SingleCellMultiomeItem::s_receive_tss_plot_data(Eigen::ArrayXXd tss_matrix,
 
 	heatmap->data()->setSize(n_col, n_row);
 	heatmap->data()->setRange(QCPRange(0, n_col - 1), QCPRange(0, n_row - 1));
-	_CpPatch remove_left_bottom_axis(color_rect);
-	_CpPatch set_range(color_rect, QCPRange(-0.5, n_col - 0.5), QCPRange(-0.5, n_row - 0.5));
+	custom_plot::patch::remove_left_bottom_axis(color_rect);
+	custom_plot::patch::set_range(color_rect, QCPRange(-0.5, n_col - 0.5), QCPRange(-0.5, n_row - 0.5));
 
 	for (int i = 0; i < n_row; ++i) {
 		for (int j = 0; j < n_col; ++j) {
@@ -584,15 +584,15 @@ void SingleCellMultiomeItem::s_receive_tss_plot_data(Eigen::ArrayXXd tss_matrix,
 	color_scale->axis()->setSubTickPen(Qt::NoPen);
 
 	QCPColorGradient gradient;
-	gradient.setColorStopAt(0.0, QColor(_CpColor firebrick3));
-	gradient.setColorStopAt(0.5, QColor(_CpColor gold));
-	gradient.setColorStopAt(1.0, QColor(_CpColor navy));
+	gradient.setColorStopAt(0.0, QColor(custom_plot::color::firebrick3));
+	gradient.setColorStopAt(0.5, QColor(custom_plot::color::gold));
+	gradient.setColorStopAt(1.0, QColor(custom_plot::color::navy));
 	heatmap->setGradient(gradient);
 	heatmap->rescaleDataRange();
 
 	color_scale->setMarginGroup(QCP::msTop | QCP::msBottom, horizontal_margin);
 
-	_Cp add_title(draw_area, "TSS Score", gs);
+	custom_plot::add_title(draw_area, "TSS Score", gs);
 
 	this->draw_suite_->update(draw_area);
 };
@@ -659,7 +659,7 @@ void SingleCellMultiomeItem::s_receive_coverage_plot_data(COVERAGE_PLOT_ELEMENTS
 
 	auto& gs = this->draw_suite_->graph_settings_;
 
-	auto draw_area = _Cp coverage_plot(res, gs);
+	auto draw_area = custom_plot::coverage_plot(res, gs);
 
 	this->draw_suite_->update(draw_area);
 };
@@ -1024,10 +1024,10 @@ void SingleCellMultiomeItem::s_filter_by_quality_metrics() {
 	double max_black = settings[3].toDouble();
 	bool in_place = switch_to_bool(settings[4]);
 
-	Eigen::ArrayX<bool> filter = _Cs greater_equal(metadata.get_const_double_reference(METADATA_TSS_ENRICHMENT), min_tss);
-	filter *= _Cs less_equal(metadata.get_const_double_reference(METADATA_NUCLEOSOME_SIGNAL), max_ns);
-	filter *= _Cs less_equal(metadata.get_const_double_reference(METADATA_BLACKLIST_RATIO), max_black);
-	filter *= _Cs greater_equal(metadata.get_const_double_reference(METADATA_FRIP_SCORE), min_frip);
+	Eigen::ArrayX<bool> filter = custom::greater_equal(metadata.get_const_double_reference(METADATA_TSS_ENRICHMENT), min_tss);
+	filter *= custom::less_equal(metadata.get_const_double_reference(METADATA_NUCLEOSOME_SIGNAL), max_ns);
+	filter *= custom::less_equal(metadata.get_const_double_reference(METADATA_BLACKLIST_RATIO), max_black);
+	filter *= custom::greater_equal(metadata.get_const_double_reference(METADATA_FRIP_SCORE), min_frip);
 
 	if (filter.count() == 0) {
 		G_WARN("No cell remain after filter.");
@@ -1055,57 +1055,57 @@ void SingleCellMultiomeItem::s_show_quality_matrics() {
 	}
 
 	auto&& gs = this->draw_suite_->graph_settings_;
-	auto [draw_area, layout] = _Cp prepare_lg(gs);
+	auto [draw_area, layout] = custom_plot::prepare_lg(gs);
 
 	auto colors = gs.palette({ METADATA_TSS_ENRICHMENT , METADATA_NUCLEOSOME_SIGNAL ,
 		METADATA_BLACKLIST_RATIO , METADATA_FRIP_SCORE });
 	const int control_point_number = 24;
 
 	auto trans = metadata.get_double(METADATA_TSS_ENRICHMENT);
-	auto axis_rect = _CpPatch new_axis_rect(draw_area);
+	auto axis_rect = custom_plot::patch::new_axis_rect(draw_area);
 	layout->addElement(0, 0, axis_rect);
 	if (gs.use_boxplot()) {
-		_CpPatch single_box_plot(draw_area, axis_rect, trans, colors[0], "", "TSS Score");
+		custom_plot::patch::single_box_plot(draw_area, axis_rect, trans, colors[0], "", "TSS Score");
 	}
 	else {
-		_CpPatch single_violin_plot(draw_area, axis_rect, trans, control_point_number, colors[0], "", "TSS Score");
+		custom_plot::patch::single_violin_plot(draw_area, axis_rect, trans, control_point_number, colors[0], "", "TSS Score");
 	}
-	_CpPatch clear_bottom_axis(axis_rect);
+	custom_plot::patch::clear_bottom_axis(axis_rect);
 
 	trans = metadata.get_double(METADATA_NUCLEOSOME_SIGNAL);
-	axis_rect = _CpPatch new_axis_rect(draw_area);
+	axis_rect = custom_plot::patch::new_axis_rect(draw_area);
 	layout->addElement(0, 1, axis_rect);
 	if (gs.use_boxplot()) {
-		_CpPatch single_box_plot(draw_area, axis_rect, trans, colors[1], "", "Nucleosome Signal");
+		custom_plot::patch::single_box_plot(draw_area, axis_rect, trans, colors[1], "", "Nucleosome Signal");
 	}
 	else {
-		_CpPatch single_violin_plot(draw_area, axis_rect, trans, control_point_number, colors[1], "", "Nucleosome Signal");
+		custom_plot::patch::single_violin_plot(draw_area, axis_rect, trans, control_point_number, colors[1], "", "Nucleosome Signal");
 	}
-	_CpPatch clear_bottom_axis(axis_rect);
+	custom_plot::patch::clear_bottom_axis(axis_rect);
 
 	trans = metadata.get_double(METADATA_BLACKLIST_RATIO);
-	axis_rect = _CpPatch new_axis_rect(draw_area);
+	axis_rect = custom_plot::patch::new_axis_rect(draw_area);
 	layout->addElement(0, 2, axis_rect);
 	if (gs.use_boxplot()) {
-		_CpPatch single_box_plot(draw_area, axis_rect, trans, colors[2], "", "Blacklist Percentage");
+		custom_plot::patch::single_box_plot(draw_area, axis_rect, trans, colors[2], "", "Blacklist Percentage");
 	}
 	else {
-		_CpPatch single_violin_plot(draw_area, axis_rect, trans, control_point_number, colors[2], "", "Blacklist Percentage");
+		custom_plot::patch::single_violin_plot(draw_area, axis_rect, trans, control_point_number, colors[2], "", "Blacklist Percentage");
 	}
-	_CpPatch clear_bottom_axis(axis_rect);
+	custom_plot::patch::clear_bottom_axis(axis_rect);
 
 	trans = metadata.get_double(METADATA_FRIP_SCORE);
-	axis_rect = _CpPatch new_axis_rect(draw_area);
+	axis_rect = custom_plot::patch::new_axis_rect(draw_area);
 	layout->addElement(0, 3, axis_rect);
 	if (gs.use_boxplot()) {
-		_CpPatch single_box_plot(draw_area, axis_rect, trans, colors[3], "", "In-Peak Percentage");
+		custom_plot::patch::single_box_plot(draw_area, axis_rect, trans, colors[3], "", "In-Peak Percentage");
 	}
 	else {
-		_CpPatch single_violin_plot(draw_area, axis_rect, trans, control_point_number, colors[3], "", "In-Peak Percentage");
+		custom_plot::patch::single_violin_plot(draw_area, axis_rect, trans, control_point_number, colors[3], "", "In-Peak Percentage");
 	}
-	_CpPatch clear_bottom_axis(axis_rect);
+	custom_plot::patch::clear_bottom_axis(axis_rect);
 
-	_Cp add_title(draw_area, "Quality Metrics", gs);
+	custom_plot::add_title(draw_area, "Quality Metrics", gs);
 
 	this->draw_suite_->update(draw_area);
 
@@ -1122,7 +1122,7 @@ void SingleCellMultiomeItem::s_show_fragments_length_distribution() {
 	const auto& distribution = this->data()->double_vectors_[VECTOR_FRAGMENTS_LENGTH_DISTRIBUTION];
 
 	auto&& gs = this->draw_suite_->graph_settings_;
-	auto [draw_area, axis_rect] = _Cp prepare_ar(gs);
+	auto [draw_area, axis_rect] = custom_plot::prepare_ar(gs);
 
 	double max_length = distribution.size() - 1;
 	double minimum_x = 0, maximum_x = max_length + 1, maximum_y = std::ranges::max(distribution) * 1.1;
@@ -1130,18 +1130,18 @@ void SingleCellMultiomeItem::s_show_fragments_length_distribution() {
 	draw_area->addGraph(axis_rect->axis(QCPAxis::atBottom), axis_rect->axis(QCPAxis::atLeft));
 	QPen pen;
 	pen.setWidth(1);
-	pen.setColor(_Cs random_color());
+	pen.setColor(custom::random_color());
 
 	draw_area->graph()->setPen(pen);
 	draw_area->graph()->setLineStyle(QCPGraph::lsImpulse);
-	draw_area->graph()->setData(_Cs linspaced(distribution.size(), 0, max_length), distribution);
+	draw_area->graph()->setData(custom::linspaced(distribution.size(), 0, max_length), distribution);
 
 	axis_rect->axis(QCPAxis::atLeft)->setRange(0, maximum_y);
 	axis_rect->axis(QCPAxis::atBottom)->setRange(minimum_x, maximum_x);
 
-	_Cp set_simple_axis(axis_rect, "Fragment Length(bp)", "Proportion", gs);
+	custom_plot::set_simple_axis(axis_rect, "Fragment Length(bp)", "Proportion", gs);
 	
-	_Cp add_title(draw_area, "Fragments Length Distribution", gs);
+	custom_plot::add_title(draw_area, "Fragments Length Distribution", gs);
 
 	this->draw_suite_->update(draw_area);
 };
@@ -1175,21 +1175,21 @@ void SingleCellMultiomeItem::s_sample() {
 		levels = this->data()->metadata()->mat_.string_factors_[feature];
 	}
 	else {
-		levels = _Cs cast<QString>(this->data()->metadata()->mat_.integer_factors_[feature]);
+		levels = custom::cast<QString>(this->data()->metadata()->mat_.integer_factors_[feature]);
 	}
 	QVector<int> selected;
 	if (downsample != "ALL") {
 		int downsample_number = downsample.toInt();
 		for (const auto& factor : levels) {
-			auto index = _Cs match(metadata, factor);
+			auto index = custom::match(metadata, factor);
 			if (index.size() > downsample_number) {
-				index = _Cs sample(index, downsample_number, this->data()->random_state_);
+				index = custom::sample(index, downsample_number, this->data()->random_state_);
 			}
 			selected << index;
 		}
 	}
 	else {
-		selected = _Cs seq_n(0, metadata.size());
+		selected = custom::seq_n(0, metadata.size());
 	}
 
 	if (selected.count() == 0) {
@@ -1427,11 +1427,11 @@ std::pair<Eigen::ArrayX<bool>, Eigen::ArrayX<bool> > SingleCellMultiomeItem::get
 			auto& n_umi = metadata.get_const_integer_reference(METADATA_RNA_UMI_NUMBER);
 			if (!parameters[0].isEmpty()) {
 				int maximum_count_number = parameters[0].toInt();
-				passed_column *= _Cs less_equal(n_umi, maximum_count_number);
+				passed_column *= custom::less_equal(n_umi, maximum_count_number);
 			}
 			if (!parameters[2].isEmpty()) {
 				int minimum_count_number = parameters[2].toInt();
-				passed_column *= _Cs greater_equal(n_umi, minimum_count_number);
+				passed_column *= custom::greater_equal(n_umi, minimum_count_number);
 			}
 
 		}
@@ -1444,11 +1444,11 @@ std::pair<Eigen::ArrayX<bool>, Eigen::ArrayX<bool> > SingleCellMultiomeItem::get
 
 			if (!parameters[1].isEmpty()) {
 				int maximum_gene_number = parameters[1].toInt();
-				passed_column *= _Cs less_equal(n_gene, maximum_gene_number);
+				passed_column *= custom::less_equal(n_gene, maximum_gene_number);
 			}
 			if (!parameters[3].isEmpty()) {
 				int minimum_gene_number = parameters[3].toInt();
-				passed_column *= _Cs greater_equal(n_gene, minimum_gene_number);
+				passed_column *= custom::greater_equal(n_gene, minimum_gene_number);
 			}
 
 		}
@@ -1460,11 +1460,11 @@ std::pair<Eigen::ArrayX<bool>, Eigen::ArrayX<bool> > SingleCellMultiomeItem::get
 			auto& n_umi = metadata.get_const_integer_reference(METADATA_ATAC_UMI_NUMBER);
 			if (!parameters[4].isEmpty()) {
 				int maximum_count_number = parameters[4].toInt();
-				passed_column *= _Cs less_equal(n_umi, maximum_count_number);
+				passed_column *= custom::less_equal(n_umi, maximum_count_number);
 			}
 			if (!parameters[6].isEmpty()) {
 				int minimum_count_number = parameters[6].toInt();
-				passed_column *= _Cs greater_equal(n_umi, minimum_count_number);
+				passed_column *= custom::greater_equal(n_umi, minimum_count_number);
 			}
 
 		}
@@ -1477,11 +1477,11 @@ std::pair<Eigen::ArrayX<bool>, Eigen::ArrayX<bool> > SingleCellMultiomeItem::get
 
 			if (!parameters[5].isEmpty()) {
 				int maximum_gene_number = parameters[5].toInt();
-				passed_column *= _Cs less_equal(n_gene, maximum_gene_number);
+				passed_column *= custom::less_equal(n_gene, maximum_gene_number);
 			}
 			if (!parameters[7].isEmpty()) {
 				int minimum_gene_number = parameters[7].toInt();
-				passed_column *= _Cs greater_equal(n_gene, minimum_gene_number);
+				passed_column *= custom::greater_equal(n_gene, minimum_gene_number);
 			}
 
 		}
@@ -1492,12 +1492,12 @@ std::pair<Eigen::ArrayX<bool>, Eigen::ArrayX<bool> > SingleCellMultiomeItem::get
 			this->data()->metadata()->mat_.data_type_[METADATA_RNA_MITOCHONDRIAL_CONTENT] == CustomMatrix::DataType::DoubleNumeric) {
 			auto& mitochondrial_content = metadata.get_const_double_reference(METADATA_RNA_MITOCHONDRIAL_CONTENT);
 			double maximum_mitochondrial_content = parameters[8].toDouble() / 100;
-			passed_column *= _Cs less_equal(mitochondrial_content, maximum_mitochondrial_content);
+			passed_column *= custom::less_equal(mitochondrial_content, maximum_mitochondrial_content);
 		}
 	}
 
 	if (!parameters[9].isEmpty()) {
-		passed_row *= _Cs row_count<int, true, false>(this->data()->rna_counts()->mat_, 0.) >= parameters[9].toInt();
+		passed_row *= custom::row_count<int, true, false>(this->data()->rna_counts()->mat_, 0.) >= parameters[9].toInt();
 	}
 
 	return std::make_pair(passed_row, passed_column);
@@ -1544,28 +1544,28 @@ void SingleCellMultiomeItem::s_set_scrublet_threshold() {
 		}
 	}
 
-	Eigen::ArrayXd original_score = _Cs cast<Eigen::ArrayX>(scores);
-	Eigen::ArrayXd simulate_score = _Cs cast<Eigen::ArrayX>(this->data()->double_vectors_[VECTOR_SCRUBLET_SCORES_SIMULATED]);
+	Eigen::ArrayXd original_score = custom::cast<Eigen::ArrayX>(scores);
+	Eigen::ArrayXd simulate_score = custom::cast<Eigen::ArrayX>(this->data()->double_vectors_[VECTOR_SCRUBLET_SCORES_SIMULATED]);
 
-	auto [counts, edges, locs] = _Cs histogram(original_score, 32);
+	auto [counts, edges, locs] = custom::histogram(original_score, 32);
 	Eigen::ArrayXd normed_counts = log10(counts.cast<double>() + 1);
 
 	auto& gs = this->draw_suite_->graph_settings_;
 
-	auto [draw_area, axis_rect] = _Cp prepare_ar(gs);
-	_Cp bar_plot(draw_area, axis_rect, Qt::blue, locs, normed_counts, 12, "Doublet score", "Prob. density (log10 + 1)", gs);
-	_CpPatch line(draw_area, axis_rect, QVector<double>{threshold, threshold}, QVector<double>{0, normed_counts.maxCoeff()}, Qt::black, 4, Qt::DashLine);
+	auto [draw_area, axis_rect] = custom_plot::prepare_ar(gs);
+	custom_plot::bar_plot(draw_area, axis_rect, Qt::blue, locs, normed_counts, 12, "Doublet score", "Prob. density (log10 + 1)", gs);
+	custom_plot::patch::line(draw_area, axis_rect, QVector<double>{threshold, threshold}, QVector<double>{0, normed_counts.maxCoeff()}, Qt::black, 4, Qt::DashLine);
 		
 	draw_area->plotLayout()->insertRow(0);
 	SoapTextElement* title = new SoapTextElement(draw_area, "Observed transcriptomes", QFont("Arial", 20, QFont::Bold));
 	draw_area->plotLayout()->addElement(0, 0, title);
 
-	std::tie(counts, edges, locs) = _Cs histogram(simulate_score, 32);
+	std::tie(counts, edges, locs) = custom::histogram(simulate_score, 32);
 	normed_counts = log10(counts.cast<double>() + 1);
 	axis_rect = new QCPAxisRect(draw_area, true);
 	draw_area->plotLayout()->addElement(2, 0, axis_rect);
-	_Cp bar_plot(draw_area, axis_rect, Qt::red, locs, normed_counts, 12, "Doublet score", "Prob. density (log10 + 1)", gs);
-	_CpPatch line(draw_area, axis_rect, QVector<double>{threshold, threshold}, QVector<double>{0, normed_counts.maxCoeff()}, Qt::black, 4, Qt::DashLine);
+	custom_plot::bar_plot(draw_area, axis_rect, Qt::red, locs, normed_counts, 12, "Doublet score", "Prob. density (log10 + 1)", gs);
+	custom_plot::patch::line(draw_area, axis_rect, QVector<double>{threshold, threshold}, QVector<double>{0, normed_counts.maxCoeff()}, Qt::black, 4, Qt::DashLine);
 
 	draw_area->plotLayout()->insertRow(2);
 	SoapTextElement* title2 = new SoapTextElement(draw_area, "Simulated doublets", QFont("Arial", 20, QFont::Bold));
@@ -1576,19 +1576,19 @@ void SingleCellMultiomeItem::s_set_scrublet_threshold() {
 	this->data()->metadata()->mat_.update(METADATA_SCRUBLET_LABELS, labels, CustomMatrix::DataType::QStringFactor);
 	G_LOG("Threshold : " + QString::number(threshold) + " has been set for Scrublet.");
 
-	double original_rate = _Cs greater_than(original_score, threshold).count() / (double)original_score.size();
-	double simulate_rate = _Cs greater_than(simulate_score, threshold).count() / (double)simulate_score.size();
+	double original_rate = custom::greater_than(original_score, threshold).count() / (double)original_score.size();
+	double simulate_rate = custom::greater_than(simulate_score, threshold).count() / (double)simulate_score.size();
 
 	G_LOG("Detected " + QString::number(original_rate * 100) + " % doublets in original data and " + QString::number(simulate_rate * 100) + " % doublets in simulated doublets.");
 };
 
 void SingleCellMultiomeItem::s_receive_scrublet(Eigen::ArrayXd original_score, Eigen::ArrayXd simulate_score) {
 	
-	this->data()->double_vectors_[VECTOR_SCRUBLET_SCORES] = _Cs cast<QVector>(original_score);
+	this->data()->double_vectors_[VECTOR_SCRUBLET_SCORES] = custom::cast<QVector>(original_score);
 	this->data()->metadata()->mat_.update(METADATA_SCRUBLET_SCORES, this->data()->double_vectors_[VECTOR_SCRUBLET_SCORES]);
-	this->data()->double_vectors_[VECTOR_SCRUBLET_SCORES_SIMULATED] = _Cs cast<QVector>(simulate_score);
+	this->data()->double_vectors_[VECTOR_SCRUBLET_SCORES_SIMULATED] = custom::cast<QVector>(simulate_score);
 
-	auto threshold = _Cs threshold_minimum(simulate_score);
+	auto threshold = custom::threshold_minimum(simulate_score);
 
 	if (!threshold.first) {
 		G_LOG("Failed to automatically find a threshold. Please determine the threshold yourself by [Set Threshold]");
@@ -1614,31 +1614,31 @@ void SingleCellMultiomeItem::s_receive_scrublet(Eigen::ArrayXd original_score, E
 		this->data()->metadata()->mat_.update(METADATA_SCRUBLET_LABELS, labels, CustomMatrix::DataType::QStringFactor);
 	}
 
-	auto [counts, edges, locs] = _Cs histogram(original_score, 32);
+	auto [counts, edges, locs] = custom::histogram(original_score, 32);
 	Eigen::ArrayXd normed_counts = log10(counts.cast<double>() + 1);
 
 	auto& gs = this->draw_suite_->graph_settings_;
 
-	auto [draw_area, axis_rect] = _Cp prepare_ar(gs);
-	_Cp bar_plot(draw_area, axis_rect, Qt::blue, locs, normed_counts, 12, "Doublet score", "Prob. density (log10 + 1)", gs);
+	auto [draw_area, axis_rect] = custom_plot::prepare_ar(gs);
+	custom_plot::bar_plot(draw_area, axis_rect, Qt::blue, locs, normed_counts, 12, "Doublet score", "Prob. density (log10 + 1)", gs);
 
 	if (threshold.first) {
 		double threshold_value = threshold.second;
-		_CpPatch line(draw_area, axis_rect, QVector<double>{threshold_value, threshold_value}, QVector<double>{0, normed_counts.maxCoeff()}, Qt::black, 4, Qt::DashLine);
+		custom_plot::patch::line(draw_area, axis_rect, QVector<double>{threshold_value, threshold_value}, QVector<double>{0, normed_counts.maxCoeff()}, Qt::black, 4, Qt::DashLine);
 	}
 
 	draw_area->plotLayout()->insertRow(0);
 	SoapTextElement* title = new SoapTextElement(draw_area, "Observed transcriptomes", QFont("Arial", 20, QFont::Bold));
 	draw_area->plotLayout()->addElement(0, 0, title);
 
-	std::tie(counts, edges, locs) = _Cs histogram(simulate_score, 32);
+	std::tie(counts, edges, locs) = custom::histogram(simulate_score, 32);
 	normed_counts = log10(counts.cast<double>() + 1);
 	axis_rect = new QCPAxisRect(draw_area, true);
 	draw_area->plotLayout()->addElement(2, 0, axis_rect);
-	_Cp bar_plot(draw_area, axis_rect, Qt::red, locs, normed_counts, 12, "Doublet score", "Prob. density (log10 + 1)", gs);
+	custom_plot::bar_plot(draw_area, axis_rect, Qt::red, locs, normed_counts, 12, "Doublet score", "Prob. density (log10 + 1)", gs);
 	if (threshold.first) {
 		double threshold_value = threshold.second;
-		_CpPatch line(draw_area, axis_rect, QVector<double>{threshold_value, threshold_value}, QVector<double>{0, normed_counts.maxCoeff()}, Qt::black, 4, Qt::DashLine);
+		custom_plot::patch::line(draw_area, axis_rect, QVector<double>{threshold_value, threshold_value}, QVector<double>{0, normed_counts.maxCoeff()}, Qt::black, 4, Qt::DashLine);
 	}
 
 	draw_area->plotLayout()->insertRow(2);
@@ -1806,24 +1806,24 @@ void SingleCellMultiomeItem::s_gsea_in_database() {
 	QVector<int> selected;
 	QStringList metadata = this->data()->metadata()->mat_.get_qstring(factor_name);
 
-	auto index = _Cs match(metadata, comparison1);
+	auto index = custom::match(metadata, comparison1);
 	if (index.size() > downsample) {
-		index = _Cs sample(index, downsample, random_state);
+		index = custom::sample(index, downsample, random_state);
 	}
 	selected << index;
 
 	if (comparison2 == "REST") {
-		index = _Cs which(!_Cs equal(metadata, comparison1));
+		index = custom::which(!custom::equal(metadata, comparison1));
 	}
 	else {
-		index = _Cs match(metadata, comparison2);
+		index = custom::match(metadata, comparison2);
 	}
 	if (index.size() > downsample) {
-		index = _Cs sample(index, downsample, random_state);
+		index = custom::sample(index, downsample, random_state);
 	}
 	selected << index;
 
-	metadata = _Cs reordered(metadata, selected);
+	metadata = custom::reordered(metadata, selected);
 	G_LOG("GSEAing in " + factor_name + "...");
 	SparseDouble tmp = rna_normalized->col_reordered(selected);
 
@@ -1875,37 +1875,37 @@ void SingleCellMultiomeItem::s_infercnv() {
 	auto [feature, reference] = factor_choice_to_pair(settings[0]);
 
 	QStringList metadata = this->data()->metadata()->mat_.get_qstring(feature);
-	QStringList levels = _Cs unique(metadata);
+	QStringList levels = custom::unique(metadata);
 
 	QVector<int> selected;
 	if (settings[1] != "ALL") {
 		int downsample = settings[1].toInt();
 		for (const auto& factor : levels) {
-			auto index = _Cs match(metadata, factor);
+			auto index = custom::match(metadata, factor);
 			if (index.size() > downsample) {
-				index = _Cs sample(index, downsample, this->data()->random_state_);
+				index = custom::sample(index, downsample, this->data()->random_state_);
 			}
 			selected << index;
 		}
 	}
 	else {
 		for (const auto& factor : levels) {
-			auto index = _Cs match(metadata, factor);
+			auto index = custom::match(metadata, factor);
 			selected << index;
 		}
 	}
 
 	if (reference.isEmpty()) {
-		reference = _Cs unique(metadata);
+		reference = custom::unique(metadata);
 	}
 	else {
-		reference = _Cs unique(reference);
+		reference = custom::unique(reference);
 	}
 
 	G_LOG("InferCnv start...");
 	InferCnvWorker* worker = new InferCnvWorker(
 		counts->col_reordered(selected),
-		_Cs reordered(metadata, selected),
+		custom::reordered(metadata, selected),
 		reference,
 		this->data()->species_
 	);
@@ -1979,29 +1979,29 @@ void SingleCellMultiomeItem::s_scicnv() {
 		levels = this->data()->metadata()->mat_.string_factors_[feature];
 	}
 	else {
-		levels = _Cs cast<QString>(this->data()->metadata()->mat_.integer_factors_[feature]);
+		levels = custom::cast<QString>(this->data()->metadata()->mat_.integer_factors_[feature]);
 	}
 	QVector<int> selected;
 	if (settings[1] != "ALL") {
 		int downsample = settings[1].toInt();
 		for (const auto& factor : levels) {
-			auto index = _Cs match(metadata, factor);
+			auto index = custom::match(metadata, factor);
 			if (index.size() > downsample) {
-				index = _Cs sample(index, downsample, this->data()->random_state_);
+				index = custom::sample(index, downsample, this->data()->random_state_);
 			}
 			selected << index;
 		}
 	}
 	else {
 		for (const auto& factor : levels) {
-			auto index = _Cs match(metadata, factor);
+			auto index = custom::match(metadata, factor);
 			selected << index;
 		}
 	}
 	G_LOG("SciCnv start...");
 	ScicnvWorker* worker = new ScicnvWorker(
 		rna_normalized->col_reordered(selected),
-		_Cs reordered(metadata, selected),
+		custom::reordered(metadata, selected),
 		reference,
 		this->data()->species_,
 		threshold,
@@ -2132,13 +2132,13 @@ void SingleCellMultiomeItem::s_combine_existed_metadata() {
 		}
 
 		if (target_data_type == "Integer") {
-			this->data()->metadata()->mat_.update(new_metadata_name, _Cs cast<int>(res), CustomMatrix::DataType::IntegerNumeric);
+			this->data()->metadata()->mat_.update(new_metadata_name, custom::cast<int>(res), CustomMatrix::DataType::IntegerNumeric);
 		}
 		else if (target_data_type == "Numeric") {
-			this->data()->metadata()->mat_.update(new_metadata_name, _Cs cast<double>(res), CustomMatrix::DataType::DoubleNumeric);
+			this->data()->metadata()->mat_.update(new_metadata_name, custom::cast<double>(res), CustomMatrix::DataType::DoubleNumeric);
 		}
 		else if (target_data_type == "Integer Factor") {
-			this->data()->metadata()->mat_.update(new_metadata_name, _Cs cast<int>(res), CustomMatrix::DataType::IntegerFactor);
+			this->data()->metadata()->mat_.update(new_metadata_name, custom::cast<int>(res), CustomMatrix::DataType::IntegerFactor);
 		}
 		else if (target_data_type == "String Factor") {
 			this->data()->metadata()->mat_.update(new_metadata_name, res, CustomMatrix::DataType::QStringFactor);
@@ -2148,7 +2148,7 @@ void SingleCellMultiomeItem::s_combine_existed_metadata() {
 		}
 	}
 	else {
-		auto data_types = _Cs sapply(components, [&metadata](auto&& name) {return metadata.data_type_[name]; });
+		auto data_types = custom::sapply(components, [&metadata](auto&& name) {return metadata.data_type_[name]; });
 
 		const int nrow = metadata.rows();
 		const int n_choosed = data_types.size();
@@ -2202,19 +2202,19 @@ void SingleCellMultiomeItem::s_combine_existed_metadata() {
 			}
 
 			if (target_data_type == "Integer") {
-				this->data()->metadata()->mat_.update(new_metadata_name, _Cs cast<int>(res), CustomMatrix::DataType::IntegerNumeric);
+				this->data()->metadata()->mat_.update(new_metadata_name, custom::cast<int>(res), CustomMatrix::DataType::IntegerNumeric);
 			}
 			else if (target_data_type == "Numeric") {
 				this->data()->metadata()->mat_.update(new_metadata_name, res, CustomMatrix::DataType::DoubleNumeric);
 			}
 			else if (target_data_type == "Integer Factor") {
-				this->data()->metadata()->mat_.update(new_metadata_name, _Cs cast<int>(res), CustomMatrix::DataType::IntegerFactor);
+				this->data()->metadata()->mat_.update(new_metadata_name, custom::cast<int>(res), CustomMatrix::DataType::IntegerFactor);
 			}
 			else if (target_data_type == "String Factor") {
-				this->data()->metadata()->mat_.update(new_metadata_name, _Cs cast<QString>(res), CustomMatrix::DataType::QStringFactor);
+				this->data()->metadata()->mat_.update(new_metadata_name, custom::cast<QString>(res), CustomMatrix::DataType::QStringFactor);
 			}
 			else if (target_data_type == "String") {
-				this->data()->metadata()->mat_.update(new_metadata_name, _Cs cast<QString>(res), CustomMatrix::DataType::QString);
+				this->data()->metadata()->mat_.update(new_metadata_name, custom::cast<QString>(res), CustomMatrix::DataType::QString);
 			}
 		}
 		else {
@@ -2269,16 +2269,16 @@ void SingleCellMultiomeItem::s_combine_existed_metadata() {
 				this->data()->metadata()->mat_.update(new_metadata_name, res, CustomMatrix::DataType::IntegerNumeric);
 			}
 			else if (target_data_type == "Numeric") {
-				this->data()->metadata()->mat_.update(new_metadata_name, _Cs cast<double>(res), CustomMatrix::DataType::DoubleNumeric);
+				this->data()->metadata()->mat_.update(new_metadata_name, custom::cast<double>(res), CustomMatrix::DataType::DoubleNumeric);
 			}
 			else if (target_data_type == "Integer Factor") {
 				this->data()->metadata()->mat_.update(new_metadata_name, res, CustomMatrix::DataType::IntegerFactor);
 			}
 			else if (target_data_type == "String Factor") {
-				this->data()->metadata()->mat_.update(new_metadata_name, _Cs cast<QString>(res), CustomMatrix::DataType::QStringFactor);
+				this->data()->metadata()->mat_.update(new_metadata_name, custom::cast<QString>(res), CustomMatrix::DataType::QStringFactor);
 			}
 			else if (target_data_type == "String") {
-				this->data()->metadata()->mat_.update(new_metadata_name, _Cs cast<QString>(res), CustomMatrix::DataType::QString);
+				this->data()->metadata()->mat_.update(new_metadata_name, custom::cast<QString>(res), CustomMatrix::DataType::QString);
 			}
 		}
 	}	
@@ -2353,7 +2353,7 @@ void SingleCellMultiomeItem::s_add_new_metadata() {
 };
 
 void SingleCellMultiomeItem::s_receive_integrated_data(SingleCellMultiome* data, QList<const SingleCellMultiome* > items) {
-	this->signal_emitter_->unlock(this->signal_emitter_->search(_Cs sapply(items, [](auto* data) {return (void*)data; })));
+	this->signal_emitter_->unlock(this->signal_emitter_->search(custom::sapply(items, [](auto* data) {return (void*)data; })));
 
 	this->signal_emitter_->x_data_create_soon(data, soap::VariableType::SingleCellMultiome, "Integrated scMultiome");
 };
@@ -2387,7 +2387,7 @@ void SingleCellMultiomeItem::s_integrate() {
 
 	if (choosed_name.size() < 2)return;
 
-	if (!_Cs is_unique(choosed_name)) {
+	if (!custom::is_unique(choosed_name)) {
 		G_WARN("Can not integrate the same data!");
 		return;
 	}
@@ -2423,14 +2423,14 @@ void SingleCellMultiomeItem::s_integrate() {
 		}
 	}
 
-	auto species = _Cs unique(_Cs sapply(all_data, [](const SingleCellMultiome* data) {return data->species_; }));
+	auto species = custom::unique(custom::sapply(all_data, [](const SingleCellMultiome* data) {return data->species_; }));
 
 	if (species.size() != 1) {
 		G_WARN("Unmatched species!");
 		return;
 	}
 
-	if (!this->signal_emitter_->try_lock(_Cs sapply(all_data, [this](const SingleCellMultiome* data) {return this->signal_emitter_->search((void*)data); }))) {
+	if (!this->signal_emitter_->try_lock(custom::sapply(all_data, [this](const SingleCellMultiome* data) {return this->signal_emitter_->search((void*)data); }))) {
 		G_WARN("Please waiting for the computation in progress.");
 		return;
 	}
@@ -2468,7 +2468,7 @@ void SingleCellMultiomeItem::s_receive_scent(Eigen::ArrayXd data) {
 
 	G_LOG("Signalling Entropy Calculation Finished.");
 
-	this->data()->metadata()->mat_.update("Signalling Entropy", _Cs cast<QVector>(data));
+	this->data()->metadata()->mat_.update("Signalling Entropy", custom::cast<QVector>(data));
 
 };
 
@@ -2583,7 +2583,7 @@ void SingleCellMultiomeItem::s_pando() {
 				G_UNLOCK;
 				return;
 			}
-			cell_filter = _Cs in(this->data()->metadata()->mat_.get_qstring(factor), levels);
+			cell_filter = custom::in(this->data()->metadata()->mat_.get_qstring(factor), levels);
 		}
 
 		int n_feature = settings[4].toInt();
@@ -2701,7 +2701,7 @@ void SingleCellMultiomeItem::s_monocle3() {
 
 			Monocle3Worker* worker = new Monocle3Worker(
 				*this->data()->embedding(embedding_name),
-				_Cs in(factor, levels)
+				custom::in(factor, levels)
 			);
 
 			G_LINK_WORKER_THREAD(Monocle3Worker, x_monocle3_ready, SingleCellMultiomeItem, s_receive_monocle3);
@@ -2878,7 +2878,7 @@ void SingleCellMultiomeItem::s_receive_atac_landscape_plot(ATAC_LANDSCAPE_PLOT_E
 
 	int nrow = ele.mat.rows(), ncol = ele.mat.cols();
 
-	QCustomPlot* draw_area = _Cp initialize_plot(gs);
+	QCustomPlot* draw_area = custom_plot::initialize_plot(gs);
 	SoapTextElement* title = new SoapTextElement(draw_area, gs.get_title("ATAC Landscape"), gs.get_title_font());
 	draw_area->plotLayout()->addElement(0, 0, title);
 
@@ -2889,10 +2889,10 @@ void SingleCellMultiomeItem::s_receive_atac_landscape_plot(ATAC_LANDSCAPE_PLOT_E
 
 	draw_area->plotLayout()->addElement(1, 1, right_layout);
 
-	auto legend_layout = _CpPatch set_legend_layout(draw_area, right_layout);
+	auto legend_layout = custom_plot::patch::set_legend_layout(draw_area, right_layout);
 
 	if (ele.scale) {
-		_CpPatch add_gradient_legend(
+		custom_plot::patch::add_gradient_legend(
 			draw_area,
 			legend_layout,
 			-1.0,
@@ -2902,14 +2902,14 @@ void SingleCellMultiomeItem::s_receive_atac_landscape_plot(ATAC_LANDSCAPE_PLOT_E
 			"High",
 			gs.get_legend_title_font(),
 			gs.get_legend_label_font(),
-			_CpColor navy,
+			custom_plot::color::navy,
 			Qt::white,
-			_CpColor firebrick3
+			custom_plot::color::firebrick3
 		);
 	}
 	else {
 
-		_Cp add_gradient_legend(draw_area, legend_layout, ele.mat.minCoeff(), ele.mat.maxCoeff(), "Accessibility", gs);
+		custom_plot::add_gradient_legend(draw_area, legend_layout, ele.mat.minCoeff(), ele.mat.maxCoeff(), "Accessibility", gs);
 	}
 
 	QCPAxisRect* axis_rect = new QCPAxisRect(draw_area, true);
@@ -2923,7 +2923,7 @@ void SingleCellMultiomeItem::s_receive_atac_landscape_plot(ATAC_LANDSCAPE_PLOT_E
 	main_layout->addElement(0, 0, left_bottom_legend);
 	main_layout->addElement(0, 1, axis_rect);
 
-	auto cluster_names = _Cs sapply(ele.cell_loc, [](auto&& loc) {return std::get<0>(loc); });
+	auto cluster_names = custom::sapply(ele.cell_loc, [](auto&& loc) {return std::get<0>(loc); });
 
 	auto cluster_colors = gs.palette(cluster_names);
 	int index = 0;
@@ -2931,7 +2931,7 @@ void SingleCellMultiomeItem::s_receive_atac_landscape_plot(ATAC_LANDSCAPE_PLOT_E
 
 		double end = start + n;
 
-		_CpPatch rectangle_borderless(
+		custom_plot::patch::rectangle_borderless(
 			draw_area, left_bottom_legend, 0, start, 1, end - start, cluster_colors[index++]
 		);
 
@@ -2946,8 +2946,8 @@ void SingleCellMultiomeItem::s_receive_atac_landscape_plot(ATAC_LANDSCAPE_PLOT_E
 		label_x->setFont(gs.get_left_label_font());
 	}
 
-	_CpPatch remove_left_bottom_axis(left_bottom_legend);
-	left_bottom_legend->setMinimumSize(_CpUtility get_max_text_width(_Cs sapply(ele.cell_loc, [](auto&& t) {return std::get<0>(t); }), gs.get_left_label_font()) * 1.2, 200);
+	custom_plot::patch::remove_left_bottom_axis(left_bottom_legend);
+	left_bottom_legend->setMinimumSize(custom_plot::utility::get_max_text_width(custom::sapply(ele.cell_loc, [](auto&& t) {return std::get<0>(t); }), gs.get_left_label_font()) * 1.2, 200);
 
 	left_bottom_legend->axis(QCPAxis::atBottom)->setRange(-11, 1);
 	left_bottom_legend->axis(QCPAxis::atLeft)->setRange(0, nrow);
@@ -2956,8 +2956,8 @@ void SingleCellMultiomeItem::s_receive_atac_landscape_plot(ATAC_LANDSCAPE_PLOT_E
 	QCPColorMap* heatmap = new QCPColorMap(axis_rect->axis(QCPAxis::atBottom), axis_rect->axis(QCPAxis::atLeft));
 	heatmap->data()->setSize(ncol, nrow);
 	heatmap->data()->setRange(QCPRange(0, ncol - 1), QCPRange(0, nrow - 1));
-	_CpPatch remove_left_bottom_axis(axis_rect);
-	_CpPatch set_range(axis_rect, QCPRange(-0.5, ncol - 0.5), QCPRange(-0.5, nrow - 0.5));
+	custom_plot::patch::remove_left_bottom_axis(axis_rect);
+	custom_plot::patch::set_range(axis_rect, QCPRange(-0.5, ncol - 0.5), QCPRange(-0.5, nrow - 0.5));
 
 	for (int i = 0; i < nrow; ++i) {
 		for (int j = 0; j < ncol; ++j) {
@@ -2970,8 +2970,8 @@ void SingleCellMultiomeItem::s_receive_atac_landscape_plot(ATAC_LANDSCAPE_PLOT_E
 
 	if (ele.scale) {
 		gradient.setColorStopAt(0.5, Qt::white);
-		gradient.setColorStopAt(1.0, _CpColor firebrick3);
-		gradient.setColorStopAt(0.0, _CpColor navy);
+		gradient.setColorStopAt(1.0, custom_plot::color::firebrick3);
+		gradient.setColorStopAt(0.0, custom_plot::color::navy);
 	}
 	else {
 		gradient.setColorStopAt(0.5, gs.get_gradient_middle_color());
@@ -2993,7 +2993,7 @@ void SingleCellMultiomeItem::s_receive_atac_landscape_plot(ATAC_LANDSCAPE_PLOT_E
 	main_layout->addElement(1, 0, bottom_left);
 	main_layout->addElement(1, 1, bottom_legend);
 
-	auto chrColors = _CpUtility kmeans_palette(ele.chr_loc.size());
+	auto chrColors = custom_plot::utility::kmeans_palette(ele.chr_loc.size());
 	index = 0;
 	for (const auto& [chr, start, n] : ele.chr_loc) {
 

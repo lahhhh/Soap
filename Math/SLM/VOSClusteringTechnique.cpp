@@ -106,7 +106,7 @@ bool VOSClusteringTechnique::run_local_moving_algorithm(std::default_random_engi
 			n_unused_clusters++;
 		}
 
-	std::vector<int> node_permutation = _Cs generate_random_permutation(this->network_.n_nodes_, dre);
+	std::vector<int> node_permutation = custom::generate_random_permutation(this->network_.n_nodes_, dre);
 
 	std::vector<double> edge_weight_per_cluster(this->network_.n_nodes_, 0);
 	std::vector<int> neighboring_cluster(this->network_.n_nodes_ - 1, 0);

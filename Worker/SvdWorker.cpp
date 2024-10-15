@@ -25,9 +25,9 @@ bool SvdWorker::find_variable_features() {
 		return true;
 	}
 
-	auto var = _Cs col_var_mt(this->mat_);
+	auto var = custom::col_var_mt(this->mat_);
 
-	double threshold = _Cs linear_percentile(var, this->var_perc_);
+	double threshold = custom::linear_percentile(var, this->var_perc_);
 
 	Eigen::ArrayX<bool> filter = var >= threshold;
 
@@ -36,7 +36,7 @@ bool SvdWorker::find_variable_features() {
 		return false;
 	}
 
-	this->mat_ = _Cs col_sliced(this->mat_, filter);
+	this->mat_ = custom::col_sliced(this->mat_, filter);
 
 	return true;
 };
@@ -45,9 +45,9 @@ void SvdWorker::run() {
 
 	this->find_variable_features();
 
-	Eigen::ArrayX<bool> filter = _Cs col_sum(this->mat_) > 0;
+	Eigen::ArrayX<bool> filter = custom::col_sum(this->mat_) > 0;
 	if (filter.count() != this->mat_.cols()) {
-		this->mat_ = _Cs col_sliced(this->mat_, filter);
+		this->mat_ = custom::col_sliced(this->mat_, filter);
 	}
 
 	auto [U, S, V] = tsvd(&this->mat_, this->n_mat_u_, this->random_state_, this->tol_, this->maximum_iteration_);
@@ -57,6 +57,6 @@ void SvdWorker::run() {
 
 	Eigen::MatrixXd emb = U * S.asDiagonal();
 
-	emit x_svd_ready(emb, _Cs cast<QVector>(sdev));
+	emit x_svd_ready(emb, custom::cast<QVector>(sdev));
 	G_TASK_END;
 };

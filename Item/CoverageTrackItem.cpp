@@ -73,7 +73,7 @@ void CoverageTrackItem::s_show_coverage() {
 	QList<bool> is_gene_name;
 	QStringList valid_regions;
 	for (auto&& region : regions) {
-		auto [seq_name, start, end, success] = _Cs string_to_peak(region);
+		auto [seq_name, start, end, success] = custom::string_to_peak(region);
 		if (success) {
 			if (end - start > 1e6) {
 				G_WARN("Region: " + region + " is too broad for visualization.");
@@ -86,7 +86,7 @@ void CoverageTrackItem::s_show_coverage() {
 			}
 		}
 		else {
-			auto [seq_name, start, end, strand, success] = _Cs find_gene_in_genome(region, this->data()->annotation_);
+			auto [seq_name, start, end, strand, success] = custom::find_gene_in_genome(region, this->data()->annotation_);
 			if (success) {
 				if (end - start > 1e6) {
 					G_WARN("Region: " + region + " is too broad for visualization.");
@@ -130,7 +130,7 @@ void CoverageTrackItem::s_show_coverage() {
 	}
 
 	auto& gs = this->draw_suite_->graph_settings_;
-	auto draw_area = _Cp initialize_plot(gs);
+	auto draw_area = custom_plot::initialize_plot(gs);
 
 	draw_area->setNoAntialiasingOnDrag(true);
 
@@ -173,13 +173,13 @@ void CoverageTrackItem::s_show_coverage() {
 	}
 
 	QCPAxisRect* coverage_annotation_rect = new QCPAxisRect(draw_area);
-	_CpPatch remove_bottom_axis(coverage_annotation_rect);
-	_CpPatch clear_left_axis(coverage_annotation_rect);
+	custom_plot::patch::remove_bottom_axis(coverage_annotation_rect);
+	custom_plot::patch::clear_left_axis(coverage_annotation_rect);
 	coverage_annotation_rect->setMarginGroup(QCP::msLeft | QCP::msRight, annotation_column_margin);
 	main_layout->addElement(1, 0, coverage_annotation_rect);
 
 	coverage_annotation_rect->axis(QCPAxis::atLeft)->setBasePen(annotation_axis_pen);
-	_Cp set_left_title(coverage_annotation_rect, "Coverage", gs);
+	custom_plot::set_left_title(coverage_annotation_rect, "Coverage", gs);
 
 	QCPLayoutGrid* coverage_layout = new QCPLayoutGrid;
 	coverage_layout->setRowSpacing(0);
@@ -197,7 +197,7 @@ void CoverageTrackItem::s_show_coverage() {
 		int end = (locs[j].end - 1) / 10;
 		int width = end - start;
 
-		QVector<double> bottom_axis_value = _Cs linspaced(width, locs[j].start, locs[j].start + (width - 1) * 10);
+		QVector<double> bottom_axis_value = custom::linspaced(width, locs[j].start, locs[j].start + (width - 1) * 10);
 
 		Eigen::MatrixXd insertion_matrix = Eigen::MatrixXd::Zero(n_level, width);
 
@@ -206,7 +206,7 @@ void CoverageTrackItem::s_show_coverage() {
 		for (int i = 0; i < n_level; ++i) {
 			const auto& track = matrix[i];
 
-			insertion_matrix.row(i) = _Cs cast<Eigen::ArrayX>(track.segment(start, width)).cast<double>();
+			insertion_matrix.row(i) = custom::cast<Eigen::ArrayX>(track.segment(start, width)).cast<double>();
 		}
 
 		Eigen::MatrixXd average_matrix = insertion_matrix / 10;
@@ -237,12 +237,12 @@ void CoverageTrackItem::s_show_coverage() {
 			QCPAxisRect* group_rect = new QCPAxisRect(draw_area);
 			coverage_layout->addElement(i, j, group_rect);
 
-			_CpPatch remove_left_axis(group_rect);
-			_CpPatch clear_bottom_axis(group_rect);
+			custom_plot::patch::remove_left_axis(group_rect);
+			custom_plot::patch::clear_bottom_axis(group_rect);
 			group_rect->axis(QCPAxis::atBottom)->setBasePen(coverage_bottom_pen);
 			group_rect->setMarginGroup(QCP::msLeft | QCP::msRight, column_margins[j]);
 
-			QVector<double> normalized_value = _Cs cast<QVector>(insertion_matrix.row(i));
+			QVector<double> normalized_value = custom::cast<QVector>(insertion_matrix.row(i));
 			const int n_val = normalized_value.size();
 
 			Eigen::ArrayX<bool> filter = Eigen::ArrayX<bool>::Constant(n_val, true);
@@ -258,13 +258,13 @@ void CoverageTrackItem::s_show_coverage() {
 			graph->setPen(Qt::NoPen);
 			graph->setBrush(QBrush(colors[i]));
 
-			graph->setData(_Cs sliced(bottom_axis_value, filter), _Cs sliced(normalized_value, filter), true);
+			graph->setData(custom::sliced(bottom_axis_value, filter), custom::sliced(normalized_value, filter), true);
 
-			_CpPatch set_range(group_rect, QCPRange(locs[j].start, locs[j].end + 1), QCPRange(0, 1));
+			custom_plot::patch::set_range(group_rect, QCPRange(locs[j].start, locs[j].end + 1), QCPRange(0, 1));
 		}
 	}
 
-	_Cp add_round_legend(
+	custom_plot::add_round_legend(
 		draw_area,
 		legend_layout,
 		this->data()->levels_,

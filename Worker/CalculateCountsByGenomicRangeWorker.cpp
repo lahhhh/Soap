@@ -70,7 +70,7 @@ void CalculateCountsByGenomicRangeWorker::build_matrix() {
 
 	this->dense_counts_.resize(0, 0);
 
-	auto filter = _Cs greater_than(_Cs row_sum(counts_matrix), 0);
+	auto filter = custom::greater_than(custom::row_sum(counts_matrix), 0);
 
 	this->counts_->row_slice(filter);
 }

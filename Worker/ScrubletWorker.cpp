@@ -66,7 +66,7 @@ Eigen::ArrayXd NelderMead(T const & func, Eigen::ArrayXd x0, int maxiter = 0, in
         fsim[i] = func(sim.row(i));
         fcall ++;
     }
-    _Cs sort_by_first(fsim, sim);
+    custom::sort_by_first(fsim, sim);
     int iterations = 1;
     while(fcall < maxfun && iterations < maxiter){
         if(check_done(fsim, sim, xatol, fatol))break;
@@ -121,7 +121,7 @@ Eigen::ArrayXd NelderMead(T const & func, Eigen::ArrayXd x0, int maxiter = 0, in
                 }
             }
         }
-        _Cs sort_by_first(fsim, sim);
+        custom::sort_by_first(fsim, sim);
         iterations ++;
 
     }
@@ -137,7 +137,7 @@ Eigen::SparseMatrix<double> ScrubletWorker::simulate_doublet(const Eigen::Sparse
         E1[i] = u(e);
         E2[i] = u(e);
     }
-    return _Cs col_reordered(mat, E1) + _Cs col_reordered(mat, E2);
+    return custom::col_reordered(mat, E1) + custom::col_reordered(mat, E2);
     // to do : syntheticdoubletumisampling < 1
 }
 
@@ -165,7 +165,7 @@ ScrubletWorker::ScrubletWorker(
 
 Eigen::SparseMatrix<double> ScrubletWorker::normalize(){
     Eigen::SparseMatrix<double> norm = this->mat_.cast<double>();
-    Eigen::ArrayXd col_sum = _Cs col_sum(this->mat_).cast<double>();
+    Eigen::ArrayXd col_sum = custom::col_sum(this->mat_).cast<double>();
     col_sum /= col_sum.mean();
     for (int k=0; k < norm.outerSize(); ++k){
         for (Eigen::SparseMatrix<double>::InnerIterator it(norm, k); it; ++it){
@@ -176,15 +176,15 @@ Eigen::SparseMatrix<double> ScrubletWorker::normalize(){
 };
 
 void ScrubletWorker::filter_gene( Eigen::SparseMatrix<double> & norm){
-    Eigen::ArrayXi gene_ix = _Cs sliced(Eigen::ArrayXi(Eigen::ArrayXi::LinSpaced(this->mat_.rows(), 0, this->mat_.rows() - 1)), _Cs row_sum(norm) > 0);
-    Eigen::SparseMatrix<double> sub_norm = _Cs row_sliced(norm, _Cs row_sum(norm) > 0);
-    Eigen::ArrayXd mu_gene = _Cs row_mean(sub_norm);
-    Eigen::ArrayXd var_gene = _Cs row_sum(Eigen::SparseMatrix<double>(sub_norm.cwiseProduct(sub_norm)));
+    Eigen::ArrayXi gene_ix = custom::sliced(Eigen::ArrayXi(Eigen::ArrayXi::LinSpaced(this->mat_.rows(), 0, this->mat_.rows() - 1)), custom::row_sum(norm) > 0);
+    Eigen::SparseMatrix<double> sub_norm = custom::row_sliced(norm, custom::row_sum(norm) > 0);
+    Eigen::ArrayXd mu_gene = custom::row_mean(sub_norm);
+    Eigen::ArrayXd var_gene = custom::row_sum(Eigen::SparseMatrix<double>(sub_norm.cwiseProduct(sub_norm)));
     var_gene -= pow(mu_gene, 2);
     Eigen::ArrayXd FF_gene = var_gene / mu_gene;
     Eigen::ArrayXd data_x = log(mu_gene);
     Eigen::ArrayXd data_y = log(FF_gene / mu_gene);
-    _Cs sort_by_first(data_x, data_y);
+    custom::sort_by_first(data_x, data_y);
     int n_bins = 50;
     double fit_percentile = 0.1;
     double dx = (data_x[data_x.size() - 1] - data_x[0]) / n_bins;
@@ -193,13 +193,13 @@ void ScrubletWorker::filter_gene( Eigen::SparseMatrix<double> & norm){
     for(int i = 0; i < x_out.size(); ++i){
         Eigen::ArrayX<bool> ind = (data_x >= (x_out[i] - dx / 2)).cwiseProduct (data_x < (x_out[i] + dx / 2));
         if(ind.count() > 0){
-            y_out[i] = _Cs linear_percentile(_Cs sliced(data_y, ind), fit_percentile);
+            y_out[i] = custom::linear_percentile(custom::sliced(data_y, ind), fit_percentile);
         }
         else{
             y_out[i] = y_out[i - 1];
         }
     }
-    auto [h, _, b] = _Cs histogram(Eigen::ArrayXd(log(_Cs sliced(FF_gene, mu_gene > 0))), 200);
+    auto [h, _, b] = custom::histogram(Eigen::ArrayXd(log(custom::sliced(FF_gene, mu_gene > 0))), 200);
     int max_ix;
     h.maxCoeff(&max_ix);
     double c = std::max(exp(b[max_ix]), 1.0);
@@ -219,22 +219,22 @@ void ScrubletWorker::filter_gene( Eigen::SparseMatrix<double> & norm){
     Eigen::ArrayXd v_scores = FF_gene / ((1+a)*(1+b1) + b1 * mu_gene);
     Eigen::ArrayX<bool> ix2 = v_scores > 0;
 
-    gene_ix = _Cs sliced(gene_ix, ix2);
-    v_scores = _Cs sliced(v_scores, ix2);
+    gene_ix = custom::sliced(gene_ix, ix2);
+    v_scores = custom::sliced(v_scores, ix2);
     double min_vscore_pctl = 85;
-    double min_vscore = _Cs linear_percentile(v_scores, min_vscore_pctl);
-    Eigen::ArrayX<bool> ix = (_Cs row_count<double, true, true>(_Cs row_reordered(norm, gene_ix), min_counts) >= min_cells).cwiseProduct(v_scores > min_vscore);
-    gene_ix = _Cs sliced(gene_ix, ix2);
-    norm = _Cs row_reordered(norm, gene_ix);
-    norm = _Cs row_sliced(norm, _Cs col_var_mt( Eigen::SparseMatrix<double>(norm.transpose())) > 0);
+    double min_vscore = custom::linear_percentile(v_scores, min_vscore_pctl);
+    Eigen::ArrayX<bool> ix = (custom::row_count<double, true, true>(custom::row_reordered(norm, gene_ix), min_counts) >= min_cells).cwiseProduct(v_scores > min_vscore);
+    gene_ix = custom::sliced(gene_ix, ix2);
+    norm = custom::row_reordered(norm, gene_ix);
+    norm = custom::row_sliced(norm, custom::col_var_mt( Eigen::SparseMatrix<double>(norm.transpose())) > 0);
 };
 
 Eigen::MatrixXd ScrubletWorker::pca(Eigen::SparseMatrix<double> &norm, Eigen::SparseMatrix<double> &sim){
-    norm = _Cs normalize(norm, 100000);
-    sim = _Cs normalize(sim, 100000);
+    norm = custom::normalize(norm, 100000);
+    sim = custom::normalize(sim, 100000);
 
-    Eigen::MatrixXd scaled_norm = _Cs row_scale_mt(norm);
-    Eigen::MatrixXd scaled_sim = _Cs row_scale_mt(sim);
+    Eigen::MatrixXd scaled_norm = custom::row_scale_mt(norm);
+    Eigen::MatrixXd scaled_sim = custom::row_scale_mt(sim);
     scaled_norm.transposeInPlace();
 
     auto [U, S, V] = tsvd(&scaled_norm, 30);
@@ -291,8 +291,8 @@ void ScrubletWorker::calculate_score(Eigen::MatrixXi & index){
     double k_adjust_d = this->k_adjust_;
     Eigen::ArrayXd q = (n_neighbor_sim + 1) / (k_adjust_d + 2);
     Eigen::ArrayXd Ld = q * rho / r / (1 - rho - q * (1 - rho - rho / r));
-    Eigen::ArrayXd doublet_scores_orig = _Cs sliced(Ld, doublet_labels == 0);
-    Eigen::ArrayXd doublet_scores_sim = _Cs sliced(Ld, doublet_labels == 1);
+    Eigen::ArrayXd doublet_scores_orig = custom::sliced(Ld, doublet_labels == 0);
+    Eigen::ArrayXd doublet_scores_sim = custom::sliced(Ld, doublet_labels == 1);
     emit x_scrublet_ready(doublet_scores_orig, doublet_scores_sim);
 };
 

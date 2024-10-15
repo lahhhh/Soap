@@ -20,7 +20,7 @@ void ShowEmbeddingVelocityWorker::show_velocity() {
 
 	const int n_col = em.cols(), n_row = em.rows();
 
-	Eigen::MatrixXd cc = this->col_delta_cor_log10(em, log10(nd.array().abs() + 1.0) * _Cs sign(nd).array());
+	Eigen::MatrixXd cc = this->col_delta_cor_log10(em, log10(nd.array().abs() + 1.0) * custom::sign(nd).array());
 
 	const int n_cell = em.cols();
 	if (this->n_cell_neighbor_ > n_cell) {
@@ -39,8 +39,8 @@ void ShowEmbeddingVelocityWorker::show_velocity() {
 		cc(i, i) = 0.0;
 	}
 
-	auto knn = _Cs balanced_knn_mt(this->embedding_.transpose(), this->n_cell_neighbor_, n_cell, true, "euclidean");
-	Eigen::MatrixXd emb_knn = _Cs create_matrix_from_knn_index(knn).toDense().cast<double>();
+	auto knn = custom::balanced_knn_mt(this->embedding_.transpose(), this->n_cell_neighbor_, n_cell, true, "euclidean");
+	Eigen::MatrixXd emb_knn = custom::create_matrix_from_knn_index(knn).toDense().cast<double>();
 	for (int i = 0; i < n_cell; ++i) {
 		emb_knn(i, i) = 1.0;
 	}
@@ -66,8 +66,8 @@ void ShowEmbeddingVelocityWorker::show_velocity() {
 	Eigen::MatrixXd arrows_start(n_grid * n_grid, n_emb), direction(n_grid * n_grid, n_emb);
 
 	Eigen::ArrayX<bool> point_filter(n_grid * n_grid);
-	auto range_x = _CpUtility get_range(this->embedding_.col(0), 0.0);
-	auto range_y = _CpUtility get_range(this->embedding_.col(1), 0.0);
+	auto range_x = custom_plot::utility::get_range(this->embedding_.col(0), 0.0);
+	auto range_y = custom_plot::utility::get_range(this->embedding_.col(1), 0.0);
 	Eigen::ArrayXd gx = Eigen::ArrayXd::LinSpaced(n_grid, range_x.lower, range_x.upper);
 	Eigen::ArrayXd gy = Eigen::ArrayXd::LinSpaced(n_grid, range_y.lower, range_y.upper);
 
@@ -112,11 +112,11 @@ void ShowEmbeddingVelocityWorker::show_velocity() {
 		direction.col(0).segment(i * n_grid, n_grid).array() = gxd;
 		direction.col(1).segment(i * n_grid, n_grid).array() = gyd;
 	}
-	_Cs quiver_scale(arrows_start, direction);
+	custom::quiver_scale(arrows_start, direction);
 
 	if (this->graph_mode_ == 0) {
-		arrows_start = _Cs row_sliced(arrows_start, point_filter);
-		direction = _Cs row_sliced(direction, point_filter);
+		arrows_start = custom::row_sliced(arrows_start, point_filter);
+		direction = custom::row_sliced(direction, point_filter);
 
 		VELO_GRID_PLOT_ELEMENTS res;
 		res.embedding = this->embedding_;
@@ -167,7 +167,7 @@ Eigen::MatrixXd ShowEmbeddingVelocityWorker::emb_arrows(
 			it.valueRef() = 1.0;
 		}
 	}
-	tpb = _Cs normalize(tpb, 1.0);
+	tpb = custom::normalize(tpb, 1.0);
 
 	Eigen::ArrayXd zv = Eigen::ArrayXd::Zero(n_emb);
 	Eigen::MatrixXd temb = emb.transpose();
@@ -175,7 +175,7 @@ Eigen::MatrixXd ShowEmbeddingVelocityWorker::emb_arrows(
 	for (int i = 0; i < n_cell; ++i) {
 		Eigen::MatrixXd di = temb;
 		di.array().colwise() -= di.col(i).array();
-		di = _Cs norm2(di).array() * arrow_scale;
+		di = custom::norm2(di).array() * arrow_scale;
 		di.col(i) = zv;
 		dm.col(i) = di * tp.col(i) - di * tpb.col(i);
 	}
@@ -195,8 +195,8 @@ Eigen::MatrixXd ShowEmbeddingVelocityWorker::col_delta_cor_log10(
 	for (int i = 0; i < ncol; ++i) {
 		t = e;
 		t.array().colwise() -= e.col(i).array();
-		t = log10(t.array().abs() + pseudo_count) * _Cs sign(t).array();
-		ret.col(i) = _Cs cor_mt(t, d.col(i));
+		t = log10(t.array().abs() + pseudo_count) * custom::sign(t).array();
+		ret.col(i) = custom::cor_mt(t, d.col(i));
 	}
 
 	return ret;

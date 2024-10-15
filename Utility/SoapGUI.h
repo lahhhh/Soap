@@ -490,7 +490,7 @@ line_edit->setFixedSize(size);
 QComboBox* combo_box = new QComboBox(this); \
 combo_box->addItems(items); \
 {\
-	int __combo_box_width = _CpUtility get_max_text_width(items, QFont("Arial", 15)) + 20;\
+	int __combo_box_width = custom_plot::utility::get_max_text_width(items, QFont("Arial", 15)) + 20;\
 	if (__combo_box_width < 150) {\
 		__combo_box_width = 150;\
 	}\
@@ -502,17 +502,25 @@ combo_box->setFixedHeight(height);
 combo_box = new QComboBox(this); \
 combo_box->addItems(items); \
 {\
-	int __combo_box_width = _CpUtility get_max_text_width(items, QFont("Arial", 15)) + 20;\
-	if (__combo_box_width < 150) {\
-		__combo_box_width = 150;\
+	int __width = custom_plot::utility::get_max_text_width(items, QFont("Arial", 15)) + 20;\
+	if (__width < 150) {\
+		__width = 150;\
 	}\
-	combo_box->setFixedWidth(__combo_box_width);\
+	combo_box->view()->setMinimumWidth(__width);\
 }\
+combo_box->setFixedWidth(150);\
 combo_box->setFixedHeight(height);
 
 #define G_SET_COMBOBOX_FIXED_WIDTH(combo_box, items, width, height)\
 combo_box = new QComboBox(this); \
 combo_box->addItems(items); \
+{\
+	int __width = custom_plot::utility::get_max_text_width(items, QFont("Arial", 15)) + 20;\
+	if (__width < 150) {\
+		__width = 150;\
+	}\
+	combo_box->view()->setMinimumWidth(__width);\
+}\
 combo_box->setFixedWidth(width);\
 combo_box->setFixedHeight(height);
 

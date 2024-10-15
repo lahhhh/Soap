@@ -47,14 +47,14 @@ public:
     DenseDouble data_;
 
     template <typename SliceType>
-        requires _Cs is_slice_container<SliceType>
+        requires custom::is_slice_container<SliceType>
     void slice(const SliceType& slice) {
 
         this->data_.row_slice(slice);
     }
 
     template <typename OrderType>
-        requires _Cs is_order_container<OrderType>
+        requires custom::is_order_container<OrderType>
     void reorder(const OrderType& order) {
 
         this->data_.row_reorder(order);

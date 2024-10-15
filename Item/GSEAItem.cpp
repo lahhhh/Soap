@@ -63,21 +63,21 @@ void GSEAItem::s_extract_pathway_names() {
 
 	Eigen::ArrayX<bool> filter;
 	if (settings[1] == "Nominal") {
-		filter = _Cs less_than(this->data()->mat_.get_const_double_reference(METADATA_GSEA_P_VALUE), threshold);
+		filter = custom::less_than(this->data()->mat_.get_const_double_reference(METADATA_GSEA_P_VALUE), threshold);
 	}
 	else if (settings[1] == "FDR") {
-		filter = _Cs less_than(this->data()->mat_.get_const_double_reference(METADATA_GSEA_FALSE_DISCOVERY_RATE), threshold);
+		filter = custom::less_than(this->data()->mat_.get_const_double_reference(METADATA_GSEA_FALSE_DISCOVERY_RATE), threshold);
 	}
 	else {
-		filter = _Cs less_than(this->data()->mat_.get_const_double_reference(METADATA_GSEA_FAMILY_WISE_ERROR_RATE), threshold);
+		filter = custom::less_than(this->data()->mat_.get_const_double_reference(METADATA_GSEA_FAMILY_WISE_ERROR_RATE), threshold);
 	}
 
 	QString regulate_type = settings[2];
 	if (regulate_type == "Upregulated") {
-		filter *= _Cs greater_than(this->data()->mat_.get_const_double_reference(METADATA_GSEA_ENRICHMENT_SCORE), 0.);
+		filter *= custom::greater_than(this->data()->mat_.get_const_double_reference(METADATA_GSEA_ENRICHMENT_SCORE), 0.);
 	}
 	else if (regulate_type == "Downregulated") {
-		filter *= _Cs less_than(this->data()->mat_.get_const_double_reference(METADATA_GSEA_ENRICHMENT_SCORE), 0.);
+		filter *= custom::less_than(this->data()->mat_.get_const_double_reference(METADATA_GSEA_ENRICHMENT_SCORE), 0.);
 	}
 
 	if (filter.count() == 0) {
@@ -85,7 +85,7 @@ void GSEAItem::s_extract_pathway_names() {
 		return;
 	}
 
-	QStringList pathway_names = _Cs sliced(this->data()->mat_.rownames_, filter);
+	QStringList pathway_names = custom::sliced(this->data()->mat_.rownames_, filter);
 
 	StringVector* sv = new StringVector(pathway_names);
 
@@ -111,21 +111,21 @@ void GSEAItem::s_show_significant() {
 
 	Eigen::ArrayX<bool> filter;
 	if (settings[1] == "Nominal") {
-		filter = _Cs less_than(this->data()->mat_.get_const_double_reference(METADATA_GSEA_P_VALUE), threshold);
+		filter = custom::less_than(this->data()->mat_.get_const_double_reference(METADATA_GSEA_P_VALUE), threshold);
 	}
 	else if (settings[1] == "FDR") {
-		filter = _Cs less_than(this->data()->mat_.get_const_double_reference(METADATA_GSEA_FALSE_DISCOVERY_RATE), threshold);
+		filter = custom::less_than(this->data()->mat_.get_const_double_reference(METADATA_GSEA_FALSE_DISCOVERY_RATE), threshold);
 	}
 	else {
-		filter = _Cs less_than(this->data()->mat_.get_const_double_reference(METADATA_GSEA_FAMILY_WISE_ERROR_RATE), threshold);
+		filter = custom::less_than(this->data()->mat_.get_const_double_reference(METADATA_GSEA_FAMILY_WISE_ERROR_RATE), threshold);
 	}
 
 	QString regulate_type = settings[2];
 	if (regulate_type == "Upregulated") {
-		filter *= _Cs greater_than(this->data()->mat_.get_const_double_reference(METADATA_GSEA_ENRICHMENT_SCORE), 0.);
+		filter *= custom::greater_than(this->data()->mat_.get_const_double_reference(METADATA_GSEA_ENRICHMENT_SCORE), 0.);
 	}
 	else if (regulate_type == "Downregulated") {
-		filter *= _Cs less_than(this->data()->mat_.get_const_double_reference(METADATA_GSEA_ENRICHMENT_SCORE), 0.);
+		filter *= custom::less_than(this->data()->mat_.get_const_double_reference(METADATA_GSEA_ENRICHMENT_SCORE), 0.);
 	}
 
 	if (filter.count() == 0) {
@@ -151,7 +151,7 @@ void GSEAItem::single_mountain_plot(const QString& path_name, const QString& cus
 	int gene_number = this->data()->correlations_.size();
 
 	const auto& gs = this->draw_suite_->graph_settings_;
-	QCustomPlot* draw_area = _Cp initialize_plot(gs);
+	QCustomPlot* draw_area = custom_plot::initialize_plot(gs);
 	draw_area->plotLayout()->setRowSpacing(-10);
 		
 	draw_area->setBackground(QColor(242, 242, 242));
@@ -173,7 +173,7 @@ void GSEAItem::single_mountain_plot(const QString& path_name, const QString& cus
 	draw_area->graph()->setData(x, y);
 
 	auto [ymin, ymax] = std::ranges::minmax(y);
-	_CpPatch set_range(top_rect, QCPRange(-1, gene_number - 1), QCPRange(ymin, ymax));
+	custom_plot::patch::set_range(top_rect, QCPRange(-1, gene_number - 1), QCPRange(ymin, ymax));
 
 	top_rect->axis(QCPAxis::atLeft)->ticker()->setTickCount(6);
 	top_rect->axis(QCPAxis::atBottom)->ticker()->setTickCount(11);
@@ -198,7 +198,7 @@ void GSEAItem::single_mountain_plot(const QString& path_name, const QString& cus
 	draw_area->graph()->setName("Hits");
 	draw_area->graph()->setLineStyle(QCPGraph::lsImpulse);
 	draw_area->graph()->setPen(QPen(Qt::black));
-	draw_area->graph()->setData(_Cs cast<double>(this->data()->gene_location_[path_name]), QVector<double>(this->data()->gene_location_[path_name].size(), 1));
+	draw_area->graph()->setData(custom::cast<double>(this->data()->gene_location_[path_name]), QVector<double>(this->data()->gene_location_[path_name].size(), 1));
 	middle_rect->axis(QCPAxis::atTop)->setVisible(true);
 	middle_rect->axis(QCPAxis::atTop)->setTicks(false);
 	middle_rect->axis(QCPAxis::atRight)->setVisible(true);
@@ -211,7 +211,7 @@ void GSEAItem::single_mountain_plot(const QString& path_name, const QString& cus
 	middle_rect->axis(QCPAxis::atLeft)->grid()->setVisible(false);
 	ymin = 0;
 	ymax = 1;
-	_CpPatch set_range(middle_rect, QCPRange(-1, gene_number - 1), QCPRange(ymin, ymax));
+	custom_plot::patch::set_range(middle_rect, QCPRange(-1, gene_number - 1), QCPRange(ymin, ymax));
 	middle_rect->setMarginGroup(QCP::msLeft | QCP::msRight, margin_group);
 	middle_rect->setBackground(Qt::white);
 	middle_rect->setMargins({ 0, 0, 0, 0 });
@@ -221,7 +221,7 @@ void GSEAItem::single_mountain_plot(const QString& path_name, const QString& cus
 	draw_area->plotLayout()->addElement(2, 0, bottom_rect);
 	draw_area->addGraph(bottom_rect->axis(QCPAxis::atBottom), bottom_rect->axis(QCPAxis::atLeft));
 	draw_area->graph()->setName("Signal to Noise");
-	draw_area->graph()->setData(_Cs linspaced(gene_number, 0, gene_number - 1), this->data()->correlations_);
+	draw_area->graph()->setData(custom::linspaced(gene_number, 0, gene_number - 1), this->data()->correlations_);
 	draw_area->graph()->setPen(Qt::NoPen);
 	draw_area->graph()->setBrush(QBrush(Qt::gray));
 
@@ -339,7 +339,7 @@ void GSEAItem::mountain_plot_patch(
 	draw_area->graph()->setData(x, y);
 
 	auto [ymin, ymax] = std::ranges::minmax(y);
-	_CpPatch set_range(top_rect, QCPRange(-1, gene_number - 1), QCPRange(ymin, ymax));
+	custom_plot::patch::set_range(top_rect, QCPRange(-1, gene_number - 1), QCPRange(ymin, ymax));
 
 	top_rect->axis(QCPAxis::atLeft)->ticker()->setTickCount(6);
 	top_rect->axis(QCPAxis::atBottom)->ticker()->setTickCount(11);
@@ -361,7 +361,7 @@ void GSEAItem::mountain_plot_patch(
 	draw_area->addGraph(middle_rect->axis(QCPAxis::atBottom), middle_rect->axis(QCPAxis::atLeft));
 	draw_area->graph()->setLineStyle(QCPGraph::lsImpulse);
 	draw_area->graph()->setPen(QPen(Qt::black));
-	draw_area->graph()->setData(_Cs cast<double>(this->data()->gene_location_[path_name]), QVector<double>(this->data()->gene_location_[path_name].size(), 1));
+	draw_area->graph()->setData(custom::cast<double>(this->data()->gene_location_[path_name]), QVector<double>(this->data()->gene_location_[path_name].size(), 1));
 	middle_rect->axis(QCPAxis::atTop)->setVisible(true);
 	middle_rect->axis(QCPAxis::atTop)->setTicks(false);
 	middle_rect->axis(QCPAxis::atRight)->setVisible(true);
@@ -374,7 +374,7 @@ void GSEAItem::mountain_plot_patch(
 	middle_rect->axis(QCPAxis::atLeft)->grid()->setVisible(false);
 	ymin = 0;
 	ymax = 1;
-	_CpPatch set_range(middle_rect, QCPRange(-1, gene_number - 1), QCPRange(ymin, ymax));
+	custom_plot::patch::set_range(middle_rect, QCPRange(-1, gene_number - 1), QCPRange(ymin, ymax));
 	middle_rect->setMarginGroup(QCP::msLeft | QCP::msRight, margin_group);
 	middle_rect->setMargins(QMargins(0, 0, 0, 0));
 
@@ -456,7 +456,7 @@ void GSEAItem::s_mountain_plot() {
 	}
 
 	auto&& gs = this->draw_suite_->graph_settings_;
-	auto [draw_area, layout] = _Cp prepare_lg(gs);
+	auto [draw_area, layout] = custom_plot::prepare_lg(gs);
 
 	const int n_valid_path = valid_path.size();
 
@@ -498,7 +498,7 @@ void GSEAItem::s_show_selected() {
 		return;
 	}
 
-	auto filter = _Cs valid_index_of(QStringList{ settings[0] }, pathways);
+	auto filter = custom::valid_index_of(QStringList{ settings[0] }, pathways);
 
 	if (filter.isEmpty()) {
 		return;

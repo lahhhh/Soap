@@ -38,7 +38,7 @@ bool ScentWorker::calculate_max_sr() {
 
 bool ScentWorker::do_integ_ppi() {
 
-	QStringList common_gene_names = _Cs intersect(this->counts_->rownames_, this->ppi_.rownames_);
+	QStringList common_gene_names = custom::intersect(this->counts_->rownames_, this->ppi_.rownames_);
 
 	if (common_gene_names.size() < 5000) {
 		G_TASK_WARN("Too few common genes between PPI and expression matrix");
@@ -50,14 +50,14 @@ bool ScentWorker::do_integ_ppi() {
 
 	this->expression_.mat_ = this->counts_->mat_.toDense().cast<double>();
 
-	_Cs normalize_in_place(this->expression_.mat_);
+	custom::normalize_in_place(this->expression_.mat_);
 
 	this->expression_.mat_ = log2(this->expression_.mat_.array() + 1.1).eval();
 
-	auto map1_idx = _Cs index_of(common_gene_names, this->ppi_.rownames_);
+	auto map1_idx = custom::index_of(common_gene_names, this->ppi_.rownames_);
 	this->ppi_.reorder(map1_idx, map1_idx);
 
-	auto map2_idx = _Cs index_of(common_gene_names, this->expression_.rownames_);
+	auto map2_idx = custom::index_of(common_gene_names, this->expression_.rownames_);
 
 	this->expression_.row_reorder(map2_idx);
 
@@ -166,7 +166,7 @@ bool ScentWorker::read_ppi_database() {
 
 	QString line = in.readLine();
 
-	QStringList gene_names = _Cs digest(line);
+	QStringList gene_names = custom::digest(line);
 	gene_names.removeAt(0);
 
 	this->ppi_.rownames_ = this->ppi_.colnames_ = gene_names;

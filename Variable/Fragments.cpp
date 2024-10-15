@@ -15,7 +15,7 @@ void Fragments::finalize() {
 	for (auto& [chr, data] : this->data_) {
 		for (auto& [start, end] : data) {
 			if (!start.empty()) {
-				_Cs sort_by_first(start, end);
+				custom::sort_by_first(start, end);
 			}
 		}
 	}

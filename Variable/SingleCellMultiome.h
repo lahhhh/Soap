@@ -108,7 +108,7 @@ public:
 	Embedding const * trans_harmony() const;
 
 	template <typename SliceType>
-		requires _Cs is_slice_container<SliceType>
+		requires custom::is_slice_container<SliceType>
 	void col_slice(const SliceType& slice) {
 
 		for (auto& [name, data] : SUBMODULES(*this, Metadata)) {
@@ -139,7 +139,7 @@ public:
 	}
 
 	template <typename SliceType>
-		requires _Cs is_slice_container<SliceType>
+		requires custom::is_slice_container<SliceType>
 	[[nodiscard]] SingleCellMultiome* col_sliced(const SliceType& slice) const {
 
 		SingleCellMultiome* ret = new SingleCellMultiome(*this);
@@ -150,7 +150,7 @@ public:
 	}
 
 	template <typename OrderType>
-		requires _Cs is_order_container<OrderType>
+		requires custom::is_order_container<OrderType>
 	void col_reorder(const OrderType& order) {
 
 		for (auto& [name, data] : SUBMODULES(*this, Metadata)) {
@@ -181,7 +181,7 @@ public:
 	}
 
 	template <typename OrderType>
-		requires _Cs is_order_container<OrderType>
+		requires custom::is_order_container<OrderType>
 	[[nodiscard]] SingleCellMultiome* col_reordered(const OrderType& order) const {
 
 		SingleCellMultiome* ret = new SingleCellMultiome(*this);

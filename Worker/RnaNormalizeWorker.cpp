@@ -56,7 +56,7 @@ bool RnaNormalizeWorker::normalize_1() {
 	DenseDouble normalized = this->counts_->to_double();
 
 	Eigen::ArrayXd depth = normalized.mat_.colwise().sum();
-	double f = _Cs median(depth);
+	double f = custom::median(depth);
 
 	depth = f / depth;
 
@@ -77,7 +77,7 @@ bool RnaNormalizeWorker::fpkm() {
 		return false;
 	}
 
-	auto index = _Cs which(_Cs in(this->counts_->rownames_, gene_names));
+	auto index = custom::which(custom::in(this->counts_->rownames_, gene_names));
 
 	if (index.size() < (this->counts_->rows() / 2) || index.size() < 10000) {
 		G_TASK_WARN("Too many genes not found in database.");
@@ -86,10 +86,10 @@ bool RnaNormalizeWorker::fpkm() {
 
 	DenseDouble normalized = this->counts_->to_double();
 	normalized.row_reorder(index);
-	transcript_lengths = _Cs reordered(transcript_lengths, _Cs index_of(normalized.rownames_, gene_names));
+	transcript_lengths = custom::reordered(transcript_lengths, custom::index_of(normalized.rownames_, gene_names));
 
 	Eigen::ArrayXd total_reads = normalized.mat_.colwise().sum();
-	normalized.mat_.array().colwise() /= (_Cs cast<Eigen::ArrayX>(transcript_lengths)).cast<double>();
+	normalized.mat_.array().colwise() /= (custom::cast<Eigen::ArrayX>(transcript_lengths)).cast<double>();
 	normalized.mat_.array().rowwise() /= total_reads.transpose();
 	normalized.mat_.array() *= 1e9;
 
@@ -107,7 +107,7 @@ bool RnaNormalizeWorker::tpm() {
 		return false;
 	}
 
-	auto index = _Cs which(_Cs in(this->counts_->rownames_, gene_names));
+	auto index = custom::which(custom::in(this->counts_->rownames_, gene_names));
 
 	if (index.size() < (this->counts_->rows() / 2) || index.size() < 10000) {
 		G_TASK_WARN("Too many genes not found in database.");
@@ -116,9 +116,9 @@ bool RnaNormalizeWorker::tpm() {
 
 	DenseDouble normalized = this->counts_->to_double();
 	normalized.row_reorder(index);
-	transcript_lengths = _Cs reordered(transcript_lengths, _Cs index_of(normalized.rownames_, gene_names));
+	transcript_lengths = custom::reordered(transcript_lengths, custom::index_of(normalized.rownames_, gene_names));
 
-	normalized.mat_.array().colwise() /= (_Cs cast<Eigen::ArrayX>(transcript_lengths)).cast<double>();
+	normalized.mat_.array().colwise() /= (custom::cast<Eigen::ArrayX>(transcript_lengths)).cast<double>();
 	Eigen::ArrayXd total_reads = normalized.mat_.colwise().sum();
 	normalized.mat_.array().rowwise() /= total_reads.transpose();
 	normalized.mat_.array() *= 1e6;

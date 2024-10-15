@@ -107,32 +107,32 @@ Eigen::ArrayX<bool> LogicHandler::resolve_triplet_single_cell_multiome(
 		CustomMatrix::DataType datatype = metadata.data_type_[feature];
 		if (datatype == CustomMatrix::DataType::QStringFactor || datatype == CustomMatrix::DataType::IntegerFactor) {
 			if (compare == "=") {
-				ret = _Cs equal(metadata.get_qstring(feature), value);
+				ret = custom::equal(metadata.get_qstring(feature), value);
 			}
 			else {
-				ret = _Cs not_equal(metadata.get_qstring(feature), value);
+				ret = custom::not_equal(metadata.get_qstring(feature), value);
 			}
 		}
 		else {
 			QVector<double> vec = metadata.get_double(feature);
 
 			if (compare == u"=") {
-				ret = _Cs equal(vec, value.toDouble());
+				ret = custom::equal(vec, value.toDouble());
 			}
 			else if (compare == u"≠") {
-				ret = _Cs not_equal(vec, value.toDouble());
+				ret = custom::not_equal(vec, value.toDouble());
 			}
 			else if (compare == u"≤") {
-				ret = _Cs less_equal(vec, value.toDouble());
+				ret = custom::less_equal(vec, value.toDouble());
 			}
 			else if (compare == u"<") {
-				ret = _Cs less_than(vec, value.toDouble());
+				ret = custom::less_than(vec, value.toDouble());
 			}
 			else if (compare == u"≥") {
-				ret = _Cs greater_equal(vec, value.toDouble());
+				ret = custom::greater_equal(vec, value.toDouble());
 			}
 			else {
-				ret = _Cs greater_than(vec, value.toDouble());
+				ret = custom::greater_than(vec, value.toDouble());
 			}
 		}
 	}
@@ -200,32 +200,32 @@ Eigen::ArrayX<bool> LogicHandler::resolve_triplet_cm(
 		CustomMatrix::DataType datatype = mat->data_type_[feature];
 		if (datatype == CustomMatrix::DataType::QStringFactor || datatype == CustomMatrix::DataType::IntegerFactor) {
 			if (compare == "=") {
-				ret = _Cs equal(mat->get_qstring(feature), value);
+				ret = custom::equal(mat->get_qstring(feature), value);
 			}
 			else {
-				ret = _Cs not_equal(mat->get_qstring(feature), value);
+				ret = custom::not_equal(mat->get_qstring(feature), value);
 			}
 		}
 		else {
 			QVector<double> vec = mat->get_double(feature);
 
 			if (compare == u"=") {
-				ret = _Cs equal(vec, value.toDouble());
+				ret = custom::equal(vec, value.toDouble());
 			}
 			else if (compare == u"≠") {
-				ret = _Cs not_equal(vec, value.toDouble());
+				ret = custom::not_equal(vec, value.toDouble());
 			}
 			else if (compare == u"≤") {
-				ret = _Cs less_equal(vec, value.toDouble());
+				ret = custom::less_equal(vec, value.toDouble());
 			}
 			else if (compare == u"<") {
-				ret = _Cs less_than(vec, value.toDouble());
+				ret = custom::less_than(vec, value.toDouble());
 			}
 			else if (compare == u"≥") {
-				ret = _Cs greater_equal(vec, value.toDouble());
+				ret = custom::greater_equal(vec, value.toDouble());
 			}
 			else {
-				ret = _Cs greater_than(vec, value.toDouble());
+				ret = custom::greater_than(vec, value.toDouble());
 			}
 		}
 	}
@@ -249,32 +249,32 @@ Eigen::ArrayX<bool> LogicHandler::resolve_triplet_single_cell_rna(
 		CustomMatrix::DataType datatype = metadata.data_type_[feature];
 		if (datatype == CustomMatrix::DataType::QStringFactor || datatype == CustomMatrix::DataType::IntegerFactor) {
 			if (compare == "=") {
-				ret = _Cs equal(metadata.get_qstring(feature), value);
+				ret = custom::equal(metadata.get_qstring(feature), value);
 			}
 			else {
-				ret = _Cs not_equal(metadata.get_qstring(feature), value);
+				ret = custom::not_equal(metadata.get_qstring(feature), value);
 			}
 		}
 		else {
 			QVector<double> vec = metadata.get_double(feature);
 
 			if (compare == u"=") {
-				ret = _Cs equal(vec, value.toDouble());
+				ret = custom::equal(vec, value.toDouble());
 			}
 			else if (compare == u"≠") {
-				ret = _Cs not_equal(vec, value.toDouble());
+				ret = custom::not_equal(vec, value.toDouble());
 			}
 			else if (compare == u"≤") {
-				ret = _Cs less_equal(vec, value.toDouble());
+				ret = custom::less_equal(vec, value.toDouble());
 			}
 			else if (compare == u"<") {
-				ret = _Cs less_than(vec, value.toDouble());
+				ret = custom::less_than(vec, value.toDouble());
 			}
 			else if (compare == u"≥") {
-				ret = _Cs greater_equal(vec, value.toDouble());
+				ret = custom::greater_equal(vec, value.toDouble());
 			}
 			else {
-				ret = _Cs greater_than(vec, value.toDouble());
+				ret = custom::greater_than(vec, value.toDouble());
 			}
 		}
 	}
@@ -321,32 +321,32 @@ Eigen::ArrayX<bool> LogicHandler::resolve_triplet_single_cell_atac(
 		CustomMatrix::DataType datatype = metadata.data_type_[feature];
 		if (datatype == CustomMatrix::DataType::QStringFactor || datatype == CustomMatrix::DataType::IntegerFactor) {
 			if (compare == "=") {
-				ret = _Cs equal(metadata.get_qstring(feature), value);
+				ret = custom::equal(metadata.get_qstring(feature), value);
 			}
 			else {
-				ret = _Cs not_equal(metadata.get_qstring(feature), value);
+				ret = custom::not_equal(metadata.get_qstring(feature), value);
 			}
 		}
 		else {
 			QVector<double> vec = metadata.get_double(feature);
 
 			if (compare == u"=") {
-				ret = _Cs equal(vec, value.toDouble());
+				ret = custom::equal(vec, value.toDouble());
 			}
 			else if (compare == u"≠") {
-				ret = _Cs not_equal(vec, value.toDouble());
+				ret = custom::not_equal(vec, value.toDouble());
 			}
 			else if (compare == u"≤") {
-				ret = _Cs less_equal(vec, value.toDouble());
+				ret = custom::less_equal(vec, value.toDouble());
 			}
 			else if (compare == u"<") {
-				ret = _Cs less_than(vec, value.toDouble());
+				ret = custom::less_than(vec, value.toDouble());
 			}
 			else if (compare == u"≥") {
-				ret = _Cs greater_equal(vec, value.toDouble());
+				ret = custom::greater_equal(vec, value.toDouble());
 			}
 			else {
-				ret = _Cs greater_than(vec, value.toDouble());
+				ret = custom::greater_than(vec, value.toDouble());
 			}
 		}
 	}
@@ -557,7 +557,7 @@ void LogicHandler::finalize() {
 		this->data_names_ << n;
 	}
 
-	this->data_names_ = _Cs unique(this->data_names_);
+	this->data_names_ = custom::unique(this->data_names_);
 };
 
 void LogicHandler::process_cm(CustomMatrix* mat) {
@@ -571,7 +571,7 @@ void LogicHandler::process_cm(CustomMatrix* mat) {
 			break;
 		case CustomMatrix::DataType::IntegerFactor:
 			this->integer_factor_names_.insert(name);
-			this->integer_factor_contents_[name] = _Cs cast<QString>(mat->integer_factors_[name]);
+			this->integer_factor_contents_[name] = custom::cast<QString>(mat->integer_factors_[name]);
 			break;
 		case CustomMatrix::DataType::QString:
 			break;

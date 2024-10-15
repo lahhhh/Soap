@@ -28,7 +28,7 @@ Eigen::ArrayXd DenseDouble::get_row(const QString& name) const {
 };
 
 Eigen::MatrixXd DenseDouble::get_rows(const QStringList& names) const {
-    return this->mat_(_Cs index_of(names, this->rownames_), Eigen::all);
+    return this->mat_(custom::index_of(names, this->rownames_), Eigen::all);
 };
 
 Eigen::ArrayXXd DenseDouble::get_rows_array(const QStringList& names) const {

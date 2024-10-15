@@ -135,7 +135,7 @@ GLM_SUMMARY_RES glm_summary(
 	// simplified for porting
 	if (p > 0) {
 		auto Qr = object.qr;
-		Eigen::ArrayXd coef_p = _Cs reordered(object.coefficients, _Cs reordered(Qr.pivot, _Cs seq_n(0, p)));
+		Eigen::ArrayXd coef_p = custom::reordered(object.coefficients, custom::reordered(Qr.pivot, custom::seq_n(0, p)));
 		Eigen::MatrixXd covmat_unscaled = chol2inv(Qr.qr.block(0, 0, p, p));
 		Eigen::MatrixXd covmat = covmat_unscaled * dispersion;
 		Eigen::ArrayXd var_cf = covmat.diagonal();

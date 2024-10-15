@@ -45,17 +45,17 @@ void FragmentsQualityViewWorker::create_index() {
 
 void FragmentsQualityViewWorker::get_results() {
 
-	auto flank_mean = _Cs cast<double>(_Cs multiply(this->flank_counts_, 5));
-	_Cs assign(flank_mean, _Cs mean(flank_mean), _Cs equal(this->flank_counts_, 0));
-	auto center_norm = _Cs divide(this->center_counts_, flank_mean);
+	auto flank_mean = custom::cast<double>(custom::multiply(this->flank_counts_, 5));
+	custom::assign(flank_mean, custom::mean(flank_mean), custom::equal(this->flank_counts_, 0));
+	auto center_norm = custom::divide(this->center_counts_, flank_mean);
 
 	QMap<QString, QList<double>> res;
 	res[METADATA_TSS_ENRICHMENT] = center_norm;
-	res[METADATA_TSS_PERCENTILE] = _Cs empirical_cumulative_distribution(center_norm);
-	res[METADATA_NUCLEOSOME_SIGNAL] = _Cs partial_divide<double>(this->mono_nucleosome_count_, this->nucleosome_free_count_);
-	res[METADATA_BLACKLIST_RATIO] = _Cs partial_divide<double>(this->blacklist_counts_, this->not_blacklist_counts_);
-	res[METADATA_FRIP_SCORE] = _Cs partial_divide<double>(this->fragments_in_peak_, _Cs add(this->fragments_in_peak_, this->fragments_not_in_peak_));
-	res[VECTOR_FRAGMENTS_LENGTH_DISTRIBUTION] =	_Cs partial_divide<double>(this->length_distribution_, std::ranges::max(this->length_distribution_));
+	res[METADATA_TSS_PERCENTILE] = custom::empirical_cumulative_distribution(center_norm);
+	res[METADATA_NUCLEOSOME_SIGNAL] = custom::partial_divide<double>(this->mono_nucleosome_count_, this->nucleosome_free_count_);
+	res[METADATA_BLACKLIST_RATIO] = custom::partial_divide<double>(this->blacklist_counts_, this->not_blacklist_counts_);
+	res[METADATA_FRIP_SCORE] = custom::partial_divide<double>(this->fragments_in_peak_, custom::add(this->fragments_in_peak_, this->fragments_not_in_peak_));
+	res[VECTOR_FRAGMENTS_LENGTH_DISTRIBUTION] =	custom::partial_divide<double>(this->length_distribution_, std::ranges::max(this->length_distribution_));
 
 	emit x_qc_ready(res);
 
@@ -76,7 +76,7 @@ bool FragmentsQualityViewWorker::create_blacklist_index(const QString& bed_file)
 	GenomicRange blacklist_region;
 	while (!in.atEnd()) {
 		in >> seq >> start >> end;
-		blacklist_region.append(_Cs standardize_chromosome_name(seq), start, end - start, '*');
+		blacklist_region.append(custom::standardize_chromosome_name(seq), start, end - start, '*');
 	}
 
 	blacklist_region.finalize();
@@ -94,7 +94,7 @@ void FragmentsQualityViewWorker::run() {
 
 	if (this->species_ == soap::Species::Human) {
 
-		bool success = ItemDatabase::read_item(FILE_HUMAN_GENOME_GENOMIC_RANGE_GCS, this->genome_);
+		bool success = ItemDatabase::read_item(FILE_HUMAN_GENOME_GENOMIC_RANGE_SIF, this->genome_);
 
 		if (this->genome_.is_empty()) {
 			G_TASK_WARN("Loading failed.");
@@ -204,30 +204,30 @@ bool FragmentsQualityViewWorker::get_blacklist_region() {
 
 void FragmentsQualityViewWorker::get_tss_position() {
 
-	auto filter = _Cs equal(this->genome_.metadata_.get_const_qstring_reference(METADATA_GENOMIC_RANGE_GENE_BIOTYPE), QString("protein_coding"));
-	filter *= !_Cs test(this->genome_.sequence_names_,
+	auto filter = custom::equal(this->genome_.metadata_.get_const_qstring_reference(METADATA_GENOMIC_RANGE_GENE_BIOTYPE), QString("protein_coding"));
+	filter *= !custom::test(this->genome_.sequence_names_,
 		[](const QString& seq_name)->bool {return seq_name == "chrM" || seq_name == "MT" || seq_name == "Mt"; });
 
 	this->genome_.row_slice(filter);
 	this->genome_.strand_.assign('+', this->genome_.strand_ == '*');
 
 	const QStringList& gene_id = this->genome_.metadata_.get_const_qstring_reference(METADATA_GENOMIC_RANGE_GENE_ID);
-	QStringList unique_gene_ids = _Cs unique(gene_id);
+	QStringList unique_gene_ids = custom::unique(gene_id);
 
-	QVector<int> index_first = _Cs index_of(unique_gene_ids, gene_id);
-	QVector<int> index_last = _Cs last_index_of(unique_gene_ids, gene_id);
+	QVector<int> index_first = custom::index_of(unique_gene_ids, gene_id);
+	QVector<int> index_last = custom::last_index_of(unique_gene_ids, gene_id);
 
 	auto end = this->genome_.get_sequence_end();
 
 	this->genome_.sequence_names_.reorder(index_first);
 	this->genome_.strand_.reorder(index_first);
-	this->genome_.ranges_.start_ = _Cs ifelse<QVector<int>>(
+	this->genome_.ranges_.start_ = custom::ifelse<QVector<int>>(
 		this->genome_.strand_ == '+',
-		_Cs reordered(this->genome_.ranges_.start_, index_first),
-		_Cs reordered(end, index_last)
+		custom::reordered(this->genome_.ranges_.start_, index_first),
+		custom::reordered(end, index_last)
 		);
 	this->genome_.ranges_.width_.fill(1);
 
 	this->genome_.metadata_.row_reorder(index_first);
-	this->genome_.metadata_.update(METADATA_GENOMIC_RANGE_GENE_NAME, _Cs make_unique(this->genome_.metadata_.get_const_qstring_reference(METADATA_GENOMIC_RANGE_GENE_NAME)));
+	this->genome_.metadata_.update(METADATA_GENOMIC_RANGE_GENE_NAME, custom::make_unique(this->genome_.metadata_.get_const_qstring_reference(METADATA_GENOMIC_RANGE_GENE_NAME)));
 };

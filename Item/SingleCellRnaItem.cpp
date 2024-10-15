@@ -300,7 +300,7 @@ void SingleCellRnaItem::s_recalculate_quality_parameters() {
 		return;
 	}
 
-	Eigen::ArrayXi col_count = _Cs col_sum_mt(counts->mat_);
+	Eigen::ArrayXi col_count = custom::col_sum_mt(counts->mat_);
 	const int ncol = counts->mat_.cols();
 	Eigen::ArrayXi col_gene(ncol);
 	Eigen::ArrayXd mitochondrial_content = Eigen::ArrayXd::Zero(ncol);
@@ -350,14 +350,14 @@ void SingleCellRnaItem::s_recalculate_quality_parameters() {
 		ribosomal_content /= col_count.cast<double>();
 	}
 
-	_Cs remove_na(mitochondrial_content);
-	_Cs remove_na(ribosomal_content);
+	custom::remove_na(mitochondrial_content);
+	custom::remove_na(ribosomal_content);
 
 	Metadata& metadata = *this->data()->metadata();
-	metadata.mat_.update(METADATA_RNA_UMI_NUMBER, _Cs cast<QVector>(col_count));
-	metadata.mat_.update(METADATA_RNA_UNIQUE_GENE_NUMBER, _Cs cast<QVector>(col_gene));
-	metadata.mat_.update(METADATA_RNA_MITOCHONDRIAL_CONTENT, _Cs cast<QVector>(mitochondrial_content));
-	metadata.mat_.update(METADATA_RNA_RIBOSOMAL_CONTENT, _Cs cast<QVector>(ribosomal_content));
+	metadata.mat_.update(METADATA_RNA_UMI_NUMBER, custom::cast<QVector>(col_count));
+	metadata.mat_.update(METADATA_RNA_UNIQUE_GENE_NUMBER, custom::cast<QVector>(col_gene));
+	metadata.mat_.update(METADATA_RNA_MITOCHONDRIAL_CONTENT, custom::cast<QVector>(mitochondrial_content));
+	metadata.mat_.update(METADATA_RNA_RIBOSOMAL_CONTENT, custom::cast<QVector>(ribosomal_content));
 
 	G_UNLOCK;
 };
@@ -399,21 +399,21 @@ void SingleCellRnaItem::s_sample() {
 		levels = metadata.string_factors_[feature];
 	}
 	else {
-		levels = _Cs cast<QString>(metadata.integer_factors_[feature]);
+		levels = custom::cast<QString>(metadata.integer_factors_[feature]);
 	}
 	QVector<int> selected;
 	if (downsample != "ALL") {
 		int downsample_number = downsample.toInt();
 		for (const auto& level : levels) {
-			auto index = _Cs match(factor, level);
+			auto index = custom::match(factor, level);
 			if (index.size() > downsample_number) {
-				index = _Cs sample(index, downsample_number, this->data()->random_state_);
+				index = custom::sample(index, downsample_number, this->data()->random_state_);
 			}
 			selected << index;
 		}
 	}
 	else {
-		selected = _Cs seq_n(0, factor.size());
+		selected = custom::seq_n(0, factor.size());
 	}
 
 	this->signal_emitter_->x_data_create_soon(this->data()->col_reordered(selected), soap::VariableType::SingleCellRna, "Sampled SingleCellRna");
@@ -689,11 +689,11 @@ std::pair<Eigen::ArrayX<bool>, Eigen::ArrayX<bool> > SingleCellRnaItem::get_para
 			auto& n_umi = metadata.get_const_integer_reference(METADATA_RNA_UMI_NUMBER);
 			if (!parameters[0].isEmpty()) {
 				int maximum_count_number = parameters[0].toInt();
-				passed_column *= _Cs less_equal(n_umi, maximum_count_number);
+				passed_column *= custom::less_equal(n_umi, maximum_count_number);
 			}
 			if (!parameters[2].isEmpty()) {
 				int minimum_count_number = parameters[2].toInt();
-				passed_column *= _Cs greater_equal(n_umi, minimum_count_number);
+				passed_column *= custom::greater_equal(n_umi, minimum_count_number);
 			}
 
 		}
@@ -707,11 +707,11 @@ std::pair<Eigen::ArrayX<bool>, Eigen::ArrayX<bool> > SingleCellRnaItem::get_para
 
 			if (!parameters[1].isEmpty()) {
 				int maximum_gene_number = parameters[1].toInt();
-				passed_column *= _Cs less_equal(n_gene, maximum_gene_number);
+				passed_column *= custom::less_equal(n_gene, maximum_gene_number);
 			}
 			if (!parameters[3].isEmpty()) {
 				int minimum_gene_number = parameters[3].toInt();
-				passed_column *= _Cs greater_equal(n_gene, minimum_gene_number);
+				passed_column *= custom::greater_equal(n_gene, minimum_gene_number);
 			}
 
 		}
@@ -723,12 +723,12 @@ std::pair<Eigen::ArrayX<bool>, Eigen::ArrayX<bool> > SingleCellRnaItem::get_para
 
 			auto& mitochondrial_content = metadata.get_const_double_reference(METADATA_RNA_MITOCHONDRIAL_CONTENT);
 			double maximum_mitochondrial_content = parameters[4].toDouble() / 100;
-			passed_column *= _Cs less_equal(mitochondrial_content, maximum_mitochondrial_content);
+			passed_column *= custom::less_equal(mitochondrial_content, maximum_mitochondrial_content);
 		}
 	}
 
 	if (!parameters[5].isEmpty()) {
-		passed_row *= _Cs row_count<int, true, false>(this->data()->counts()->mat_, 0.) >= parameters[5].toInt();
+		passed_row *= custom::row_count<int, true, false>(this->data()->counts()->mat_, 0.) >= parameters[5].toInt();
 	}
 
 	return std::make_pair(passed_row, passed_column);
@@ -823,7 +823,7 @@ void SingleCellRnaItem::s_receive_pca(Eigen::MatrixXd mat, QVector<double> sd) {
 		Embedding::DataType::Pca,
 		mat,
 		this->data()->counts()->colnames_,
-		_Cs paste("PCA-", _Cs cast<QString>(_Cs seq_n(1, mat.cols())))
+		custom::paste("PCA-", custom::cast<QString>(custom::seq_n(1, mat.cols())))
 	);
 
 	this->data()->double_vectors_[VARIABLE_RNA_PCA_STANDARD_DEVIATION] = sd;
@@ -882,7 +882,7 @@ void SingleCellRnaItem::s_harmony() {
 		return;
 	}
 
-	factor_names = _Cs unique(factor_names);
+	factor_names = custom::unique(factor_names);
 	QList<QStringList> factor_list;
 	for (const auto& factor_name : factor_names) {
 		factor_list << this->data()->metadata()->mat_.get_qstring(factor_name);
@@ -914,7 +914,7 @@ void SingleCellRnaItem::s_receive_harmony(Eigen::MatrixXd mat) {
 		Embedding::DataType::Harmony,
 		mat,
 		this->data()->counts()->colnames_,
-		_Cs paste("Harmony-", _Cs cast<QString>(_Cs seq_n(1, mat.cols()))));
+		custom::paste("Harmony-", custom::cast<QString>(custom::seq_n(1, mat.cols()))));
 
 	auto item = new EmbeddingItem(
 		title,
@@ -1052,7 +1052,7 @@ void SingleCellRnaItem::s_receive_tsne(Eigen::MatrixXd mat) {
 		Embedding::DataType::Tsne,
 		mat,
 		this->data()->counts()->colnames_,
-		_Cs paste("tSNE-", _Cs cast<QString>(_Cs seq_n(1, mat.cols()))));
+		custom::paste("tSNE-", custom::cast<QString>(custom::seq_n(1, mat.cols()))));
 
 	auto item = new EmbeddingItem(
 		title,
@@ -1283,7 +1283,7 @@ void SingleCellRnaItem::s_receive_umap(Eigen::MatrixXd mat) {
 		Embedding::DataType::Umap,
 		mat, 
 		this->data()->counts()->colnames_,
-		_Cs paste("UMAP-", _Cs cast<QString>(_Cs seq_n(1, mat.cols()))));
+		custom::paste("UMAP-", custom::cast<QString>(custom::seq_n(1, mat.cols()))));
 
 	auto item = new EmbeddingItem(
 		title, 
@@ -1757,18 +1757,18 @@ void SingleCellRnaItem::s_receive_leiden(QVector<int> cluster) {
 
 void SingleCellRnaItem::s_receive_louvain(std::vector<int> cluster) {
 
-	this->data()->metadata()->mat_.update(METADATA_RNA_LOUVAIN_CLUSTER, _Cs cast<QVector>(cluster), CustomMatrix::DataType::IntegerFactor);
+	this->data()->metadata()->mat_.update(METADATA_RNA_LOUVAIN_CLUSTER, custom::cast<QVector>(cluster), CustomMatrix::DataType::IntegerFactor);
 };
 
 void SingleCellRnaItem::s_receive_modified_louvain(std::vector<int> cluster) {
 
-	this->data()->metadata()->mat_.update(METADATA_RNA_MODIFIED_LOUVAIN_CLUSTER, _Cs cast<QVector>(cluster), CustomMatrix::DataType::IntegerFactor);
+	this->data()->metadata()->mat_.update(METADATA_RNA_MODIFIED_LOUVAIN_CLUSTER, custom::cast<QVector>(cluster), CustomMatrix::DataType::IntegerFactor);
 };
 
 void SingleCellRnaItem::s_receive_slm(std::vector<int> cluster) {
 
 
-	this->data()->metadata()->mat_.update(METADATA_RNA_SLM_CLUSTER, _Cs cast<QVector>(cluster), CustomMatrix::DataType::IntegerFactor);
+	this->data()->metadata()->mat_.update(METADATA_RNA_SLM_CLUSTER, custom::cast<QVector>(cluster), CustomMatrix::DataType::IntegerFactor);
 };
 
 void SingleCellRnaItem::s_set_scrublet_threshold() {
@@ -1805,28 +1805,28 @@ void SingleCellRnaItem::s_set_scrublet_threshold() {
 		labels << (scores[i] < threshold ? "Singlet" : "Doublet");
 	}
 
-	Eigen::ArrayXd original_score = _Cs cast<Eigen::ArrayX>(scores);
-	Eigen::ArrayXd simulate_score = _Cs cast<Eigen::ArrayX>(this->data()->double_vectors_[VECTOR_SCRUBLET_SCORES_SIMULATED]);
+	Eigen::ArrayXd original_score = custom::cast<Eigen::ArrayX>(scores);
+	Eigen::ArrayXd simulate_score = custom::cast<Eigen::ArrayX>(this->data()->double_vectors_[VECTOR_SCRUBLET_SCORES_SIMULATED]);
 
-	auto [counts, edges, locs] = _Cs histogram(original_score, 32);
+	auto [counts, edges, locs] = custom::histogram(original_score, 32);
 	Eigen::ArrayXd normed_counts = log10(counts.cast<double>() + 1);
 
 	auto& gs = this->draw_suite_->graph_settings_;
 
-	auto [draw_area, axis_rect] = _Cp prepare_ar(gs);
-	_Cp bar_plot(draw_area, axis_rect, Qt::blue, locs, normed_counts, 12, "Doublet score", "Prob. density (log10 + 1)", gs);
-	_CpPatch line(draw_area, axis_rect, QVector<double>{threshold, threshold}, QVector<double>{0, normed_counts.maxCoeff()}, Qt::black, 4, Qt::DashLine);
+	auto [draw_area, axis_rect] = custom_plot::prepare_ar(gs);
+	custom_plot::bar_plot(draw_area, axis_rect, Qt::blue, locs, normed_counts, 12, "Doublet score", "Prob. density (log10 + 1)", gs);
+	custom_plot::patch::line(draw_area, axis_rect, QVector<double>{threshold, threshold}, QVector<double>{0, normed_counts.maxCoeff()}, Qt::black, 4, Qt::DashLine);
 	
 	draw_area->plotLayout()->insertRow(0);
 	SoapTextElement* title = new SoapTextElement(draw_area, "Observed transcriptomes", QFont("Arial", 20, QFont::Bold));
 	draw_area->plotLayout()->addElement(0, 0, title);
 
-	std::tie(counts, edges, locs) = _Cs histogram(simulate_score, 32);
+	std::tie(counts, edges, locs) = custom::histogram(simulate_score, 32);
 	normed_counts = log10(counts.cast<double>() + 1);
 	axis_rect = new QCPAxisRect(draw_area, true);
 	draw_area->plotLayout()->addElement(2, 0, axis_rect);
-	_Cp bar_plot(draw_area, axis_rect, Qt::red, locs, normed_counts, 12, "Doublet score", "Prob. density (log10 + 1)", gs);
-	_CpPatch line(draw_area, axis_rect, QVector<double>{threshold, threshold}, QVector<double>{0, normed_counts.maxCoeff()}, Qt::black, 4, Qt::DashLine);
+	custom_plot::bar_plot(draw_area, axis_rect, Qt::red, locs, normed_counts, 12, "Doublet score", "Prob. density (log10 + 1)", gs);
+	custom_plot::patch::line(draw_area, axis_rect, QVector<double>{threshold, threshold}, QVector<double>{0, normed_counts.maxCoeff()}, Qt::black, 4, Qt::DashLine);
 	
 
 	draw_area->plotLayout()->insertRow(2);
@@ -1838,17 +1838,17 @@ void SingleCellRnaItem::s_set_scrublet_threshold() {
 	this->data()->metadata()->mat_.update(METADATA_SCRUBLET_LABELS, labels, CustomMatrix::DataType::QStringFactor);
 	G_LOG("Threshold : " + QString::number(threshold) + " has been set for Scrublet.");
 
-	double original_rate = _Cs greater_than(original_score, threshold).count() / (double)original_score.size();
-	double simulate_rate = _Cs greater_than(simulate_score, threshold).count() / (double)simulate_score.size();
+	double original_rate = custom::greater_than(original_score, threshold).count() / (double)original_score.size();
+	double simulate_rate = custom::greater_than(simulate_score, threshold).count() / (double)simulate_score.size();
 
 	G_LOG("Detected " + QString::number(original_rate * 100) + " % doublets in original data and " + QString::number(simulate_rate * 100) + " % doublets in simulated doublets.");
 };
 
 void SingleCellRnaItem::s_receive_scrublet(const Eigen::ArrayXd& original_score, const Eigen::ArrayXd& simulate_score) {
-	this->data()->double_vectors_[VECTOR_SCRUBLET_SCORES] = _Cs cast<QVector>(original_score);
+	this->data()->double_vectors_[VECTOR_SCRUBLET_SCORES] = custom::cast<QVector>(original_score);
 	this->data()->metadata()->mat_.update(METADATA_SCRUBLET_SCORES, this->data()->double_vectors_[VECTOR_SCRUBLET_SCORES]);
-	this->data()->double_vectors_[VECTOR_SCRUBLET_SCORES_SIMULATED] = _Cs cast<QVector>(simulate_score);
-	auto threshold = _Cs threshold_minimum(simulate_score);
+	this->data()->double_vectors_[VECTOR_SCRUBLET_SCORES_SIMULATED] = custom::cast<QVector>(simulate_score);
+	auto threshold = custom::threshold_minimum(simulate_score);
 
 	if (!threshold.first) {
 		G_LOG("Failed to automatically find a threshold. Please determine the threshold yourself by [Set Threshold]");
@@ -1874,32 +1874,32 @@ void SingleCellRnaItem::s_receive_scrublet(const Eigen::ArrayXd& original_score,
 		this->data()->metadata()->mat_.update(METADATA_SCRUBLET_LABELS, labels, CustomMatrix::DataType::QStringFactor);
 	}
 
-	auto [counts, edges, locs] = _Cs histogram(original_score, 32);
+	auto [counts, edges, locs] = custom::histogram(original_score, 32);
 	Eigen::ArrayXd normed_counts = log10(counts.cast<double>() + 1);
 
 
 	auto& gs = this->draw_suite_->graph_settings_;
 
-	auto [draw_area, axis_rect] = _Cp prepare_ar(gs);
-	_Cp bar_plot(draw_area, axis_rect, Qt::blue, locs, normed_counts, 12, "Doublet score", "Prob. density (log10 + 1)", gs);
+	auto [draw_area, axis_rect] = custom_plot::prepare_ar(gs);
+	custom_plot::bar_plot(draw_area, axis_rect, Qt::blue, locs, normed_counts, 12, "Doublet score", "Prob. density (log10 + 1)", gs);
 
 	if (threshold.first) {
 		double threshold_value = threshold.second;
-		_CpPatch line(draw_area, axis_rect, QVector<double>{threshold_value, threshold_value}, QVector<double>{0, normed_counts.maxCoeff()}, Qt::black, 4, Qt::DashLine);
+		custom_plot::patch::line(draw_area, axis_rect, QVector<double>{threshold_value, threshold_value}, QVector<double>{0, normed_counts.maxCoeff()}, Qt::black, 4, Qt::DashLine);
 	}
 
 	draw_area->plotLayout()->insertRow(0);
 	SoapTextElement* title = new SoapTextElement(draw_area, "Observed transcriptomes", QFont("Arial", 20, QFont::Bold));
 	draw_area->plotLayout()->addElement(0, 0, title);
 
-	std::tie(counts, edges, locs) = _Cs histogram(simulate_score, 32);
+	std::tie(counts, edges, locs) = custom::histogram(simulate_score, 32);
 	normed_counts = log10(counts.cast<double>() + 1);
 	axis_rect = new QCPAxisRect(draw_area, true);
 	draw_area->plotLayout()->addElement(2, 0, axis_rect);
-	_Cp bar_plot(draw_area, axis_rect, Qt::blue, locs, normed_counts, 12, "Doublet score", "Prob. density (log10 + 1)", gs);
+	custom_plot::bar_plot(draw_area, axis_rect, Qt::blue, locs, normed_counts, 12, "Doublet score", "Prob. density (log10 + 1)", gs);
 	if (threshold.first) {
 		double threshold_value = threshold.second;
-		_CpPatch line(draw_area, axis_rect, QVector<double>{threshold_value, threshold_value}, QVector<double>{0, normed_counts.maxCoeff()}, Qt::black, 4, Qt::DashLine);
+		custom_plot::patch::line(draw_area, axis_rect, QVector<double>{threshold_value, threshold_value}, QVector<double>{0, normed_counts.maxCoeff()}, Qt::black, 4, Qt::DashLine);
 	}
 
 	draw_area->plotLayout()->insertRow(2);
@@ -1949,14 +1949,14 @@ void SingleCellRnaItem::s_bubble_plot() {
 	auto gene_names = multiple_line_edit_to_list(settings[0]);
 	if (gene_names.isEmpty())return;
 
-	auto filter = _Cs in(gene_names, this->data()->counts()->rownames_);
+	auto filter = custom::in(gene_names, this->data()->counts()->rownames_);
 	if (filter.count() == 0) {
 		G_NOTICE("No Gene Found in data.");
 		return;
 	}
-	gene_names = _Cs sliced(gene_names, filter);
+	gene_names = custom::sliced(gene_names, filter);
 
-	auto gene_index = _Cs index_of(gene_names, this->data()->counts()->rownames_);
+	auto gene_index = custom::index_of(gene_names, this->data()->counts()->rownames_);
 	int n_gene = gene_names.size();
 	auto [factor_name, levels] = factor_choice_to_pair(settings[1]);
 	if (levels.isEmpty())return;
@@ -1979,24 +1979,24 @@ void SingleCellRnaItem::s_bubble_plot() {
 	Eigen::MatrixXd values(n_level, n_gene);
 	Eigen::MatrixXi proportion(n_level, n_gene);
 	for (int i = 0; i < n_level; ++i) {
-		filter = _Cs equal(factor, levels[i]);
+		filter = custom::equal(factor, levels[i]);
 		for (int j = 0; j < n_gene; ++j) {
 			if (is_normalized) {
 				Eigen::ArrayXd exp = normalized->mat_.row(gene_index[j]);
-				exp = _Cs sliced(exp, filter);
+				exp = custom::sliced(exp, filter);
 				values(n_level - i - 1, j) = exp.mean();
 				proportion(n_level - i - 1, j) = ceil((exp > 0).count() / (double)exp.size() * 50) + 1;
 			}
 			else {
 				Eigen::ArrayXi exp = counts->mat_.row(gene_index[j]);
-				exp = _Cs sliced(exp, filter);
+				exp = custom::sliced(exp, filter);
 				values(n_level - i - 1, j) = exp.cast<double>().mean();
 				proportion(n_level - i - 1, j) = ceil((exp > 0).count() / (double)exp.size() * 50) + 1;
 			}
 		}
 	}
-	auto [draw_area, axis_rect, legend_layout] = _Cp prepare(gs);
-	_Cp bubble_plot(draw_area, axis_rect, legend_layout, _Cs reversed(levels), gene_names, values, proportion, gs.get_legend_title("Expression"), gs.get_legend_title("Proportion", 1), gs);
+	auto [draw_area, axis_rect, legend_layout] = custom_plot::prepare(gs);
+	custom_plot::bubble_plot(draw_area, axis_rect, legend_layout, custom::reversed(levels), gene_names, values, proportion, gs.get_legend_title("Expression"), gs.get_legend_title("Proportion", 1), gs);
 	this->draw_suite_->update(draw_area);
 };
 
@@ -2049,7 +2049,7 @@ void SingleCellRnaItem::s_distribution_plot() {
 		G_LOG("No valid features!");
 		return;
 	}
-	QCustomPlot* draw_area = _Cp initialize_plot(gs);
+	QCustomPlot* draw_area = custom_plot::initialize_plot(gs);
 	QStringList group = metadata.get_qstring(group_name);
 
 	QStringList group_labels;
@@ -2060,7 +2060,7 @@ void SingleCellRnaItem::s_distribution_plot() {
 	}
 	else {
 		group_number = metadata.integer_factors_[group_name].size();
-		group_labels = _Cs cast<QString>(_Cs sorted(metadata.integer_factors_[group_name]));
+		group_labels = custom::cast<QString>(custom::sorted(metadata.integer_factors_[group_name]));
 	}
 	auto colors = gs.palette(group_labels);
 	Eigen::ArrayXd feature_data;
@@ -2070,7 +2070,7 @@ void SingleCellRnaItem::s_distribution_plot() {
 	for (int i = 0; i < valid_features.size(); ++i) {
 		QString feature = valid_features[i];
 		if (metadata.contains(feature) && (metadata.data_type_[feature] == CustomMatrix::DataType::IntegerNumeric || metadata.data_type_[feature] == CustomMatrix::DataType::DoubleNumeric)) {
-			feature_data = _Cs cast<Eigen::ArrayX>(metadata.get_double(feature));
+			feature_data = custom::cast<Eigen::ArrayX>(metadata.get_double(feature));
 		}
 		else {
 			if (!is_normalized) {
@@ -2084,7 +2084,7 @@ void SingleCellRnaItem::s_distribution_plot() {
 		axis_rect->setMarginGroup(QCP::msLeft, margin_group);
 		draw_area->plotLayout()->addElement(i, 0, axis_rect);
 
-		auto [min, max] = _CpPatch violin_batch(
+		auto [min, max] = custom_plot::patch::violin_batch(
 			draw_area,
 			axis_rect,
 			group,
@@ -2096,9 +2096,9 @@ void SingleCellRnaItem::s_distribution_plot() {
 			16
 		);
 
-		_CpPatch set_range(axis_rect, QCPRange(0, 2 * group_number), _CpUtility get_range(min, max));
-		_CpPatch clear_bottom_axis(axis_rect);
-		_Cp set_left_title(axis_rect, feature, gs);
+		custom_plot::patch::set_range(axis_rect, QCPRange(0, 2 * group_number), custom_plot::utility::get_range(min, max));
+		custom_plot::patch::clear_bottom_axis(axis_rect);
+		custom_plot::set_left_title(axis_rect, feature, gs);
 		if (!show_value) {
 			axis_rect->axis(QCPAxis::atLeft)->setTicks(false);
 			axis_rect->axis(QCPAxis::atLeft)->setTickLabels(false);
@@ -2106,7 +2106,7 @@ void SingleCellRnaItem::s_distribution_plot() {
 		axis_rect->axis(QCPAxis::atLeft)->grid()->setVisible(false);
 
 		if (i == valid_features.size() - 1) {
-			_Cp set_bottom_axis_label(
+			custom_plot::set_bottom_axis_label(
 				axis_rect,
 				Eigen::ArrayXd::LinSpaced(group_number, 1, 2 * group_number - 1),
 				group_labels,
@@ -2137,47 +2137,47 @@ void SingleCellRnaItem::s_view_quality() {
 		return;
 	}
 
-	auto colors = _CpUtility kmeans_palette(3);
+	auto colors = custom_plot::utility::kmeans_palette(3);
 
 	auto trans = metadata->get_double(METADATA_RNA_UMI_NUMBER);
 	int control_point_number = 24;
 
 	const auto& gs = this->draw_suite_->graph_settings_;
-	auto [draw_area, layout] = _Cp prepare_lg(gs);
+	auto [draw_area, layout] = custom_plot::prepare_lg(gs);
 
-	QCPAxisRect* axis_rect = _CpPatch new_axis_rect(draw_area);
+	QCPAxisRect* axis_rect = custom_plot::patch::new_axis_rect(draw_area);
 	layout->addElement(0, 0, axis_rect);
 	if (gs.use_boxplot()) {
-		_CpPatch single_box_plot(draw_area, axis_rect, trans, colors[0], "", "UMI Count");
+		custom_plot::patch::single_box_plot(draw_area, axis_rect, trans, colors[0], "", "UMI Count");
 	}
 	else {
-		_CpPatch single_violin_plot(draw_area, axis_rect, trans, control_point_number, colors[0], "", "UMI Count");
+		custom_plot::patch::single_violin_plot(draw_area, axis_rect, trans, control_point_number, colors[0], "", "UMI Count");
 	}
-	_CpPatch clear_bottom_axis(axis_rect);
+	custom_plot::patch::clear_bottom_axis(axis_rect);
 
 	trans = metadata->get_double(METADATA_RNA_UNIQUE_GENE_NUMBER);
-	axis_rect = _CpPatch new_axis_rect(draw_area);
+	axis_rect = custom_plot::patch::new_axis_rect(draw_area);
 	layout->addElement(0, 1, axis_rect);
 	if (gs.use_boxplot()) {
-		_CpPatch single_box_plot(draw_area, axis_rect, trans, colors[1], "", "Gene Count");
+		custom_plot::patch::single_box_plot(draw_area, axis_rect, trans, colors[1], "", "Gene Count");
 	}
 	else {
-		_CpPatch single_violin_plot(draw_area, axis_rect, trans, control_point_number, colors[1], "", "Gene Count");
+		custom_plot::patch::single_violin_plot(draw_area, axis_rect, trans, control_point_number, colors[1], "", "Gene Count");
 	}
-	_CpPatch clear_bottom_axis(axis_rect);
+	custom_plot::patch::clear_bottom_axis(axis_rect);
 
 	trans = metadata->get_double(METADATA_RNA_MITOCHONDRIAL_CONTENT);
-	axis_rect = _CpPatch new_axis_rect(draw_area);
+	axis_rect = custom_plot::patch::new_axis_rect(draw_area);
 	layout->addElement(0, 2, axis_rect);
 	if (gs.use_boxplot()) {
-		_CpPatch single_box_plot(draw_area, axis_rect, trans, colors[2], "", "Mitochondrial Content");
+		custom_plot::patch::single_box_plot(draw_area, axis_rect, trans, colors[2], "", "Mitochondrial Content");
 	}
 	else {
-		_CpPatch single_violin_plot(draw_area, axis_rect, trans, control_point_number, colors[2], "", "Mitochondrial Content");
+		custom_plot::patch::single_violin_plot(draw_area, axis_rect, trans, control_point_number, colors[2], "", "Mitochondrial Content");
 	}
-	_CpPatch clear_bottom_axis(axis_rect);
+	custom_plot::patch::clear_bottom_axis(axis_rect);
 
-	_Cp add_title(draw_area, "Data Quality", gs);
+	custom_plot::add_title(draw_area, "Data Quality", gs);
 
 	this->draw_suite_->update(draw_area);
 };
@@ -2284,7 +2284,7 @@ void SingleCellRnaItem::s_monocle3() {
 
 	G_GETLOCK;
 
-	auto embedding_names = _Cs keys(DATA_SUBMODULES(Embedding));
+	auto embedding_names = custom::keys(DATA_SUBMODULES(Embedding));
 
 	if (embedding_names.isEmpty()) {
 		G_WARN("No Embedding.");
@@ -2348,7 +2348,7 @@ void SingleCellRnaItem::s_monocle3() {
 
 			Monocle3Worker* worker = new Monocle3Worker(
 				DATA_SUBMODULES(Embedding)[embedding_name],
-				_Cs in(factor, levels)
+				custom::in(factor, levels)
 			);
 
 			G_LINK_WORKER_THREAD(Monocle3Worker, x_monocle3_ready, SingleCellRnaItem, s_receive_monocle3);
@@ -2566,24 +2566,24 @@ void SingleCellRnaItem::s_gsea() {
 	QVector<int> selected;
 	QStringList metadata = this->data()->metadata()->mat_.get_qstring(factor_name);
 
-	auto index = _Cs match(metadata, comparison1);
+	auto index = custom::match(metadata, comparison1);
 	if (index.size() > downsample) {
-		index = _Cs sample(index, downsample, random_state);
+		index = custom::sample(index, downsample, random_state);
 	}
 	selected << index;
 
 	if (comparison2 == "REST") {
-		index = _Cs which(!_Cs equal(metadata, comparison1));
+		index = custom::which(!custom::equal(metadata, comparison1));
 	}
 	else {
-		index = _Cs match(metadata, comparison2);
+		index = custom::match(metadata, comparison2);
 	}
 	if (index.size() > downsample) {
-		index = _Cs sample(index, downsample, random_state);
+		index = custom::sample(index, downsample, random_state);
 	}
 	selected << index;
 
-	metadata = _Cs reordered(metadata, selected);
+	metadata = custom::reordered(metadata, selected);
 	G_LOG("GSEAing in " + factor_name + "...");
 	SparseDouble tmp = normalized->col_reordered(selected);
 
@@ -2655,37 +2655,37 @@ void SingleCellRnaItem::s_infercnv() {
 	auto [feature, reference] = factor_choice_to_pair(settings[0]);
 
 	QStringList metadata = this->data()->metadata()->mat_.get_qstring(feature);
-	QStringList levels = _Cs unique(metadata);
+	QStringList levels = custom::unique(metadata);
 
 	QVector<int> selected;
 	if (settings[1] != "ALL") {
 		int downsample = settings[1].toInt();
 		for (const auto& factor : levels) {
-			auto index = _Cs match(metadata, factor);
+			auto index = custom::match(metadata, factor);
 			if (index.size() > downsample) {
-				index = _Cs sample(index, downsample, this->data()->random_state_);
+				index = custom::sample(index, downsample, this->data()->random_state_);
 			}
 			selected << index;
 		}
 	}
 	else {
 		for (const auto& factor : levels) {
-			auto index = _Cs match(metadata, factor);
+			auto index = custom::match(metadata, factor);
 			selected << index;
 		}
 	}
 
 	if (reference.isEmpty()) {
-		reference = _Cs unique(metadata);
+		reference = custom::unique(metadata);
 	}
 	else {
-		reference = _Cs unique(reference);
+		reference = custom::unique(reference);
 	}
 
 	G_LOG("InferCnv start...");
 	InferCnvWorker* worker = new InferCnvWorker(
 		counts->col_reordered(selected),
-		_Cs reordered(metadata, selected),
+		custom::reordered(metadata, selected),
 		reference,
 		this->data()->species_
 	);
@@ -2743,22 +2743,22 @@ void SingleCellRnaItem::s_scicnv() {
 		levels = metadata.string_factors_[feature];
 	}
 	else {
-		levels = _Cs cast<QString>(metadata.integer_factors_[feature]);
+		levels = custom::cast<QString>(metadata.integer_factors_[feature]);
 	}
 	QVector<int> selected;
 	if (settings[1] != "All") {
 		int downsample = settings[1].toInt();
 		for (const auto& level : levels) {
-			auto index = _Cs match(factor, level);
+			auto index = custom::match(factor, level);
 			if (index.size() > downsample) {
-				index = _Cs sample(index, downsample, this->data()->random_state_);
+				index = custom::sample(index, downsample, this->data()->random_state_);
 			}
 			selected << index;
 		}
 	}
 	else {
 		for (const auto& level : levels) {
-			auto index = _Cs match(factor, level);
+			auto index = custom::match(factor, level);
 			selected << index;
 		}
 	}
@@ -2770,7 +2770,7 @@ void SingleCellRnaItem::s_scicnv() {
 	G_LOG("SciCnv start...");
 	ScicnvWorker* worker = new ScicnvWorker(
 		normalized->col_reordered(selected),
-		_Cs reordered(factor, selected),
+		custom::reordered(factor, selected),
 		reference,
 		this->data()->species_,
 		threshold,
@@ -2863,13 +2863,13 @@ void SingleCellRnaItem::s_combine_existed_metadata() {
 		}
 
 		if (target_data_type == "Integer") {
-			this->data()->metadata()->mat_.update(new_metadata_name, _Cs cast<int>(res), CustomMatrix::DataType::IntegerNumeric);
+			this->data()->metadata()->mat_.update(new_metadata_name, custom::cast<int>(res), CustomMatrix::DataType::IntegerNumeric);
 		}
 		else if (target_data_type == "Numeric") {
-			this->data()->metadata()->mat_.update(new_metadata_name, _Cs cast<double>(res), CustomMatrix::DataType::DoubleNumeric);
+			this->data()->metadata()->mat_.update(new_metadata_name, custom::cast<double>(res), CustomMatrix::DataType::DoubleNumeric);
 		}
 		else if (target_data_type == "Integer Factor") {
-			this->data()->metadata()->mat_.update(new_metadata_name, _Cs cast<int>(res), CustomMatrix::DataType::IntegerFactor);
+			this->data()->metadata()->mat_.update(new_metadata_name, custom::cast<int>(res), CustomMatrix::DataType::IntegerFactor);
 		}
 		else if (target_data_type == "String Factor") {
 			this->data()->metadata()->mat_.update(new_metadata_name, res, CustomMatrix::DataType::QStringFactor);
@@ -2879,7 +2879,7 @@ void SingleCellRnaItem::s_combine_existed_metadata() {
 		}
 	}
 	else {
-		auto data_types = _Cs sapply(components, [&metadata](auto&& name) {return metadata.data_type_[name]; });
+		auto data_types = custom::sapply(components, [&metadata](auto&& name) {return metadata.data_type_[name]; });
 
 		const int nrow = metadata.rows();
 		const int n_choosed = data_types.size();
@@ -2930,19 +2930,19 @@ void SingleCellRnaItem::s_combine_existed_metadata() {
 			}
 
 			if (target_data_type == "Integer") {
-				this->data()->metadata()->mat_.update(new_metadata_name, _Cs cast<int>(res), CustomMatrix::DataType::IntegerNumeric);
+				this->data()->metadata()->mat_.update(new_metadata_name, custom::cast<int>(res), CustomMatrix::DataType::IntegerNumeric);
 			}
 			else if (target_data_type == "Numeric") {
 				this->data()->metadata()->mat_.update(new_metadata_name, res, CustomMatrix::DataType::DoubleNumeric);
 			}
 			else if (target_data_type == "Integer Factor") {
-				this->data()->metadata()->mat_.update(new_metadata_name, _Cs cast<int>(res), CustomMatrix::DataType::IntegerFactor);
+				this->data()->metadata()->mat_.update(new_metadata_name, custom::cast<int>(res), CustomMatrix::DataType::IntegerFactor);
 			}
 			else if (target_data_type == "String Factor") {
-				this->data()->metadata()->mat_.update(new_metadata_name, _Cs cast<QString>(res), CustomMatrix::DataType::QStringFactor);
+				this->data()->metadata()->mat_.update(new_metadata_name, custom::cast<QString>(res), CustomMatrix::DataType::QStringFactor);
 			}
 			else if (target_data_type == "String") {
-				this->data()->metadata()->mat_.update(new_metadata_name, _Cs cast<QString>(res), CustomMatrix::DataType::QString);
+				this->data()->metadata()->mat_.update(new_metadata_name, custom::cast<QString>(res), CustomMatrix::DataType::QString);
 			}
 		}
 		else {
@@ -2994,16 +2994,16 @@ void SingleCellRnaItem::s_combine_existed_metadata() {
 				this->data()->metadata()->mat_.update(new_metadata_name, res, CustomMatrix::DataType::IntegerNumeric);
 			}
 			else if (target_data_type == "Numeric") {
-				this->data()->metadata()->mat_.update(new_metadata_name, _Cs cast<double>(res), CustomMatrix::DataType::DoubleNumeric);
+				this->data()->metadata()->mat_.update(new_metadata_name, custom::cast<double>(res), CustomMatrix::DataType::DoubleNumeric);
 			}
 			else if (target_data_type == "Integer Factor") {
 				this->data()->metadata()->mat_.update(new_metadata_name, res, CustomMatrix::DataType::IntegerFactor);
 			}
 			else if (target_data_type == "String Factor") {
-				this->data()->metadata()->mat_.update(new_metadata_name, _Cs cast<QString>(res), CustomMatrix::DataType::QStringFactor);
+				this->data()->metadata()->mat_.update(new_metadata_name, custom::cast<QString>(res), CustomMatrix::DataType::QStringFactor);
 			}
 			else if (target_data_type == "String") {
-				this->data()->metadata()->mat_.update(new_metadata_name, _Cs cast<QString>(res), CustomMatrix::DataType::QString);
+				this->data()->metadata()->mat_.update(new_metadata_name, custom::cast<QString>(res), CustomMatrix::DataType::QString);
 			}
 		}
 	}
@@ -3120,7 +3120,7 @@ void SingleCellRnaItem::s_add_metadata() {
 
 void SingleCellRnaItem::s_receive_integrated_data(SingleCellRna* data, QList<const SingleCellRna* > items) {
 
-	this->signal_emitter_->unlock(_Cs sapply(items, [this](auto* data) {return this->signal_emitter_->search((void*)data); }));
+	this->signal_emitter_->unlock(custom::sapply(items, [this](auto* data) {return this->signal_emitter_->search((void*)data); }));
 
 	this->signal_emitter_->x_data_create_soon(data, soap::VariableType::SingleCellRna, "Integrated scRNA");
 };
@@ -3146,7 +3146,7 @@ void SingleCellRnaItem::s_integrate() {
 
 	available_data = simple_choice_to_list(settings[0]);
 	if (available_data.size() < 2)return;
-	if (!_Cs is_unique(available_data)) {
+	if (!custom::is_unique(available_data)) {
 		G_WARN("Can not integrate the same data!");
 		return;
 	}
@@ -3158,9 +3158,9 @@ void SingleCellRnaItem::s_integrate() {
 		return;
 	}
 
-	auto choosed = _Cs sapply(its, [](IndexTree* it) {return static_cast<const SingleCellRna*>(it->data_); });
+	auto choosed = custom::sapply(its, [](IndexTree* it) {return static_cast<const SingleCellRna*>(it->data_); });
 
-	auto species = _Cs unique(_Cs sapply(choosed, [](const SingleCellRna* single_cell_rna) {return single_cell_rna->species_; }));
+	auto species = custom::unique(custom::sapply(choosed, [](const SingleCellRna* single_cell_rna) {return single_cell_rna->species_; }));
 
 	if (species.size() != 1) {
 		G_LOG("Unmatched species!");

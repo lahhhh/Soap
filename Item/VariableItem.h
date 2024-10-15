@@ -92,7 +92,7 @@ public:
 
         auto constexpr data_type = soap::type<VariableType>();
 
-		QStringList original_titles = _Cs keys(variable_map);
+		QStringList original_titles = custom::keys(variable_map);
 
 		for (const auto& title : original_titles) {
 

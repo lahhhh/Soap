@@ -10,6 +10,8 @@
 #include "MatrixWindow.h"
 #include "CustomPlot.h"
 #include "WilcoxTest.h"
+#include "StatisticalTest.h"
+#include "Tukey.h"
 
 void MetadataItem::__show_this() {
 	MatrixWindow::show_matrix(
@@ -208,7 +210,7 @@ void MetadataItem::s_compare_plot() {
 		features.numeric_names
 	);
 
-	auto&& [feature, normalize, use_gene_activity, show_p_value, group, type, comparisons] = settings;
+	auto&& [feature, normalize, use_gene_activity, show_p_value, method, group, type, comparisons] = settings;
 
 	if (feature.isEmpty()) {
 		return;
@@ -236,31 +238,106 @@ void MetadataItem::s_compare_plot() {
 	auto factors = factor_data.get_factor();
 	auto levels = factor_data.get_levels();
 	int n_level = levels.size();
+
+	if (n_level < 2) {
+		G_WARN("No enough factor for tests");
+		return;
+	}
+
 	auto colors = gs.palette(levels);
-	QList<Eigen::ArrayXd> vals = _Cs sapply(levels, [&values, &factors](auto&& level) {
-		return _Cs cast<Eigen::ArrayX>(_Cs sliced(values, _Cs equal(factors, level)));
-	});
-	QList<std::tuple<int, int, double>> sigs;
-	if (type == "All") {
-		for (int i = 1; i < n_level; ++i) {
-			for (int j = 0; j < n_level - i; ++j) {
-				double p = wilcox_test(vals[j], vals[j + i]);
-				sigs << std::make_tuple(j, j + i, p);
+	std::vector<Eigen::ArrayXd> vals = custom::cast<std::vector>(custom::sapply(levels, [&values, &factors](auto&& level) {
+		return custom::cast<Eigen::ArrayX>(custom::sliced(values, custom::equal(factors, level)));
+	}));
+
+	if (method == "t test" || method == "Wilcoxon rank sum test") {
+		if (n_level != 2) {
+			G_WARN("Detected more than 2 levels, change the test method.");
+			method = "Auto";
+		}
+	}
+
+	if (method == "ANOVA | Tukey HSD") {
+		if (!custom::is_same(custom::sapply(vals, [](auto&& t) {return t.size(); }))) {
+			G_WARN("Detecting different sample sizes! change post-hoc method to [Games-Howell test]");
+			method = "ANOVA | Games-Howell test";
+		}
+	}
+
+	if (method == "Auto") {
+
+		if (n_level == 2) {
+			if (custom::any(custom::sapply(vals, [](auto&& t) { return is_normal_distribution_anderson_darling(t); }), false)) {
+				method = "Wilcoxon rank sum test";
+			}
+			else {
+				method = "t test";
+			}
+		}
+		else {
+
+			if (custom::any(custom::sapply(vals, [](auto&& t) { return is_normal_distribution_anderson_darling(t); }), false)) {
+				method = "Kruskal-Wallis | Dunn test (Bonferroni correction)";
+			}
+			else {
+				if (is_variance_homogeneous_bartlett_test(vals)) {
+					if (custom::is_same(custom::sapply(vals, [](auto&& t) {return t.size(); }))) {
+						method = "ANOVA | Tukey HSD";
+					}
+					else {
+						method = "ANOVA | Games-Howell test";
+					}
+				}
+				else {
+					method = "Welch ANOVA | Games-Howell test";
+				}
 			}
 		}
 	}
-	else if (type == "Significant Only") {
-		for (int i = 1; i < n_level; ++i) {
-			for (int j = 0; j < n_level - i; ++j) {
-				double p = wilcox_test(vals[j], vals[j + i]);
-				if (p >= 0.05) {
-					continue;
-				}
-				sigs << std::make_tuple(j, j + i, p);
-			}
+
+	G_LOG("using " + method + "...");
+
+	std::vector<std::tuple<int, int, double>> sigs;
+
+	if (method == "Kruskal-Wallis | Dunn test (Bonferroni correction)") {
+		if (Kruskal_Wallis(vals)) {
+			sigs = Dunn_test(vals).r;
 		}
+	}
+	else if (method == "ANOVA | Tukey HSD") {
+		if (anova(vals)) {
+			sigs = Tukey_HSD(vals).r;
+		}
+	}
+	else if (method == "ANOVA | Games-Howell test") {
+		if (anova(vals)) {
+			sigs = Games_Howell(vals).r;
+		}
+	}
+	else if (method == "Welch ANOVA | Games-Howell test") {
+		if (Welch_anova(vals)) {
+			sigs = Games_Howell(vals).r;
+		}
+	}
+	else if (method == "t test") {
+		sigs.emplace_back(0, 1, t_test(vals[0], vals[1]));
+	}
+	else if (method == "Wilcoxon rank sum test") {
+		sigs.emplace_back(0, 1, wilcox_test(vals[0], vals[1]));
 	}
 	else {
+		G_WARN("Unknown method : " + method + ".");
+		return;
+	}
+
+	if (type == "All") {
+	}
+	else if (type == "Significant Only") {
+		sigs = custom::sliced(sigs, custom::sapply(sigs, [](auto&& re) {return std::get<2>(re) < 0.05; }));
+	}
+	else {
+		std::vector<std::tuple<int, int, double>> old_sigs = sigs;
+		sigs.clear();
+		
 		for (auto&& [c1, c2] : comparisons) {
 			auto ind1 = levels.indexOf(c1);
 			auto ind2 = levels.indexOf(c2);
@@ -274,12 +351,15 @@ void MetadataItem::s_compare_plot() {
 				std::swap(ind1, ind2);
 			}
 
-			double p = wilcox_test(vals[ind1], vals[ind2]);
-			sigs << std::make_tuple(ind1, ind2, p);
+			for (auto&& [i, j, p] : old_sigs) {
+				if (i == ind1 && j == ind2) {
+					sigs.emplace_back(i, j, p);
+				}
+			}
 		}
 	}
 
-	auto [draw_area, axis_rect, legend_layout] = _Cp prepare(gs);
+	auto [draw_area, axis_rect, legend_layout] = custom_plot::prepare(gs);
 
 	double min{ 0.0 }, max{ 0.0 };
 	Eigen::ArrayXd bottom_ind;
@@ -289,13 +369,13 @@ void MetadataItem::s_compare_plot() {
 		min = m;
 		max = n;
 
-		_CpPatch box_batch(
+		custom_plot::patch::box_batch(
 			draw_area,
 			axis_rect,
 			factors,
 			levels,
 			colors,
-			_Cs cast<Eigen::ArrayX>(values),
+			custom::cast<Eigen::ArrayX>(values),
 			1.0,
 			2.0,
 			gs.boxplot_draw_outlier(),
@@ -305,7 +385,7 @@ void MetadataItem::s_compare_plot() {
 
 		bottom_ind = Eigen::ArrayXd::LinSpaced(n_level, 1, 2 * n_level - 1);
 
-		_Cp set_bottom_axis_label(
+		custom_plot::set_bottom_axis_label(
 			axis_rect,
 			bottom_ind,
 			levels,
@@ -317,13 +397,13 @@ void MetadataItem::s_compare_plot() {
 	else {
 
 		if (n_level == 2 && gs.use_facet_violin_plot()) {
-			auto [m, n] = _CpPatch violin_facet(
+			auto [m, n] = custom_plot::patch::violin_facet(
 				draw_area,
 				axis_rect,
 				factors,
 				levels,
 				colors,
-				_Cs cast<Eigen::ArrayX>(values),
+				custom::cast<Eigen::ArrayX>(values),
 				1.0);
 
 			min = m;
@@ -334,16 +414,16 @@ void MetadataItem::s_compare_plot() {
 			bottom_ind[1] = 1.4;
 
 			axis_rect->axis(QCPAxis::atBottom)->setRange(0, 2);
-			_Cp set_bottom_title(axis_rect, group, gs, true);
+			custom_plot::set_bottom_title(axis_rect, group, gs, true);
 		}
 		else {
-			auto [m, n] = _CpPatch violin_batch(
+			auto [m, n] = custom_plot::patch::violin_batch(
 				draw_area,
 				axis_rect,
 				factors,
 				levels,
 				colors,
-				_Cs cast<Eigen::ArrayX>(values),
+				custom::cast<Eigen::ArrayX>(values),
 				1.0,
 				2.0);
 
@@ -353,7 +433,7 @@ void MetadataItem::s_compare_plot() {
 			axis_rect->axis(QCPAxis::atBottom)->setRange(0, 2 * n_level);
 
 			bottom_ind = Eigen::ArrayXd::LinSpaced(n_level, 1, 2 * n_level - 1);
-			_Cp set_bottom_axis_label(
+			custom_plot::set_bottom_axis_label(
 				axis_rect,
 				bottom_ind,
 				levels,
@@ -363,9 +443,9 @@ void MetadataItem::s_compare_plot() {
 		}
 	}
 
-	_Cp set_simple_axis_no_title(axis_rect, gs);
+	custom_plot::set_simple_axis_no_title(axis_rect, gs);
 
-	if (!sigs.isEmpty()) {
+	if (!sigs.empty()) {
 
 		QFont label_font = gs.get_scatter_label_font();
 
@@ -373,13 +453,13 @@ void MetadataItem::s_compare_plot() {
 
 		double anno_start = max + sep;
 		auto [w, h] = this->draw_suite_->current_plot_->size();
-		auto [anno_width, anno_height] = _CpUtility calculate_text_size("n.s.", label_font,
+		auto [anno_width, anno_height] = custom_plot::utility::calculate_text_size("n.s.", label_font,
 			axis_rect->axis(QCPAxis::atBottom)->range().size(), max - min, w, h);
 		anno_height *= 2.0;
 		sep = anno_height * 0.3;
 
 		for (auto&& [i1, i2, p] : sigs) {
-			_CpPatch line(
+			custom_plot::patch::line(
 				draw_area,
 				axis_rect,
 				QVector<double>{bottom_ind[i1], bottom_ind[i1], bottom_ind[i2], bottom_ind[i2]},
@@ -405,7 +485,7 @@ void MetadataItem::s_compare_plot() {
 				l += QString::number(p, 103, 4);
 			}
 
-			_CpPatch add_label(draw_area, axis_rect, l, 
+			custom_plot::patch::add_label(draw_area, axis_rect, l, 
 				(bottom_ind[i1] + bottom_ind[i2]) / 2, anno_start + sep,
 				label_font,
 				Qt::AlignHCenter | Qt::AlignBottom);
@@ -413,15 +493,15 @@ void MetadataItem::s_compare_plot() {
 			anno_start += anno_height * 2.0; 
 		}
 
-		axis_rect->axis(QCPAxis::atLeft)->setRange(_CpUtility get_range(min, anno_start));
+		axis_rect->axis(QCPAxis::atLeft)->setRange(custom_plot::utility::get_range(min, anno_start));
 	}
 	else {
-		axis_rect->axis(QCPAxis::atLeft)->setRange(_CpUtility get_range(min, max));
+		axis_rect->axis(QCPAxis::atLeft)->setRange(custom_plot::utility::get_range(min, max));
 	}
 
-	_Cp add_round_legend(draw_area, legend_layout, levels, colors, group, gs);
-	_Cp set_left_title(axis_rect, feature, gs, true);
-	_Cp add_title(draw_area, feature, gs);
+	custom_plot::add_round_legend(draw_area, legend_layout, levels, colors, group, gs);
+	custom_plot::set_left_title(axis_rect, feature, gs, true);
+	custom_plot::add_title(draw_area, feature, gs);
 	this->draw_suite_->update(draw_area);
 };
 

@@ -50,14 +50,14 @@ public:
 	void finalize();
 
 	template <typename OrderType>
-	requires _Cs is_order_container<OrderType>
+	requires custom::is_order_container<OrderType>
 	void row_reorder(const OrderType& order) {
 
 		const qsizetype order_size = std::size(order), original_size = this->sequence_names_.size();
 
 		this->sequence_names_.reorder(order);
-		this->ranges_.start_ = _Cs reordered(this->ranges_.start_, order);
-		this->ranges_.width_ = _Cs reordered(this->ranges_.width_, order);
+		this->ranges_.start_ = custom::reordered(this->ranges_.start_, order);
+		this->ranges_.width_ = custom::reordered(this->ranges_.width_, order);
 		this->strand_.reorder(order);
 
 		if (this->metadata_.rows() == original_size && this->metadata_.cols() > 0) {
@@ -69,14 +69,14 @@ public:
 	};
 
 	template <typename SliceType>
-	requires _Cs is_slice_container<SliceType>
+	requires custom::is_slice_container<SliceType>
 	void row_slice(const SliceType& slice) {
 
 		const int original_size = this->sequence_names_.size();
 
 		this->sequence_names_ = this->sequence_names_.sliced(slice);
-		this->ranges_.start_ = _Cs sliced(this->ranges_.start_, slice);
-		this->ranges_.width_ = _Cs sliced(this->ranges_.width_, slice);
+		this->ranges_.start_ = custom::sliced(this->ranges_.start_, slice);
+		this->ranges_.width_ = custom::sliced(this->ranges_.width_, slice);
 		this->strand_ = this->strand_.sliced(slice);
 		
 		if (this->metadata_.cols() > 0 && this->metadata_.rows() == original_size) {
@@ -88,7 +88,7 @@ public:
 	};
 
 	template <typename SliceType>
-		requires _Cs is_slice_container<SliceType>
+		requires custom::is_slice_container<SliceType>
 	[[nodiscard]] GenomicRange row_sliced(const SliceType& slice) const{
 
 		const int original_size = this->sequence_names_.size();
@@ -96,8 +96,8 @@ public:
 		GenomicRange ret;
 
 		ret.sequence_names_ = this->sequence_names_.sliced(slice);
-		ret.ranges_.start_ = _Cs sliced(this->ranges_.start_, slice);
-		ret.ranges_.width_ = _Cs sliced(this->ranges_.width_, slice);
+		ret.ranges_.start_ = custom::sliced(this->ranges_.start_, slice);
+		ret.ranges_.width_ = custom::sliced(this->ranges_.width_, slice);
 		ret.strand_ = this->strand_.sliced(slice);
 
 		if (this->metadata_.cols() > 0 && this->metadata_.rows() == original_size) {
@@ -108,7 +108,7 @@ public:
 	};
 
 	template <typename OrderType>
-		requires _Cs is_order_container<OrderType>
+		requires custom::is_order_container<OrderType>
 	GenomicRange row_reordered(const OrderType& order) const {
 
 		GenomicRange new_genomic_range(*this);

@@ -41,7 +41,7 @@ public:
     }
 
     template <typename SliceType>
-    requires _Cs is_slice_container<SliceType>
+    requires custom::is_slice_container<SliceType>
     void col_slice(const SliceType& slice) {
 
         for (auto&& [name, data] : SUBMODULES(*this, SparseInt)) {
@@ -60,7 +60,7 @@ public:
     }
 
     template <typename OrderType>
-        requires _Cs is_order_container<OrderType>
+        requires custom::is_order_container<OrderType>
     void col_reorder(const OrderType& order) {
 
         for (auto&& [name, data] : SUBMODULES(*this, SparseInt)) {

@@ -37,10 +37,10 @@ bool CountMatrixReadingWorker::read_file() {
 	QChar delimiter = this->delimiter_[0];
 
 	if (this->delimiter_ == "auto-detect") {
-		delimiter = _Cs detect_delimiter(line, line2);
+		delimiter = custom::detect_delimiter(line, line2);
 	}
 
-	this->colnames_ = _Cs digest(line, delimiter);
+	this->colnames_ = custom::digest(line, delimiter);
 	this->ncol_ = this->colnames_.size();
 
 	// common dataset should contains more than 100 cells
@@ -55,7 +55,7 @@ bool CountMatrixReadingWorker::read_file() {
 		this->colnames_ = this->colnames_.sliced(1, this->ncol_);
 	}
 
-	QStringList first_row = _Cs digest(line2, delimiter);
+	QStringList first_row = custom::digest(line2, delimiter);
 	if (first_row.size() == this->ncol_) {// means the first element should be "Gene Name" or something instead of empty ""
 		--this->ncol_;
 		this->colnames_ = this->colnames_.sliced(1, this->ncol_);
@@ -81,7 +81,7 @@ bool CountMatrixReadingWorker::read_file() {
 
 	auto fun = [&cache, this, &mutex, &mutex2, &success, delimiter](int row_index) {
 
-		QStringList row = _Cs digest(cache[row_index], (delimiter));
+		QStringList row = custom::digest(cache[row_index], (delimiter));
 
 		if (row.size() != this->ncol_ + 1) {
 			success = false;
@@ -112,7 +112,7 @@ bool CountMatrixReadingWorker::read_file() {
 			cache << in.readLine();
 			++count;
 		}
-		QVector<int> params = _Cs seq_n(0, count);
+		QVector<int> params = custom::seq_n(0, count);
 		QFuture<void> f = QtConcurrent::map(params, fun);
 		f.waitForFinished();
 		if (!success) {
@@ -141,7 +141,7 @@ void CountMatrixReadingWorker::create_data() {
 		gene_symbols[i] = this->row_name_map_[i];
 	}
 
-	Eigen::ArrayX<bool> gene_detected = _Cs row_sum(counts.mat_) > 0;
+	Eigen::ArrayX<bool> gene_detected = custom::row_sum(counts.mat_) > 0;
 
 	// gene number should be more than 1000
 	if (gene_detected.count() < 1000) {
@@ -150,10 +150,10 @@ void CountMatrixReadingWorker::create_data() {
 		return;
 	}
 
-	counts.mat_ = _Cs row_sliced(counts.mat_, gene_detected);
-	gene_symbols = _Cs sliced(gene_symbols, gene_detected);
+	counts.mat_ = custom::row_sliced(counts.mat_, gene_detected);
+	gene_symbols = custom::sliced(gene_symbols, gene_detected);
 
-	Eigen::ArrayXi col_count = _Cs col_sum(counts.mat_);
+	Eigen::ArrayXi col_count = custom::col_sum(counts.mat_);
 	Eigen::ArrayXi col_gene(this->ncol_);
 	Eigen::ArrayXd mitochondrial_content = Eigen::ArrayXd::Zero(this->ncol_);
 	Eigen::ArrayXd ribosomal_content = Eigen::ArrayXd::Zero(this->ncol_);
@@ -210,19 +210,19 @@ void CountMatrixReadingWorker::create_data() {
 		ribosomal_content /= col_count.cast<double>();
 	}
 
-	_Cs remove_na(mitochondrial_content);
-	_Cs remove_na(ribosomal_content);
+	custom::remove_na(mitochondrial_content);
+	custom::remove_na(ribosomal_content);
 
-	gene_symbols = _Cs make_unique(gene_symbols);
-	this->colnames_ = _Cs make_unique(this->colnames_);
+	gene_symbols = custom::make_unique(gene_symbols);
+	this->colnames_ = custom::make_unique(this->colnames_);
 	counts.rownames_ = gene_symbols;
 	counts.colnames_ = this->colnames_;
 	Metadata& metadata = SUBMODULES(*sc, Metadata)[VARIABLE_METADATA];
 	metadata.mat_.set_rownames(this->colnames_);
-	metadata.mat_.update(METADATA_RNA_UMI_NUMBER, _Cs cast<QVector>(col_count));
-	metadata.mat_.update(METADATA_RNA_UNIQUE_GENE_NUMBER, _Cs cast<QVector>(col_gene));
-	metadata.mat_.update(METADATA_RNA_MITOCHONDRIAL_CONTENT, _Cs cast<QVector>(mitochondrial_content));
-	metadata.mat_.update(METADATA_RNA_RIBOSOMAL_CONTENT, _Cs cast<QVector>(ribosomal_content));
+	metadata.mat_.update(METADATA_RNA_UMI_NUMBER, custom::cast<QVector>(col_count));
+	metadata.mat_.update(METADATA_RNA_UNIQUE_GENE_NUMBER, custom::cast<QVector>(col_gene));
+	metadata.mat_.update(METADATA_RNA_MITOCHONDRIAL_CONTENT, custom::cast<QVector>(mitochondrial_content));
+	metadata.mat_.update(METADATA_RNA_RIBOSOMAL_CONTENT, custom::cast<QVector>(ribosomal_content));
 
 	sc->species_ = species;
 

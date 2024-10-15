@@ -39,10 +39,10 @@ void SingleCellRnaCreateWorker::create_from_sparseint() {
 		}
 	}
 
-	Eigen::ArrayX<bool> gene_detected = _Cs row_sum(counts.mat_) > 0;
+	Eigen::ArrayX<bool> gene_detected = custom::row_sum(counts.mat_) > 0;
 	counts.row_slice(gene_detected);
 
-	Eigen::ArrayXi col_count = _Cs col_sum_mt(counts.mat_);
+	Eigen::ArrayXi col_count = custom::col_sum_mt(counts.mat_);
 	const int ncol = counts.mat_.cols();
 	Eigen::ArrayXi col_gene(ncol);
 	Eigen::ArrayXd mitochondrial_content = Eigen::ArrayXd::Zero(ncol);
@@ -92,14 +92,14 @@ void SingleCellRnaCreateWorker::create_from_sparseint() {
 		ribosomal_content /= col_count.cast<double>();
 	}
 
-	_Cs remove_na(mitochondrial_content);
-	_Cs remove_na(ribosomal_content);
+	custom::remove_na(mitochondrial_content);
+	custom::remove_na(ribosomal_content);
 
 	Metadata& metadata = SUBMODULES(*single_cell_rna, Metadata)[VARIABLE_METADATA];
 	metadata.mat_.set_rownames(counts.colnames_);
 	metadata.mat_.update(METADATA_RNA_UMI_NUMBER, QVector<int>(col_count.begin(), col_count.end()));
 	metadata.mat_.update(METADATA_RNA_UNIQUE_GENE_NUMBER, QVector<int>(col_gene.begin(), col_gene.end()));
-	metadata.mat_.update(METADATA_RNA_MITOCHONDRIAL_CONTENT, _Cs cast<QVector>(mitochondrial_content));
-	metadata.mat_.update(METADATA_RNA_RIBOSOMAL_CONTENT, _Cs cast<QVector>(ribosomal_content));
+	metadata.mat_.update(METADATA_RNA_MITOCHONDRIAL_CONTENT, custom::cast<QVector>(mitochondrial_content));
+	metadata.mat_.update(METADATA_RNA_RIBOSOMAL_CONTENT, custom::cast<QVector>(ribosomal_content));
 	emit x_single_cell_rna_created(single_cell_rna);
 };

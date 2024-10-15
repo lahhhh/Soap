@@ -444,7 +444,7 @@ void TwoBitFileProcessor::load_index(QDataStream& ds) {
 			ds >> name[i];
 		}
 		name[name_size] = '\0';
-		QString sequence_name = _Cs standardize_chromosome_name(QString::fromUtf8(name.data()));
+		QString sequence_name = custom::standardize_chromosome_name(QString::fromUtf8(name.data()));
 		uint32_t offset;
 		ds >> offset;
 		if (this->byte_swapped_) {

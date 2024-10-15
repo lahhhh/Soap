@@ -172,18 +172,18 @@ void MacsCallPeakWorker::chromosome_call_peak(const QString& chromosome) {
 	auto& [p, treat, control] = chromosome_position_treat_control_[chromosome];
 	auto score = calculate_q_score(treat, control);
 
-	auto above_cutoff = _Cs greater_than(score, this->log_q_value_);
+	auto above_cutoff = custom::greater_than(score, this->log_q_value_);
 
 	if (above_cutoff.count() == 0)return;
 
-	QVector<int> above_cutoff_index = _Cs which(above_cutoff);
-	QVector<int> above_cutoff_end_position = _Cs sliced(p, above_cutoff);
+	QVector<int> above_cutoff_index = custom::which(above_cutoff);
+	QVector<int> above_cutoff_end_position = custom::sliced(p, above_cutoff);
 
 	if (above_cutoff_index[0] == 0) {
 		above_cutoff_index[0] = 1;
 	}
 
-	QVector<int> above_cutoff_start_position = _Cs reordered(p, _Cs minus(above_cutoff_index, 1));
+	QVector<int> above_cutoff_start_position = custom::reordered(p, custom::minus(above_cutoff_index, 1));
 
 	const int
 		* pointer_to_above_cutoff_start = above_cutoff_start_position.data(),
@@ -357,8 +357,8 @@ MacsCallPeakWorker::calculate_distribution(
 
 	QVector<int> start_position, end_position;
 	auto& chr = this->locations_[chromosome];
-	start_position << _Cs minus(chr[0], five_shift) << _Cs minus(chr[1], three_shift);
-	end_position << _Cs add(chr[0], three_shift) << _Cs add(chr[1], five_shift);
+	start_position << custom::minus(chr[0], five_shift) << custom::minus(chr[1], three_shift);
+	end_position << custom::add(chr[0], three_shift) << custom::add(chr[1], five_shift);
 	std::ranges::sort(start_position);
 	std::ranges::sort(end_position);
 
@@ -511,7 +511,7 @@ void MacsCallPeakWorker::calculate_p_q_map() {
 		unique_values << iter->first;
 	}
 
-	unique_values = _Cs unique(unique_values);
+	unique_values = custom::unique(unique_values);
 	std::ranges::reverse(unique_values);
 
 	qsizetype size = unique_values.size(), i;
@@ -606,7 +606,7 @@ void MacsCallPeakWorker::filter_duplicates() {
 	for (auto iter = locations_.begin(); iter != locations_.end(); ++iter) {
 		for (auto& strand : iter->second) {
 			fragment_total += strand.size();
-			strand = _Cs unique(strand);
+			strand = custom::unique(strand);
 			fragment_filtered += strand.size();
 		}
 	}
@@ -630,7 +630,7 @@ bool MacsCallPeakWorker::detect_tag_size() {
 bool MacsCallPeakWorker::detect_tag_size_in_object() {
 	const auto& fragments = *this->fragments_objects_[0];
 	for (const auto& [name, sequence] : fragments.data_) {
-		if (_Cs sum(_Cs sapply(sequence, [](const auto& pair) { return pair.first.size(); })) > 100) {
+		if (custom::sum(custom::sapply(sequence, [](const auto& pair) { return pair.first.size(); })) > 100) {
 			int tag_size = 0, count = 0;
 			for (const auto& cell_fragments : sequence) {
 				for (int j = 0; j < cell_fragments.first.size() && count < 100; ++j, ++count) {
@@ -677,8 +677,8 @@ bool MacsCallPeakWorker::detect_tag_size_in_file() {
 		while (*c != '\t') {
 			++c;
 		}
-		int start = _Cs atoi_specialized(&c);
-		int end = _Cs atoi_specialized(&c);
+		int start = custom::atoi_specialized(&c);
+		int end = custom::atoi_specialized(&c);
 		length += end - start;
 	}
 	gzclose(fragments_file);
@@ -705,7 +705,7 @@ void MacsCallPeakWorker::parse_fragments_object() {
 			const int n_cell = data.size();
 
 			for (int i = 0; i < n_cell; ++i) {
-				location[0] << _Cs cast<QVector>(data[i].first);
+				location[0] << custom::cast<QVector>(data[i].first);
 			}
 		}
 	}
@@ -738,8 +738,8 @@ bool MacsCallPeakWorker::parse_bed_file() {
 			while (*lead != '\t') {
 				++lead;
 			}
-			QString chromosome_name = _Cs standardize_chromosome_name(QString::fromUtf8(lag, lead - lag));
-			int start = _Cs atoi_specialized(&lead);
+			QString chromosome_name = custom::standardize_chromosome_name(QString::fromUtf8(lag, lead - lag));
+			int start = custom::atoi_specialized(&lead);
 			++lead;
 			int count = 2;
 			while (count < 6) {

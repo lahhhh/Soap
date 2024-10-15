@@ -320,7 +320,7 @@ void BulkRnaItem::s_receive_pca(Eigen::MatrixXd emb, QVector<double> sdev, QVect
 		Embedding::DataType::Pca,
 		emb,
 		this->data()->counts()->colnames_,
-		_Cs paste("PCA-", _Cs cast<QString>(_Cs seq_n(1, emb.cols())))
+		custom::paste("PCA-", custom::cast<QString>(custom::seq_n(1, emb.cols())))
 	);
 
 	this->data()->double_vectors_[VARIABLE_PCA_STANDARD_DEVIATION] = sdev;
@@ -441,7 +441,7 @@ void BulkRnaItem::s_receive_tsne(Eigen::MatrixXd mat) {
 		Embedding::DataType::Tsne,
 		mat,
 		this->data()->counts()->colnames_,
-		_Cs paste("tSNE-", _Cs cast<QString>(_Cs seq_n(1, mat.cols()))));
+		custom::paste("tSNE-", custom::cast<QString>(custom::seq_n(1, mat.cols()))));
 
 	auto item = new EmbeddingItem(
 		title,
@@ -647,7 +647,7 @@ void BulkRnaItem::s_receive_umap(Eigen::MatrixXd mat) {
 		Embedding::DataType::Umap,
 		mat,
 		this->data()->counts()->colnames_,
-		_Cs paste("UMAP-", _Cs cast<QString>(_Cs seq_n(1, mat.cols()))));
+		custom::paste("UMAP-", custom::cast<QString>(custom::seq_n(1, mat.cols()))));
 
 	auto item = new EmbeddingItem(
 		title,
@@ -665,7 +665,7 @@ void BulkRnaItem::s_receive_umap(Eigen::MatrixXd mat) {
 
 void BulkRnaItem::s_receive_integrated_data(BulkRna* data, QList<const BulkRna* > items) {
 
-	this->signal_emitter_->unlock(_Cs sapply(items, [this](auto* data) {return this->signal_emitter_->search((void*)data); }));
+	this->signal_emitter_->unlock(custom::sapply(items, [this](auto* data) {return this->signal_emitter_->search((void*)data); }));
 
 	this->signal_emitter_->x_data_create_soon(data, soap::VariableType::BulkRna, "Integrated scRNA");
 };
@@ -691,7 +691,7 @@ void BulkRnaItem::s_integrate() {
 
 	available_data = simple_choice_to_list(settings[0]);
 	if (available_data.size() < 2)return;
-	if (!_Cs is_unique(available_data)) {
+	if (!custom::is_unique(available_data)) {
 		G_WARN("Can not integrate the same data!");
 		return;
 	}
@@ -703,9 +703,9 @@ void BulkRnaItem::s_integrate() {
 		return;
 	}
 
-	auto choosed = _Cs sapply(its, [](IndexTree* it) {return static_cast<const BulkRna*>(it->data_); });
+	auto choosed = custom::sapply(its, [](IndexTree* it) {return static_cast<const BulkRna*>(it->data_); });
 
-	auto species = _Cs unique(_Cs sapply(choosed, [](const BulkRna* rna) {return rna->species_; }));
+	auto species = custom::unique(custom::sapply(choosed, [](const BulkRna* rna) {return rna->species_; }));
 
 	if (species.size() != 1) {
 		G_LOG("Unmatched species!");
@@ -1109,18 +1109,18 @@ void BulkRnaItem::s_receive_leiden(QVector<int> cluster) {
 
 void BulkRnaItem::s_receive_louvain(std::vector<int> cluster) {
 
-	this->data()->metadata()->mat_.update(METADATA_RNA_LOUVAIN_CLUSTER, _Cs cast<QVector>(cluster), CustomMatrix::DataType::IntegerFactor);
+	this->data()->metadata()->mat_.update(METADATA_RNA_LOUVAIN_CLUSTER, custom::cast<QVector>(cluster), CustomMatrix::DataType::IntegerFactor);
 };
 
 void BulkRnaItem::s_receive_modified_louvain(std::vector<int> cluster) {
 
-	this->data()->metadata()->mat_.update(METADATA_RNA_MODIFIED_LOUVAIN_CLUSTER, _Cs cast<QVector>(cluster), CustomMatrix::DataType::IntegerFactor);
+	this->data()->metadata()->mat_.update(METADATA_RNA_MODIFIED_LOUVAIN_CLUSTER, custom::cast<QVector>(cluster), CustomMatrix::DataType::IntegerFactor);
 };
 
 void BulkRnaItem::s_receive_slm(std::vector<int> cluster) {
 
 
-	this->data()->metadata()->mat_.update(METADATA_RNA_SLM_CLUSTER, _Cs cast<QVector>(cluster), CustomMatrix::DataType::IntegerFactor);
+	this->data()->metadata()->mat_.update(METADATA_RNA_SLM_CLUSTER, custom::cast<QVector>(cluster), CustomMatrix::DataType::IntegerFactor);
 };
 
 

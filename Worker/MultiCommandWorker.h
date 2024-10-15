@@ -10,9 +10,9 @@ class MultiCommandWorker
 	Q_OBJECT
 public:
 
-	MultiCommandWorker(const QList<QStringList>& cmds) : commands_(cmds) {};
+	MultiCommandWorker(const QStringList& cmds) : commands_(cmds) {};
 
-	QList<QStringList> commands_;
+	QStringList commands_;
 
 	QProcess* p_{ nullptr };
 

@@ -21,7 +21,7 @@ std::tuple<Eigen::MatrixXd, Eigen::VectorXd, Eigen::MatrixXd> tsvd(
 	const int nu = n;
 	const int m = mat->rows();
 	n = mat->cols();
-	const int m_b = _Cs min(nu + 20, 3 * nu, n);
+	const int m_b = custom::min(nu + 20, 3 * nu, n);
 	int it = 0;
 	int j = 0;
 	int k = nu;
@@ -138,7 +138,7 @@ std::tuple<Eigen::MatrixXd, Eigen::VectorXd, Eigen::MatrixXd> tsvd(
 	const int nu = n;
 	const int m = mat->rows();
 	n = mat->cols();
-	const int m_b = _Cs min(nu + 20, 3 * nu, n);
+	const int m_b = custom::min(nu + 20, 3 * nu, n);
 	int it = 0;
 	int j = 0;
 	int k = nu;

@@ -56,7 +56,7 @@ void PandoItem::s_extract_gene_name() {
 
 	G_GETLOCK;
 
-	QStringList tfs = _Cs unique(this->data()->mat_.get_const_qstring_reference(METADATA_PANDO_TF_NAME));
+	QStringList tfs = custom::unique(this->data()->mat_.get_const_qstring_reference(METADATA_PANDO_TF_NAME));
 
 	auto settings = CommonDialog::get_response(
 		this->signal_emitter_,
@@ -77,15 +77,15 @@ void PandoItem::s_extract_gene_name() {
 	double p_val_threshold = settings[2].toDouble();
 	int n_var_threshold = settings[3].toInt();
 
-	auto filter = _Cs equal(this->data()->mat_.get_const_qstring_reference(METADATA_PANDO_TF_NAME), tf_name);
-	filter *= _Cs less_than(this->data()->mat_.get_const_double_reference(METADATA_PANDO_P_VAL_NAME), p_val_threshold);
-	filter *= _Cs greater_equal(this->data()->mat_.get_const_integer_reference(METADATA_PANDO_N_VARIABLE_NAME), n_var_threshold);
+	auto filter = custom::equal(this->data()->mat_.get_const_qstring_reference(METADATA_PANDO_TF_NAME), tf_name);
+	filter *= custom::less_than(this->data()->mat_.get_const_double_reference(METADATA_PANDO_P_VAL_NAME), p_val_threshold);
+	filter *= custom::greater_equal(this->data()->mat_.get_const_integer_reference(METADATA_PANDO_N_VARIABLE_NAME), n_var_threshold);
 
 	if (cor_type == "Positive") {
-		filter *= _Cs greater_than(this->data()->mat_.get_const_double_reference(METADATA_PANDO_ESTIMATE_NAME), 0.0);
+		filter *= custom::greater_than(this->data()->mat_.get_const_double_reference(METADATA_PANDO_ESTIMATE_NAME), 0.0);
 	}
 	else if (cor_type == "Negative") {
-		filter *= _Cs less_than(this->data()->mat_.get_const_double_reference(METADATA_PANDO_ESTIMATE_NAME), 0.0);
+		filter *= custom::less_than(this->data()->mat_.get_const_double_reference(METADATA_PANDO_ESTIMATE_NAME), 0.0);
 	}
 
 	if (filter.count() == 0) {
@@ -94,7 +94,7 @@ void PandoItem::s_extract_gene_name() {
 		return;
 	}
 
-	QStringList gene_names = _Cs sliced(this->data()->mat_.get_const_qstring_reference(METADATA_PANDO_GENE_NAME), filter);
+	QStringList gene_names = custom::sliced(this->data()->mat_.get_const_qstring_reference(METADATA_PANDO_GENE_NAME), filter);
 
 	QString new_title = this->signal_emitter_->get_unique_name(VARIABLE_GENE_NAME);
 	DATA_SUBMODULES(GeneName)[new_title] = GeneName(gene_names);
@@ -115,7 +115,7 @@ void PandoItem::s_extract_gene_name() {
 
 void PandoItem::s_show_gene_name() {
 
-	QStringList gene_names = _Cs unique(this->data()->mat_.get_const_qstring_reference(METADATA_PANDO_GENE_NAME));
+	QStringList gene_names = custom::unique(this->data()->mat_.get_const_qstring_reference(METADATA_PANDO_GENE_NAME));
 
 	auto settings = CommonDialog::get_response(
 		this->signal_emitter_,
@@ -132,8 +132,8 @@ void PandoItem::s_show_gene_name() {
 	QString gene_name = settings[0];
 	double p_val_threshold = settings[1].toDouble();
 
-	auto filter = _Cs equal(this->data()->mat_.get_const_qstring_reference(METADATA_PANDO_GENE_NAME), gene_name);
-	filter *= _Cs less_than(this->data()->mat_.get_const_double_reference(METADATA_PANDO_P_VAL_NAME), p_val_threshold);
+	auto filter = custom::equal(this->data()->mat_.get_const_qstring_reference(METADATA_PANDO_GENE_NAME), gene_name);
+	filter *= custom::less_than(this->data()->mat_.get_const_double_reference(METADATA_PANDO_P_VAL_NAME), p_val_threshold);
 	if (filter.count() == 0) {
 		G_NOTICE("No significant differential feature expression found.");
 		return;
@@ -148,7 +148,7 @@ void PandoItem::s_show_gene_name() {
 
 void PandoItem::s_show_gene_coef() {
 
-	QStringList gene_names = _Cs unique(this->data()->mat_.get_const_qstring_reference(METADATA_PANDO_GENE_NAME));
+	QStringList gene_names = custom::unique(this->data()->mat_.get_const_qstring_reference(METADATA_PANDO_GENE_NAME));
 
 	auto settings = CommonDialog::get_response(
 		this->signal_emitter_,
@@ -174,39 +174,39 @@ void PandoItem::s_show_gene_coef() {
 		return;
 	}
 
-	auto filter = _Cs equal(this->data()->mat_.get_const_qstring_reference(METADATA_PANDO_GENE_NAME), gene_name);
-	filter *= _Cs less_than(this->data()->mat_.get_const_double_reference(METADATA_PANDO_P_VAL_NAME), p_val_threshold);
-	filter *= _Cs greater_equal(this->data()->mat_.get_const_integer_reference(METADATA_PANDO_N_VARIABLE_NAME), n_variable_threshold);
+	auto filter = custom::equal(this->data()->mat_.get_const_qstring_reference(METADATA_PANDO_GENE_NAME), gene_name);
+	filter *= custom::less_than(this->data()->mat_.get_const_double_reference(METADATA_PANDO_P_VAL_NAME), p_val_threshold);
+	filter *= custom::greater_equal(this->data()->mat_.get_const_integer_reference(METADATA_PANDO_N_VARIABLE_NAME), n_variable_threshold);
 	if (filter.count() == 0) {
 		G_NOTICE("No significant differential feature expression found.");
 		return;
 	}
 
-	QStringList tf_names = _Cs sliced(this->data()->mat_.get_const_qstring_reference(METADATA_PANDO_TF_NAME), filter);
-	QVector<double> coef = _Cs sliced(this->data()->mat_.get_const_double_reference(METADATA_PANDO_ESTIMATE_NAME), filter);
+	QStringList tf_names = custom::sliced(this->data()->mat_.get_const_qstring_reference(METADATA_PANDO_TF_NAME), filter);
+	QVector<double> coef = custom::sliced(this->data()->mat_.get_const_double_reference(METADATA_PANDO_ESTIMATE_NAME), filter);
 
-	QStringList unique_tfs = _Cs unique(tf_names);
+	QStringList unique_tfs = custom::unique(tf_names);
 	QVector<double> coef_use;
 
 	for (auto&& tf_name : unique_tfs) {
-		coef_use << _Cs sum(_Cs sliced(coef, _Cs equal(tf_names, tf_name)));
+		coef_use << custom::sum(custom::sliced(coef, custom::equal(tf_names, tf_name)));
 	}
 
-	auto order = _Cs order(coef_use);
+	auto order = custom::order(coef_use);
 
-	unique_tfs = _Cs reordered(unique_tfs, order);
-	coef_use = _Cs reordered(coef_use, order);
+	unique_tfs = custom::reordered(unique_tfs, order);
+	coef_use = custom::reordered(coef_use, order);
 
 	auto& gs = this->draw_suite_->graph_settings_;
 
-	auto [draw_area, axis_rect, legend_layout] = _Cp prepare(gs);
+	auto [draw_area, axis_rect, legend_layout] = custom_plot::prepare(gs);
 
-	_CpPatch remove_left_axis(axis_rect);
+	custom_plot::patch::remove_left_axis(axis_rect);
 
 	axis_rect->axis(QCPAxis::atBottom)->grid()->setVisible(false);
 
 	int n_tf = unique_tfs.size();
-	int n_positive = std::ranges::count(_Cs greater_than(coef_use, 0.0), true);
+	int n_positive = std::ranges::count(custom::greater_than(coef_use, 0.0), true);
 	int n_negative = n_tf - n_positive;
 
 	filter = Eigen::ArrayX<bool>::Constant(n_tf, true);
@@ -226,21 +226,21 @@ void PandoItem::s_show_gene_coef() {
 		return;
 	}
 
-	if (_Cs any(filter, false)) {
-		coef_use = _Cs sliced(coef_use, filter);
-		unique_tfs = _Cs sliced(unique_tfs, filter);
+	if (custom::any(filter, false)) {
+		coef_use = custom::sliced(coef_use, filter);
+		unique_tfs = custom::sliced(unique_tfs, filter);
 	}
 
 	Eigen::ArrayXd bar_loc = Eigen::ArrayXd::LinSpaced(n_tf, 1, n_tf);
 
-	_CpPatch bar_polychrome(draw_area, axis_rect, bar_loc, _Cs cast<Eigen::ArrayX>(coef_use),
-		QList<QColor>() << QList<QColor>(n_negative, _CpColor navy) << QList<QColor>(n_positive, _CpColor firebrick3),
+	custom_plot::patch::bar_polychrome(draw_area, axis_rect, bar_loc, custom::cast<Eigen::ArrayX>(coef_use),
+		QList<QColor>() << QList<QColor>(n_negative, custom_plot::color::navy) << QList<QColor>(n_positive, custom_plot::color::firebrick3),
 		24, false
 	);
 
 	for (int i = 0; i < n_tf; ++i) {
 		if (coef_use[i] > 0) {
-			_CpPatch add_label(
+			custom_plot::patch::add_label(
 				draw_area,
 				axis_rect,
 				unique_tfs[i] + ' ',
@@ -251,7 +251,7 @@ void PandoItem::s_show_gene_coef() {
 			);
 		}
 		else {
-			_CpPatch add_label(
+			custom_plot::patch::add_label(
 				draw_area,
 				axis_rect,
 				' ' + unique_tfs[i],
@@ -268,8 +268,8 @@ void PandoItem::s_show_gene_coef() {
 	axis_rect->axis(QCPAxis::atBottom)->setTickPen(pen);
 	axis_rect->axis(QCPAxis::atBottom)->setSubTickPen(pen);
 	axis_rect->axis(QCPAxis::atBottom)->setBasePen(pen);
-	_Cp set_bottom_title(axis_rect, "Coefficient", gs, true);
-	_Cp add_title(draw_area, gene_name, gs);
+	custom_plot::set_bottom_title(axis_rect, "Coefficient", gs, true);
+	custom_plot::add_title(draw_area, gene_name, gs);
 
 	auto [min_coef, max_coef] = std::ranges::minmax(coef_use);
 	if (min_coef > -0.05) {
@@ -280,7 +280,7 @@ void PandoItem::s_show_gene_coef() {
 		max_coef = 0.05;
 	}
 
-	_CpPatch set_range(axis_rect, _CpUtility get_range(min_coef, max_coef), QCPRange(0.0, n_tf + 1.0));
+	custom_plot::patch::set_range(axis_rect, custom_plot::utility::get_range(min_coef, max_coef), QCPRange(0.0, n_tf + 1.0));
 
 	this->draw_suite_->update(draw_area);
 };
@@ -306,9 +306,9 @@ void PandoItem::s_show_factor_gene_strength() {
 		return;
 	}
 
-	QStringList tfs = _Cs unique(this->data()->mat_.get_const_qstring_reference(METADATA_PANDO_TF_NAME));
+	QStringList tfs = custom::unique(this->data()->mat_.get_const_qstring_reference(METADATA_PANDO_TF_NAME));
 
-	QStringList gene_names = _Cs unique(this->data()->mat_.get_const_qstring_reference(METADATA_PANDO_GENE_NAME));
+	QStringList gene_names = custom::unique(this->data()->mat_.get_const_qstring_reference(METADATA_PANDO_GENE_NAME));
 
 	auto settings = CommonDialog::get_response(
 		this->signal_emitter_,
@@ -328,17 +328,17 @@ void PandoItem::s_show_factor_gene_strength() {
 	QString embedding_name = settings[2];
 	bool add_to_metadata = switch_to_bool(settings[3]);
 
-	auto filter = _Cs equal(this->data()->mat_.get_const_qstring_reference(METADATA_PANDO_TF_NAME), tf_name);
-	filter *= _Cs equal(this->data()->mat_.get_const_qstring_reference(METADATA_PANDO_GENE_NAME), gene_name);
-	filter *= _Cs less_than(this->data()->mat_.get_const_double_reference(METADATA_PANDO_P_VAL_NAME), 0.05);
+	auto filter = custom::equal(this->data()->mat_.get_const_qstring_reference(METADATA_PANDO_TF_NAME), tf_name);
+	filter *= custom::equal(this->data()->mat_.get_const_qstring_reference(METADATA_PANDO_GENE_NAME), gene_name);
+	filter *= custom::less_than(this->data()->mat_.get_const_double_reference(METADATA_PANDO_P_VAL_NAME), 0.05);
 
 	if (filter.count() == 0) {
 		G_WARN("No Connection between TF and Gene");
 		return;
 	}
 
-	auto peak_names = _Cs sliced(this->data()->mat_.get_const_qstring_reference(METADATA_PANDO_PEAK_NAME), filter);
-	auto coef = _Cs sliced(this->data()->mat_.get_const_double_reference(METADATA_PANDO_ESTIMATE_NAME), filter);
+	auto peak_names = custom::sliced(this->data()->mat_.get_const_qstring_reference(METADATA_PANDO_PEAK_NAME), filter);
+	auto coef = custom::sliced(this->data()->mat_.get_const_double_reference(METADATA_PANDO_ESTIMATE_NAME), filter);
 	int n_peak = peak_names.size();
 	filter = Eigen::ArrayX<bool>::Constant(n_peak, true);
 
@@ -387,7 +387,7 @@ void PandoItem::s_show_factor_gene_strength() {
 	}
 
 	if (add_to_metadata) {
-		single_cell_multiome->metadata()->mat_.update(tf_name + " - " + gene_name + " Coefficient", _Cs cast<QVector>(res));
+		single_cell_multiome->metadata()->mat_.update(tf_name + " - " + gene_name + " Coefficient", custom::cast<QVector>(res));
 		this->signal_emitter_->x_update_interface();
 	}
 
@@ -418,16 +418,16 @@ void PandoItem::s_abstract() {
 	double p_val_threshold = settings[1].toDouble();
 	int n_variable_threshold = settings[2].toInt();
 
-	auto filter = _Cs less_than(this->data()->mat_.get_const_double_reference(METADATA_PANDO_P_VAL_NAME), p_val_threshold);
-	filter *= _Cs greater_equal(this->data()->mat_.get_const_integer_reference(METADATA_PANDO_N_VARIABLE_NAME), n_variable_threshold);
+	auto filter = custom::less_than(this->data()->mat_.get_const_double_reference(METADATA_PANDO_P_VAL_NAME), p_val_threshold);
+	filter *= custom::greater_equal(this->data()->mat_.get_const_integer_reference(METADATA_PANDO_N_VARIABLE_NAME), n_variable_threshold);
 	if (filter.count() == 0) {
 		G_NOTICE("No feature found.");
 		return;
 	}
 
-	QStringList gene_names = _Cs sliced(this->data()->mat_.get_const_qstring_reference(METADATA_PANDO_GENE_NAME), filter);
-	QStringList tf_names = _Cs sliced(this->data()->mat_.get_const_qstring_reference(METADATA_PANDO_TF_NAME), filter);
-	QVector<double> coef = _Cs sliced(this->data()->mat_.get_const_double_reference(METADATA_PANDO_ESTIMATE_NAME), filter);
+	QStringList gene_names = custom::sliced(this->data()->mat_.get_const_qstring_reference(METADATA_PANDO_GENE_NAME), filter);
+	QStringList tf_names = custom::sliced(this->data()->mat_.get_const_qstring_reference(METADATA_PANDO_TF_NAME), filter);
+	QVector<double> coef = custom::sliced(this->data()->mat_.get_const_double_reference(METADATA_PANDO_ESTIMATE_NAME), filter);
 
 	std::unordered_map<QString, std::map<QString, double>> coefs;
 	int n_conn = gene_names.size();
@@ -447,19 +447,19 @@ void PandoItem::s_abstract() {
 		}
 	}
 
-	auto order = _Cs order(_Cs abs(coef), true);
+	auto order = custom::order(custom::abs(coef), true);
 
 	CustomMatrix show;
-	show.update("Transcription Factor", _Cs reordered(tf_names, order));
-	show.update("Gene Name", _Cs reordered(gene_names, order));
-	show.update("Coefficient", _Cs reordered(coef, order));
+	show.update("Transcription Factor", custom::reordered(tf_names, order));
+	show.update("Gene Name", custom::reordered(gene_names, order));
+	show.update("Coefficient", custom::reordered(coef, order));
 
 	MatrixWindow::show_matrix(&show, "Abstract", this->signal_emitter_);
 };
 
 void PandoItem::s_show_factor_coef() {
 
-	QStringList tfs = _Cs unique(this->data()->mat_.get_const_qstring_reference(METADATA_PANDO_TF_NAME));
+	QStringList tfs = custom::unique(this->data()->mat_.get_const_qstring_reference(METADATA_PANDO_TF_NAME));
 
 	auto settings = CommonDialog::get_response(
 		this->signal_emitter_,
@@ -485,31 +485,31 @@ void PandoItem::s_show_factor_coef() {
 		return;
 	}
 
-	auto filter = _Cs equal(this->data()->mat_.get_const_qstring_reference(METADATA_PANDO_TF_NAME), tf_name);
-	filter *= _Cs less_than(this->data()->mat_.get_const_double_reference(METADATA_PANDO_P_VAL_NAME), p_val_threshold);
-	filter *= _Cs greater_equal(this->data()->mat_.get_const_integer_reference(METADATA_PANDO_N_VARIABLE_NAME), n_variable_threshold);
+	auto filter = custom::equal(this->data()->mat_.get_const_qstring_reference(METADATA_PANDO_TF_NAME), tf_name);
+	filter *= custom::less_than(this->data()->mat_.get_const_double_reference(METADATA_PANDO_P_VAL_NAME), p_val_threshold);
+	filter *= custom::greater_equal(this->data()->mat_.get_const_integer_reference(METADATA_PANDO_N_VARIABLE_NAME), n_variable_threshold);
 	if (filter.count() == 0) {
 		G_NOTICE("No significant differential feature expression found.");
 		return;
 	}
 
-	QStringList gene_names = _Cs sliced(this->data()->mat_.get_const_qstring_reference(METADATA_PANDO_GENE_NAME), filter);
-	QVector<double> coef = _Cs sliced(this->data()->mat_.get_const_double_reference(METADATA_PANDO_ESTIMATE_NAME), filter);
+	QStringList gene_names = custom::sliced(this->data()->mat_.get_const_qstring_reference(METADATA_PANDO_GENE_NAME), filter);
+	QVector<double> coef = custom::sliced(this->data()->mat_.get_const_double_reference(METADATA_PANDO_ESTIMATE_NAME), filter);
 
-	QStringList unique_genes = _Cs unique(gene_names);
+	QStringList unique_genes = custom::unique(gene_names);
 	QVector<double> coef_use;
 
 	for (auto&& gene_name : unique_genes) {
-		coef_use << _Cs sum(_Cs sliced(coef, _Cs equal(gene_names, gene_name)));
+		coef_use << custom::sum(custom::sliced(coef, custom::equal(gene_names, gene_name)));
 	}
 
-	auto order = _Cs order(coef_use);
+	auto order = custom::order(coef_use);
 
-	unique_genes = _Cs reordered(unique_genes, order);
-	coef_use = _Cs reordered(coef_use, order);	
+	unique_genes = custom::reordered(unique_genes, order);
+	coef_use = custom::reordered(coef_use, order);	
 
 	int n_gene = unique_genes.size();
-	int n_positive = std::ranges::count(_Cs greater_than(coef_use, 0.0), true);
+	int n_positive = std::ranges::count(custom::greater_than(coef_use, 0.0), true);
 	int n_negative = n_gene - n_positive;
 
 	filter = Eigen::ArrayX<bool>::Constant(n_gene, true);
@@ -529,28 +529,28 @@ void PandoItem::s_show_factor_coef() {
 		return;
 	}
 
-	if (_Cs any(filter, false)) {
-		coef_use = _Cs sliced(coef_use, filter);
-		unique_genes = _Cs sliced(unique_genes, filter);
+	if (custom::any(filter, false)) {
+		coef_use = custom::sliced(coef_use, filter);
+		unique_genes = custom::sliced(unique_genes, filter);
 	}
 
 	Eigen::ArrayXd bar_loc = Eigen::ArrayXd::LinSpaced(n_gene, 1, n_gene);
 	auto& gs = this->draw_suite_->graph_settings_;
 
-	auto [draw_area, axis_rect, legend_layout] = _Cp prepare(gs);
+	auto [draw_area, axis_rect, legend_layout] = custom_plot::prepare(gs);
 
-	_CpPatch remove_left_axis(axis_rect);
+	custom_plot::patch::remove_left_axis(axis_rect);
 
 	axis_rect->axis(QCPAxis::atBottom)->grid()->setVisible(false);
 
-	_CpPatch bar_polychrome(draw_area, axis_rect, bar_loc, _Cs cast<Eigen::ArrayX>(coef_use),
-		QList<QColor>() << QList<QColor>(n_negative, _CpColor navy) << QList<QColor>(n_positive, _CpColor firebrick3),
+	custom_plot::patch::bar_polychrome(draw_area, axis_rect, bar_loc, custom::cast<Eigen::ArrayX>(coef_use),
+		QList<QColor>() << QList<QColor>(n_negative, custom_plot::color::navy) << QList<QColor>(n_positive, custom_plot::color::firebrick3),
 		24, false
 		);
 		
 	for (int i = 0; i < n_gene; ++i) {
 		if (coef_use[i] > 0) {
-			_CpPatch add_label(
+			custom_plot::patch::add_label(
 				draw_area,
 				axis_rect,
 				unique_genes[i] + ' ',
@@ -561,7 +561,7 @@ void PandoItem::s_show_factor_coef() {
 			);
 		}
 		else {
-			_CpPatch add_label(
+			custom_plot::patch::add_label(
 				draw_area,
 				axis_rect,
 				' ' + unique_genes[i],
@@ -578,8 +578,8 @@ void PandoItem::s_show_factor_coef() {
 	axis_rect->axis(QCPAxis::atBottom)->setTickPen(pen);
 	axis_rect->axis(QCPAxis::atBottom)->setSubTickPen(pen);
 	axis_rect->axis(QCPAxis::atBottom)->setBasePen(pen);
-	_Cp set_bottom_title(axis_rect, "Coefficient", gs, true);
-	_Cp add_title(draw_area, tf_name, gs);
+	custom_plot::set_bottom_title(axis_rect, "Coefficient", gs, true);
+	custom_plot::add_title(draw_area, tf_name, gs);
 
 	auto [min_coef, max_coef] = std::ranges::minmax(coef_use);
 	if (min_coef > -0.05) {
@@ -590,14 +590,14 @@ void PandoItem::s_show_factor_coef() {
 		max_coef = 0.05;
 	}
 
-	_CpPatch set_range(axis_rect, _CpUtility get_range(min_coef, max_coef), QCPRange(0.0, n_gene + 1.0));
+	custom_plot::patch::set_range(axis_rect, custom_plot::utility::get_range(min_coef, max_coef), QCPRange(0.0, n_gene + 1.0));
 	
 	this->draw_suite_->update(draw_area);
 };
 
 void PandoItem::s_show_factor() {
 
-	QStringList tfs = _Cs unique(this->data()->mat_.get_const_qstring_reference(METADATA_PANDO_TF_NAME));
+	QStringList tfs = custom::unique(this->data()->mat_.get_const_qstring_reference(METADATA_PANDO_TF_NAME));
 
 	auto settings = CommonDialog::get_response(
 		this->signal_emitter_,
@@ -616,9 +616,9 @@ void PandoItem::s_show_factor() {
 	double p_val_threshold = settings[1].toDouble();
 	int n_variable_threshold = settings[2].toInt();
 
-	auto filter = _Cs equal(this->data()->mat_.get_const_qstring_reference(METADATA_PANDO_TF_NAME), tf_name);
-	filter *= _Cs less_than(this->data()->mat_.get_const_double_reference(METADATA_PANDO_P_VAL_NAME), p_val_threshold);
-	filter *= _Cs greater_equal(this->data()->mat_.get_const_integer_reference(METADATA_PANDO_N_VARIABLE_NAME), n_variable_threshold);
+	auto filter = custom::equal(this->data()->mat_.get_const_qstring_reference(METADATA_PANDO_TF_NAME), tf_name);
+	filter *= custom::less_than(this->data()->mat_.get_const_double_reference(METADATA_PANDO_P_VAL_NAME), p_val_threshold);
+	filter *= custom::greater_equal(this->data()->mat_.get_const_integer_reference(METADATA_PANDO_N_VARIABLE_NAME), n_variable_threshold);
 	if (filter.count() == 0) {
 		G_NOTICE("No significant differential feature expression found.");
 		return;
@@ -647,8 +647,8 @@ void PandoItem::s_show_significant() {
 	double p_val_threshold = settings[0].toDouble();
 	int n_variable_threshold = settings[1].toInt();
 
-	auto filter = _Cs less_than(this->data()->mat_.get_const_double_reference(METADATA_PANDO_P_VAL_NAME), p_val_threshold);
-	filter *= _Cs greater_equal(this->data()->mat_.get_const_integer_reference(METADATA_PANDO_N_VARIABLE_NAME), n_variable_threshold);
+	auto filter = custom::less_than(this->data()->mat_.get_const_double_reference(METADATA_PANDO_P_VAL_NAME), p_val_threshold);
+	filter *= custom::greater_equal(this->data()->mat_.get_const_integer_reference(METADATA_PANDO_N_VARIABLE_NAME), n_variable_threshold);
 	if (filter.count() == 0) {
 		G_NOTICE("No significant differential feature expression found.");
 		return;

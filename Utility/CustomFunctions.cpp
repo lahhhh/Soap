@@ -73,7 +73,7 @@ namespace custom {
 
 	Eigen::ArrayXi cluster_louvain_igraph(const Eigen::SparseMatrix<double>& adj, double cutoff) {
 
-		Eigen::SparseMatrix<double> filtered = _Cs eliminate_less_than(adj, cutoff);
+		Eigen::SparseMatrix<double> filtered = custom::eliminate_less_than(adj, cutoff);
 
 		int n_con = filtered.nonZeros();
 
@@ -146,7 +146,7 @@ namespace custom {
 
 	void sort_by_first(Eigen::ArrayXd& first, Eigen::MatrixXd& second, bool decrease) {
 
-		Eigen::ArrayXi ind = _Cs order(first, decrease);
+		Eigen::ArrayXi ind = custom::order(first, decrease);
 
 		first = first(ind).eval();
 
@@ -196,7 +196,7 @@ namespace custom {
 
 				Eigen::ArrayXd distance = (data.colwise() - query.col(i)).colwise().squaredNorm();
 
-				nearest[i] = _Cs argmin(distance);
+				nearest[i] = custom::argmin(distance);
 
 			}
 		}
@@ -209,7 +209,7 @@ namespace custom {
 
 				Eigen::ArrayXd distance = (data.rowwise() - query.row(i)).rowwise().squaredNorm();
 
-				nearest[i] = _Cs argmin(distance);
+				nearest[i] = custom::argmin(distance);
 
 			}
 		}
@@ -491,11 +491,11 @@ namespace custom {
 	) {
 		Eigen::MatrixXd distance;
 		if (method == "cor") {
-			distance = _Cs correlation_pearson_distance_mt(data, var_by_column);
+			distance = custom::correlation_pearson_distance_mt(data, var_by_column);
 			distance = 1.0 - distance.array();
 		}
 		else {
-			distance = _Cs euclidean_distance_mt(data, var_by_column);
+			distance = custom::euclidean_distance_mt(data, var_by_column);
 		}
 		const int n_var = distance.cols();
 		Eigen::ArrayXi l = Eigen::ArrayXi::Zero(n_var); // reciprocal neighbor count
@@ -503,7 +503,7 @@ namespace custom {
 
 	#pragma omp parallel for
 		for(int i = 0; i < n_var; ++i) {
-			auto order = _Cs order(distance.col(i));
+			auto order = custom::order(distance.col(i));
 			dsi.col(i) = order;
 
 		#pragma omp critical
@@ -514,7 +514,7 @@ namespace custom {
 			}
 		};
 
-		Eigen::ArrayXi lsi = _Cs order(l, true);// greedy order of column considerations
+		Eigen::ArrayXi lsi = custom::order(l, true);// greedy order of column considerations
 		l.setZero(); // reset so that l can be used to keep track of reciprocal counts in the kNN being constucted
 		// greedy knn (construct row index vector)
 
@@ -552,7 +552,7 @@ namespace custom {
 		Eigen::ArrayXd correlation(ncol);
 
 		for (int i = 0; i < ncol; ++i) {
-			correlation[i] = _Cs correlation_pearson(mat.col(i), arr);
+			correlation[i] = custom::correlation_pearson(mat.col(i), arr);
 		}
 
 		return correlation;
@@ -564,7 +564,7 @@ namespace custom {
 
 	#pragma omp parallel for
 		for (int i = 0; i < ncol; ++i) {
-			correlation[i] = _Cs correlation_pearson(mat.col(i), arr);
+			correlation[i] = custom::correlation_pearson(mat.col(i), arr);
 		}
 
 		return correlation;
@@ -592,7 +592,7 @@ namespace custom {
 			for (int i = 0; i < n_var; ++i) {
 				correlation(i, i) = 0.5;
 				for (int j = 0; j < i; ++j) {
-					correlation(i, j) = _Cs correlation_pearson(data.col(i), data.col(j));
+					correlation(i, j) = custom::correlation_pearson(data.col(i), data.col(j));
 				}
 			}
 
@@ -606,7 +606,7 @@ namespace custom {
 			for (int i = 0; i < n_var; ++i) {
 				correlation(i, i) = 0.5;
 				for (int j = 0; j < i; ++j) {
-					correlation(i, j) = _Cs correlation_pearson(data.row(i), data.row(j));
+					correlation(i, j) = custom::correlation_pearson(data.row(i), data.row(j));
 				}
 			}
 
@@ -623,7 +623,7 @@ namespace custom {
 			if (n_element < 1e6) {
 				for (int i = 0; i < n_var; ++i) {
 					for (int j = 0; j < i; ++j) {
-						distance(i, j) = 1 - _Cs correlation_pearson(data.col(i), data.col(j));
+						distance(i, j) = 1 - custom::correlation_pearson(data.col(i), data.col(j));
 					}
 				}
 			}
@@ -632,7 +632,7 @@ namespace custom {
 			#pragma omp parallel for
 				for(int i = 0; i < n_var; ++i){
 					for (int j = 0; j < i; ++j) {
-						distance(i, j) = 1 - _Cs correlation_pearson(data.col(i), data.col(j));
+						distance(i, j) = 1 - custom::correlation_pearson(data.col(i), data.col(j));
 					}
 				}
 			}
@@ -647,7 +647,7 @@ namespace custom {
 			if (n_element < 1e6) {
 				for (int i = 0; i < n_var; ++i) {
 					for (int j = 0; j < i; ++j) {
-						distance(i, j) = 1 - _Cs correlation_pearson(data.row(i), data.row(j));
+						distance(i, j) = 1 - custom::correlation_pearson(data.row(i), data.row(j));
 					}
 				}
 			}
@@ -656,7 +656,7 @@ namespace custom {
 			#pragma omp parallel for
 				for (int i = 0; i < n_var; ++i) {
 					for (int j = 0; j < i; ++j) {
-						distance(i, j) = 1 - _Cs correlation_pearson(data.row(i), data.row(j));
+						distance(i, j) = 1 - custom::correlation_pearson(data.row(i), data.row(j));
 					}
 				};
 			}
@@ -763,7 +763,7 @@ namespace custom {
 			}
 		}
 
-		snn = _Cs eliminate_less_than(snn, prune_snn);
+		snn = custom::eliminate_less_than(snn, prune_snn);
 
 		return snn;
 	};
@@ -838,7 +838,7 @@ namespace custom {
 		else {
 			ecd[index[length - 1]] = length;
 		}
-		return _Cs divide(ecd, length);
+		return custom::divide(ecd, length);
 	};
 
 	bool is_integer(const QString& str) {
@@ -889,28 +889,31 @@ namespace custom {
 		return is_int;
 	}
 
-	int detect_type(const QStringList& vec) {
+	int detect_type_mt(const QStringList& vec) {
 		
 		bool test_integer{ true };
 		bool test_numeric{ true };
 
-		for (auto&& i : vec) {
+		int size = vec.size();
 
+	#pragma omp parallel for
+		for (int i = 0; i < size; ++i) {
 			if (!test_integer && !test_numeric) {
 				break;
 			}
 
 			if (test_integer) {
-				if (!_Cs is_integer(i)) {
+				if (!custom::is_integer(vec[i])) {
 					test_integer = false;
 				}
 			}
 
 			if (test_numeric) {
-				if (!_Cs is_numeric(i)) {
+				if (!custom::is_numeric(vec[i])) {
 					test_numeric = false;
 				}
 			}
+
 		}
 
 		if (test_integer) {
@@ -927,7 +930,7 @@ namespace custom {
 	bool is_integer(const QStringList& vec) {
 
 		for (auto&& i : vec) {
-			if (!_Cs is_integer(i)) {
+			if (!custom::is_integer(i)) {
 				return false;
 			}
 		}
@@ -937,7 +940,7 @@ namespace custom {
 
 	bool is_numeric(const QStringList& vec) {
 		for (auto&& i : vec) {
-			if (!_Cs is_numeric(i)) {
+			if (!custom::is_numeric(i)) {
 				return false;
 			}
 		}
@@ -1072,11 +1075,11 @@ namespace custom {
 		Eigen::ArrayXXd ret(nrow, ncol);
 
 		for (int i = 0; i < nrow - 1; ++i) {
-			auto index = _Cs seq_n(i * rate, rate);
+			auto index = custom::seq_n(i * rate, rate);
 			ret.row(i) = mat(index, Eigen::all).colwise().mean();
 		}
 
-		auto index = _Cs integer_linspaced((mat.rows() - 1 - (nrow - 1) * rate) + 1, (nrow - 1) * rate, mat.rows() - 1);
+		auto index = custom::integer_linspaced((mat.rows() - 1 - (nrow - 1) * rate) + 1, (nrow - 1) * rate, mat.rows() - 1);
 
 		ret.row(nrow - 1) = mat(index, Eigen::all).colwise().mean();
 
@@ -1089,11 +1092,11 @@ namespace custom {
 		Eigen::ArrayXXd ret(nrow, ncol);
 
 		for (int i = 0; i < ncol - 1; ++i) {
-			auto index = _Cs seq_n(i * rate, rate);
+			auto index = custom::seq_n(i * rate, rate);
 			ret.col(i) = mat(Eigen::all, index).rowwise().mean();
 		}
 
-		auto index = _Cs integer_linspaced((mat.cols() - 1 - (ncol - 1) * rate) + 1, (ncol - 1) * rate, mat.cols() - 1);
+		auto index = custom::integer_linspaced((mat.cols() - 1 - (ncol - 1) * rate) + 1, (ncol - 1) * rate, mat.cols() - 1);
 
 		ret.col(ncol - 1) = mat(Eigen::all, index).rowwise().mean();
 
@@ -1541,7 +1544,7 @@ namespace custom {
 
 	QStringList make_unique(const QStringList& list) {
 		Eigen::ArrayXi ind = order(list);
-		QStringList trans = _Cs reordered(list, ind);
+		QStringList trans = custom::reordered(list, ind);
 		bool equal = false;
 		qsizetype equal_length = 0;
 		const qsizetype length = list.size();
@@ -1582,17 +1585,17 @@ namespace custom {
 				}
 			}
 		}
-		return _Cs reordered(trans, order(ind));
+		return custom::reordered(trans, order(ind));
 	};
 
 	QVector<double> linspaced(int length, double begin, double end) {
 		Eigen::ArrayXd a = Eigen::ArrayXd::LinSpaced(length, begin, end);
-		return _Cs cast<QVector>(a);
+		return custom::cast<QVector>(a);
 	};
 
 	QVector<int> integer_linspaced(int length, int begin, int end) {
 		Eigen::ArrayXi a = Eigen::ArrayXi::LinSpaced(length, begin, end);
-		return _Cs cast<QVector>(a);
+		return custom::cast<QVector>(a);
 	};
 
 
@@ -1608,23 +1611,23 @@ namespace custom {
 
 	Eigen::ArrayXd adjust_p_value(const Eigen::ArrayXd& p_value, const QString& method) {
 		if (method == "Bonferroni") {
-			return _Cs set_upper_bound(p_value * p_value.size(), 1);
+			return custom::set_upper_bound(p_value * p_value.size(), 1);
 		}
 		else {
 			// fdr
-			auto p_order = _Cs order(p_value);
-			auto original_order = _Cs order(p_order);
+			auto p_order = custom::order(p_value);
+			auto original_order = custom::order(p_order);
 			const Eigen::Index size = p_value.size();
 			Eigen::ArrayXd tmp(size);
 			for (Eigen::Index i = 0; i < size; ++i) {
 				tmp[i] = (double)size / (i + 1);
 			}
-			return _Cs set_upper_bound((tmp * p_value(p_order))(original_order), 1);
+			return custom::set_upper_bound((tmp * p_value(p_order))(original_order), 1);
 		}
 	};
 
 	QVector<double> adjust_p_value(const QVector<double>& p_value, const QString& method) {
-		return _Cs cast<QVector>(_Cs adjust_p_value(_Cs cast<Eigen::ArrayX>(p_value), method));
+		return custom::cast<QVector>(custom::adjust_p_value(custom::cast<Eigen::ArrayX>(p_value), method));
 	};
 
 	std::pair<Eigen::MatrixXd, Eigen::ArrayXi> kmeans_lloyd(
@@ -1695,11 +1698,11 @@ namespace custom {
 		}
 
 		if (remove_empty_cluster) {
-			auto filter = _Cs not_equal(cluster_count, 0);
+			auto filter = custom::not_equal(cluster_count, 0);
 
-			if (!_Cs all(filter, true)) {
+			if (!custom::all(filter, true)) {
 
-				auto valid_cluster = _Cs which(filter);
+				auto valid_cluster = custom::which(filter);
 
 				centers = centers(Eigen::all, valid_cluster).eval();
 
@@ -1729,7 +1732,7 @@ namespace custom {
 
 		Eigen::MatrixXd centers = mat(Eigen::all, sample_integer(0, mat.cols() - 1, k, random_state));
 
-		return _Cs kmeans_lloyd(mat, centers, remove_empty_cluster, max_iteration);
+		return custom::kmeans_lloyd(mat, centers, remove_empty_cluster, max_iteration);
 	};
 
 	std::pair<Eigen::MatrixXd, Eigen::ArrayXi> kmeans_hartigan_wong_once(
@@ -1943,7 +1946,7 @@ namespace custom {
 
 	double calculate_total_withinss(const Eigen::MatrixXd& mat, const Eigen::MatrixXd& centers, const Eigen::ArrayXi& cluster) {
 		int m = mat.cols();
-		Eigen::ArrayXi clu = _Cs unique(cluster);
+		Eigen::ArrayXi clu = custom::unique(cluster);
 		double total_within_ss = 0;
 		for (int i = 0; i < m; ++i) {
 			total_within_ss += (mat.col(i) - centers.col(cluster[i])).squaredNorm();
@@ -1969,7 +1972,7 @@ namespace custom {
 
 		#pragma omp parallel for
 			for(int i = 1; i < n_start; ++i){
-				auto [centers, cluster] = _Cs kmeans_hartigan_wong_once(mat, k, max_iteration, random_state + i);
+				auto [centers, cluster] = custom::kmeans_hartigan_wong_once(mat, k, max_iteration, random_state + i);
 				double within_ss = calculate_total_withinss(mat, centers, cluster);
 
 			#pragma omp critical
@@ -2017,7 +2020,7 @@ namespace custom {
 			int ncol = mat.cols();
 
 			if (scale_factor <= 0.0) {
-				scale_factor = std::abs(_Cs median(col_sum));
+				scale_factor = std::abs(custom::median(col_sum));
 			}
 
 			for (int i = 0; i < ncol; ++i) {
@@ -2032,7 +2035,7 @@ namespace custom {
 			int nrow = mat.rows();
 
 			if (scale_factor <= 0.0) {
-				scale_factor = std::abs(_Cs median(row_sum));
+				scale_factor = std::abs(custom::median(row_sum));
 			}
 
 			for (int i = 0; i < nrow; ++i) {
@@ -2048,7 +2051,7 @@ namespace custom {
 
 		Eigen::MatrixXd ret = mat;
 
-		_Cs normalize_in_place(ret, scale_factor, by_column);
+		custom::normalize_in_place(ret, scale_factor, by_column);
 
 		return ret;
 	};
@@ -2072,7 +2075,7 @@ namespace custom {
 		if (!unique || n > high - low + 1) {
 			return ret;
 		}
-		ret = _Cs stable_unique(ret);
+		ret = custom::stable_unique(ret);
 		int current_size = ret.size();
 		while (current_size < n) {
 			int tail_size = n - current_size;
@@ -2082,7 +2085,7 @@ namespace custom {
 					tail[i] = u(e);
 				}
 				ret << tail;
-				ret = _Cs stable_unique(ret);
+				ret = custom::stable_unique(ret);
 				current_size = ret.size();
 			}
 			else {
@@ -2100,7 +2103,7 @@ namespace custom {
 	};
 
 	std::pair<bool, double> threshold_minimum(const Eigen::ArrayXd& arr) {
-		auto [counts, _, bin_centers] = _Cs histogram(arr);
+		auto [counts, _, bin_centers] = custom::histogram(arr);
 
 		Eigen::ArrayXd smooth_histogram = counts.cast<double>();
 
@@ -2194,7 +2197,7 @@ namespace custom {
 
 	double linear_percentile(const Eigen::ArrayXd& arr, double p) {
 
-		Eigen::ArrayXd tmp = _Cs sorted(arr);
+		Eigen::ArrayXd tmp = custom::sorted(arr);
 
 		if (p <= 0) {
 			return tmp[0];
@@ -2248,25 +2251,25 @@ namespace custom {
 
 	double iqr(const Eigen::ArrayXd& arr) {
 		
-		auto arr_sorted = _Cs sorted(arr);
+		auto arr_sorted = custom::sorted(arr);
 
-		return (_Cs linear_percentile_no_sort(arr_sorted, 75) - _Cs linear_percentile_no_sort(arr_sorted, 25));
+		return (custom::linear_percentile_no_sort(arr_sorted, 75) - custom::linear_percentile_no_sort(arr_sorted, 25));
 	};
 
 	Eigen::ArrayXd quantile(const Eigen::ArrayXd& arr, const Eigen::ArrayXd& p) {
 		const Eigen::Index size = p.size();
 		Eigen::ArrayXd ret(size);
 
-		auto arr_sorted = _Cs sorted(arr);
+		auto arr_sorted = custom::sorted(arr);
 
 		for (Eigen::Index i = 0; i < size; ++i) {
-			ret[i] = _Cs linear_percentile_no_sort(arr_sorted, p[i]);
+			ret[i] = custom::linear_percentile_no_sort(arr_sorted, p[i]);
 		}
 		return ret;
 	};
 
 	double trimean(const Eigen::ArrayXd& arr) {
-		return _Cs quantile(arr, Eigen::Array4d{ 25, 50, 50, 75 }).mean();
+		return custom::quantile(arr, Eigen::Array4d{ 25, 50, 50, 75 }).mean();
 	};
 
 	Eigen::ArrayXd tricubic_weighting(const Eigen::ArrayXd& x, double loc, double maximum_distance) {
@@ -2284,34 +2287,6 @@ namespace custom {
 			a = a * a * a;
 			ret[i] = (1 - a) * (1 - a) * (1 - a);
 		}
-
-		return ret;
-	}
-
-	Eigen::MatrixXd pseudo_inverse(const Eigen::MatrixXd& mat)
-	{
-		Eigen::JacobiSVD<Eigen::MatrixXd> svd(mat, Eigen::ComputeFullU | Eigen::ComputeFullV);
-		double tolerance = 1.e-8;
-		int row = mat.rows();
-		int col = mat.cols();
-		int k = std::min(row, col);
-
-		Eigen::MatrixXd ret = Eigen::MatrixXd::Zero(col, row);
-		Eigen::MatrixXd singular_values_inv = svd.singularValues();
-		Eigen::MatrixXd singular_values_inv_mat = Eigen::MatrixXd::Zero(col, row);
-		for (int i = 0; i < k; ++i) {
-			if (singular_values_inv(i) > tolerance) {
-				singular_values_inv(i) = 1.0 / singular_values_inv(i);
-			}
-			else {
-				singular_values_inv(i) = 0;
-			}
-		}
-		for (int i = 0; i < k; ++i)
-		{
-			singular_values_inv_mat(i, i) = singular_values_inv(i);
-		}
-		ret = (svd.matrixV()) * (singular_values_inv_mat) * (svd.matrixU().transpose());
 
 		return ret;
 	}
@@ -2401,7 +2376,7 @@ namespace custom {
 
 	Eigen::ArrayXd loess_mt(const Eigen::ArrayXd& _y, const Eigen::ArrayXd& _x, const int degree, const double span, const int delta) {
 
-		auto index = _Cs order(_x);
+		auto index = custom::order(_x);
 		Eigen::ArrayXd y = _y(index);
 		Eigen::ArrayXd x = _x(index);
 
@@ -2635,7 +2610,7 @@ namespace custom {
 
 	Eigen::SparseMatrix<double> normalize(const Eigen::SparseMatrix<double>& mat, double scale_factor) {
 		Eigen::SparseMatrix<double> res = mat;
-		Eigen::ArrayXd col_sum = _Cs col_sum(mat);
+		Eigen::ArrayXd col_sum = custom::col_sum(mat);
 		for (int k = 0; k < res.outerSize(); ++k) {
 			double column_sum = col_sum[k];
 			if (column_sum != 0) {
@@ -2649,7 +2624,7 @@ namespace custom {
 
 	Eigen::SparseMatrix<double> row_normalize(const Eigen::SparseMatrix<double>& mat, double scale_factor) {
 		Eigen::SparseMatrix<double> res = mat;
-		Eigen::ArrayXd row_sum = _Cs row_sum(mat);
+		Eigen::ArrayXd row_sum = custom::row_sum(mat);
 
 		for (int k = 0; k < res.outerSize(); ++k) {
 			for (Eigen::SparseMatrix<double>::InnerIterator it(res, k); it; ++it) {
@@ -2664,7 +2639,7 @@ namespace custom {
 
 	Eigen::SparseMatrix<double> row_normalize2(const Eigen::SparseMatrix<double>& mat, double scale_factor) {
 		Eigen::SparseMatrix<double> res = mat;
-		Eigen::ArrayXd row_sum = _Cs row_sum_abs(mat);
+		Eigen::ArrayXd row_sum = custom::row_sum_abs(mat);
 
 		for (int k = 0; k < res.outerSize(); ++k) {
 			for (Eigen::SparseMatrix<double>::InnerIterator it(res, k); it; ++it) {
@@ -2690,7 +2665,7 @@ namespace custom {
 
 	Eigen::SparseMatrix<double> normalize(const Eigen::SparseMatrix<int>& mat, double scale_factor) {
 		Eigen::SparseMatrix<double> res = mat.cast<double>();
-		Eigen::ArrayXd col_sum = _Cs col_sum(mat).cast<double>();
+		Eigen::ArrayXd col_sum = custom::col_sum(mat).cast<double>();
 		for (int k = 0; k < res.outerSize(); ++k) {
 			if (col_sum[k] != 0) {
 				for (Eigen::SparseMatrix<double>::InnerIterator it(res, k); it; ++it) {
@@ -2702,10 +2677,10 @@ namespace custom {
 	}
 
 	void normalize_in_place(Eigen::SparseMatrix<double>& mat, double scale_factor) {
-		Eigen::ArrayXd col_sum = _Cs col_sum(mat);
+		Eigen::ArrayXd col_sum = custom::col_sum(mat);
 
 		if (scale_factor < 0.0) {
-			scale_factor = std::abs(_Cs median(col_sum));
+			scale_factor = std::abs(custom::median(col_sum));
 		}
 
 		for (int k = 0; k < mat.outerSize(); ++k) {

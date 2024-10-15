@@ -14,19 +14,19 @@ static Eigen::ArrayX<bool> find_variable_features(
 	const int nrow = mat.rows();
 	double clipmax = std::sqrt(ncol);
 	Eigen::ArrayXd row_mean = mat.rowwise().mean();
-	Eigen::ArrayXd row_var = _Cs row_var_mt(mat);
+	Eigen::ArrayXd row_var = custom::row_var_mt(mat);
 
 	Eigen::ArrayX<bool> not_const = row_var > 0;
 	const int not_const_row = not_const.count();
 	if (not_const_row < n_variable_feature) {
 		return {};
 	}
-	auto not_const_index = _Cs which(not_const);
+	auto not_const_index = custom::which(not_const);
 
-	Eigen::ArrayXd not_const_row_means = _Cs sliced(row_mean, not_const);
-	Eigen::ArrayXd not_const_row_var = _Cs sliced(row_var, not_const);
+	Eigen::ArrayXd not_const_row_means = custom::sliced(row_mean, not_const);
+	Eigen::ArrayXd not_const_row_var = custom::sliced(row_var, not_const);
 
-	Eigen::ArrayXd fitted = _Cs loess_mt(log10(not_const_row_var), log10(not_const_row_means), 2, 0.3, 50);
+	Eigen::ArrayXd fitted = custom::loess_mt(log10(not_const_row_var), log10(not_const_row_means), 2, 0.3, 50);
 
 	Eigen::ArrayXd expected_var = Eigen::ArrayXd::Zero(nrow);
 	expected_var(not_const_index) = pow(10, fitted);
@@ -45,7 +45,7 @@ static Eigen::ArrayX<bool> find_variable_features(
 	}
 
 	standardized_row_var /= (ncol - 1);
-	Eigen::ArrayXi standardized_row_var_sorted_index = _Cs order(standardized_row_var, true);
+	Eigen::ArrayXi standardized_row_var_sorted_index = custom::order(standardized_row_var, true);
 	Eigen::ArrayX<bool> res = Eigen::ArrayX<bool>::Constant(nrow, false);
 
 	for (int i = 0; i < n_variable_feature && i < standardized_row_var_sorted_index.size(); ++i) {
@@ -65,14 +65,14 @@ void PcaWorker2::run() {
 			G_TASK_END;
 		}
 
-		this->mat_ = _Cs row_sliced(this->mat_, features);
+		this->mat_ = custom::row_sliced(this->mat_, features);
 	}
 
 	this->mat_.transposeInPlace();
 
-	_Cs scale_in_place(this->mat_);
+	custom::scale_in_place(this->mat_);
 
-    auto vars = _Cs col_var_mt(this->mat_);
+    auto vars = custom::col_var_mt(this->mat_);
     double total_var = vars.sum();
 
     Eigen::JacobiSVD<Eigen::MatrixXd> svd(this->mat_, Eigen::ComputeThinU | Eigen::ComputeThinV);
@@ -84,7 +84,7 @@ void PcaWorker2::run() {
 
     Eigen::ArrayXd variance_proportion = sdev.square() / total_var;
 
-    emit x_pca_ready(emb, _Cs cast<QVector>(sdev), _Cs cast<QVector>(variance_proportion));
+    emit x_pca_ready(emb, custom::cast<QVector>(sdev), custom::cast<QVector>(variance_proportion));
 
     G_TASK_END;
 };

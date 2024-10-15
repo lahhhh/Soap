@@ -97,7 +97,7 @@ void FootprintItem::s_show() {
 
 	QStringList factors = metadata->mat_.get_qstring(factor_name);
 	QStringList show_group = metadata->mat_.get_qstring(show_group_name);
-	auto show_filter = _Cs in(show_group, show_levels);
+	auto show_filter = custom::in(show_group, show_levels);
 
 	const int nrow = this->data()->insertion_matrix_.mat_.rows(), ncol = this->data()->insertion_matrix_.mat_.cols();
 
@@ -123,7 +123,7 @@ void FootprintItem::s_show() {
 	QList<Eigen::ArrayXd> locations;
 	QStringList levels_use;
 	for (const auto& factor : levels) {
-		auto index = show_in_group ? _Cs which(_Cs equal(factors, factor) * show_filter) : _Cs match(factors, factor);
+		auto index = show_in_group ? custom::which(custom::equal(factors, factor) * show_filter) : custom::match(factors, factor);
 
 		if (index.isEmpty()) {
 			continue;
@@ -134,7 +134,7 @@ void FootprintItem::s_show() {
 		Eigen::ArrayXd means = sub_matrix.colwise().mean();
 
 		levels_use << factor;
-		locations << means - _Cs cast<Eigen::ArrayX>(this->data()->expected_insertions_);
+		locations << means - custom::cast<Eigen::ArrayX>(this->data()->expected_insertions_);
 	}
 
 	if (locations.isEmpty()) {
@@ -144,7 +144,7 @@ void FootprintItem::s_show() {
 
 	auto& gs = this->draw_suite_->graph_settings_;
 
-	auto [draw_area, left_layout, legend_layout] = _Cp prepare_lg_lg(gs);
+	auto [draw_area, left_layout, legend_layout] = custom_plot::prepare_lg_lg(gs);
 	
 	QCPAxisRect* observation_axisrect = new QCPAxisRect(draw_area), * expect_axisrect = new QCPAxisRect(draw_area);
 	left_layout->addElement(0, 0, observation_axisrect);
@@ -154,10 +154,10 @@ void FootprintItem::s_show() {
 	int ncolor = levels_use.size();
 	auto colors = gs.palette(levels_use);
 
-	QVector<double> x_axis = _Cs cast<double>(this->data()->insertion_matrix_.colnames_);
+	QVector<double> x_axis = custom::cast<double>(this->data()->insertion_matrix_.colnames_);
 
 	for (int i = 0; i < ncolor; ++i) {
-		_CpPatch line(draw_area, observation_axisrect, x_axis, _Cs cast<QVector>(locations[i]), colors[i], 2);
+		custom_plot::patch::line(draw_area, observation_axisrect, x_axis, custom::cast<QVector>(locations[i]), colors[i], 2);
 	}
 
 	if (show_p_value) {
@@ -181,44 +181,44 @@ void FootprintItem::s_show() {
 		}
 	}
 
-	double min_ob = std::ranges::min(_Cs sapply(locations, [](auto&& arr) {return arr.minCoeff(); }));
-	double max_ob = std::ranges::max(_Cs sapply(locations, [](auto&& arr) {return arr.maxCoeff(); }));
+	double min_ob = std::ranges::min(custom::sapply(locations, [](auto&& arr) {return arr.minCoeff(); }));
+	double max_ob = std::ranges::max(custom::sapply(locations, [](auto&& arr) {return arr.maxCoeff(); }));
 
 	auto [min_x, max_x] = std::ranges::minmax(x_axis);
 
-	_CpPatch set_range(observation_axisrect, QCPRange(min_x, max_x), QCPRange(1.1 * min_ob - 0.1 * max_ob, 1.1 * max_ob - 0.1 * min_ob));
-	_Cp set_left_title(observation_axisrect, "Insertion Frequency", gs);
+	custom_plot::patch::set_range(observation_axisrect, QCPRange(min_x, max_x), QCPRange(1.1 * min_ob - 0.1 * max_ob, 1.1 * max_ob - 0.1 * min_ob));
+	custom_plot::set_left_title(observation_axisrect, "Insertion Frequency", gs);
 
 	QPen axis_pen(Qt::black);
 	axis_pen.setWidth(3);
 
-	_CpPatch remove_bottom_axis(observation_axisrect);
+	custom_plot::patch::remove_bottom_axis(observation_axisrect);
 
 	observation_axisrect->axis(QCPAxis::atLeft)->grid()->setVisible(false);
 	observation_axisrect->axis(QCPAxis::atLeft)->setSubTickPen(Qt::NoPen);
 	observation_axisrect->axis(QCPAxis::atLeft)->setBasePen(axis_pen);
 
 	auto [min_expect, max_expect] = std::ranges::minmax(this->data()->expected_insertions_);
-	_CpPatch set_range(expect_axisrect, QCPRange(min_x, max_x), QCPRange(1.1 * min_expect - 0.1 * max_expect, 1.1 * max_expect - 0.1 * min_expect));
-	_CpPatch line(draw_area, expect_axisrect, x_axis, this->data()->expected_insertions_, Qt::black, 2);
+	custom_plot::patch::set_range(expect_axisrect, QCPRange(min_x, max_x), QCPRange(1.1 * min_expect - 0.1 * max_expect, 1.1 * max_expect - 0.1 * min_expect));
+	custom_plot::patch::line(draw_area, expect_axisrect, x_axis, this->data()->expected_insertions_, Qt::black, 2);
 
 	QCPMarginGroup* edge_margin_group = new QCPMarginGroup(draw_area);
 	observation_axisrect->setMarginGroup(QCP::msLeft | QCP::msRight, edge_margin_group);
 	expect_axisrect->setMarginGroup(QCP::msLeft | QCP::msRight, edge_margin_group);
 	
-	_CpPatch remove_grid(expect_axisrect);
+	custom_plot::patch::remove_grid(expect_axisrect);
 	expect_axisrect->axis(QCPAxis::atBottom)->setBasePen(axis_pen);
 	expect_axisrect->axis(QCPAxis::atBottom)->setSubTickPen(Qt::NoPen);
 	expect_axisrect->axis(QCPAxis::atLeft)->setBasePen(axis_pen);
 	expect_axisrect->axis(QCPAxis::atLeft)->setSubTickPen(Qt::NoPen);
 	expect_axisrect->axis(QCPAxis::atLeft)->ticker()->setTickCount(3);
 
-	_Cp set_left_title(expect_axisrect, "Expected", gs);
-	_Cp set_bottom_title(expect_axisrect, "Relative Position (bp)", gs, true);
+	custom_plot::set_left_title(expect_axisrect, "Expected", gs);
+	custom_plot::set_bottom_title(expect_axisrect, "Relative Position (bp)", gs, true);
 
-	_Cp add_round_legend(draw_area, legend_layout, levels_use, colors, factor_name, gs);
+	custom_plot::add_round_legend(draw_area, legend_layout, levels_use, colors, factor_name, gs);
 
-	_Cp add_title(draw_area, this->data()->motif_.motif_name_, gs);
+	custom_plot::add_title(draw_area, this->data()->motif_.motif_name_, gs);
 	this->draw_suite_->update(draw_area);
 }
 

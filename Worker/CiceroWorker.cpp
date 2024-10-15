@@ -42,7 +42,7 @@ void CiceroWorker::run() {
 
 	cicero->regulation_group_counts_.colnames_ = this->atac_counts_->colnames_;
 	cicero->regulation_group_counts_.mat_ = this->regulation_group_counts_;
-	cicero->regulation_group_counts_.rownames_ = _Cs cast<QString>(_Cs seq_n(1, n_group));
+	cicero->regulation_group_counts_.rownames_ = custom::cast<QString>(custom::seq_n(1, n_group));
 
 	cicero->regulation_group_normalized_.colnames_ = cicero->regulation_group_counts_.colnames_;
 	cicero->regulation_group_normalized_.rownames_ = cicero->regulation_group_counts_.rownames_;
@@ -67,11 +67,11 @@ void CiceroWorker::run() {
 
 bool CiceroWorker::aggregate() {
 
-	auto knn_ind = _Cs get_knn_mt(this->embedding_->data_.mat_, this->k_);
+	auto knn_ind = custom::get_knn_mt(this->embedding_->data_.mat_, this->k_);
 
 	int n_cell = knn_ind.rows();
 
-	auto good_choices = _Cs seq_n(0, n_cell);
+	auto good_choices = custom::seq_n(0, n_cell);
 
 	std::default_random_engine e(1997);
 
@@ -102,7 +102,7 @@ bool CiceroWorker::aggregate() {
 			Eigen::ArrayXi tmp(2 * this->k_);
 			tmp.segment(0, this->k_) = cell_sample.row(i);
 			tmp.segment(this->k_, this->k_) = cell_sample.row(n_chosen - 1);
-			shared[i] = 2 * this->k_ - (_Cs unique(tmp)).size();
+			shared[i] = 2 * this->k_ - (custom::unique(tmp)).size();
 		}
 
 		if (std::ranges::max(shared) < 0.9 * this->k_) {
@@ -116,7 +116,7 @@ bool CiceroWorker::aggregate() {
 
 	this->cicero_counts_.resize(n_feature, n_chosen);
 	for (int i = 0; i < n_chosen; ++i) {
-		this->cicero_counts_.col(i) = _Cs column_reorder_and_row_sum(this->atac_counts_->mat_, cell_sample.row(i));
+		this->cicero_counts_.col(i) = custom::column_reorder_and_row_sum(this->atac_counts_->mat_, cell_sample.row(i));
 	}
 
 	return true;
@@ -146,8 +146,8 @@ double CiceroWorker::find_ccan_cutoff() {
 
 	while ((top - bottom) > tolerance) {
 		double test_val = (top + bottom) / 2;
-		auto membership = _Cs cluster_louvain_igraph(this->connections_, test_val);
-		auto unique_cluster = _Cs unique(membership);
+		auto membership = custom::cluster_louvain_igraph(this->connections_, test_val);
+		auto unique_cluster = custom::unique(membership);
 
 		int n_cluster{ 0 }, n_cluster2{ 0 };
 		int n_vertice = membership.size();
@@ -169,8 +169,8 @@ double CiceroWorker::find_ccan_cutoff() {
 		double next_step = test_val;
 		while (true) {
 			next_step += (top - bottom) / 10;
-			membership = _Cs cluster_louvain_igraph(this->connections_, next_step);
-			unique_cluster = _Cs unique(membership);
+			membership = custom::cluster_louvain_igraph(this->connections_, next_step);
+			unique_cluster = custom::unique(membership);
 
 			n_cluster2 = 0;
 			for (auto c : unique_cluster) {
@@ -207,11 +207,11 @@ bool CiceroWorker::generate_ccans() {
 
 	this->coaccess_cutoff_ = this->find_ccan_cutoff();
 
-	Eigen::ArrayXi cluster = _Cs cluster_louvain_igraph(this->connections_, this->coaccess_cutoff_);
+	Eigen::ArrayXi cluster = custom::cluster_louvain_igraph(this->connections_, this->coaccess_cutoff_);
 
 	int n_vertice = cluster.size();
 
-	auto unique_cluster = _Cs unique(cluster);
+	auto unique_cluster = custom::unique(cluster);
 
 	QVector<int> peak_index;
 
@@ -242,7 +242,7 @@ bool CiceroWorker::assemble_connections() {
 
 	for (auto&& [ind, w] : this->models) {
 
-		auto cor = _Cs cov2cor(w);
+		auto cor = custom::cov2cor(w);
 
 		int n_p = ind.size();
 
@@ -259,7 +259,7 @@ bool CiceroWorker::assemble_connections() {
 	}
 
 	int n_peak = this->peak_chr_names_.size();
-	this->connections_ = _Cs set_from_triplets_mean(triplets, n_peak, n_peak);
+	this->connections_ = custom::set_from_triplets_mean(triplets, n_peak, n_peak);
 
 	return true;
 };
@@ -270,7 +270,7 @@ bool CiceroWorker::generate_cicero_models() {
 	int n_peak = this->peak_chr_names_.size();
 	int n_agg = this->cicero_counts_.cols();
 
-	double distance_parameter = _Cs mean(this->distance_parameters_);
+	double distance_parameter = custom::mean(this->distance_parameters_);
 
 #pragma omp parallel for
 	for (int i = 0; i < n_window; ++i) {
@@ -302,13 +302,13 @@ bool CiceroWorker::generate_cicero_models() {
 			continue;
 		}
 
-		auto dist_matrix = _Cs distance(mean_bp);
+		auto dist_matrix = custom::distance(mean_bp);
 		Eigen::MatrixXd vals(n_peak_in, n_agg);
 		for (int i = 0; i < n_peak_in; ++i) {
 			vals.row(i) = this->cicero_counts_.row(peak_index[i]).cast<double>();
 		}
 
-		auto cov_mat = _Cs cov(vals.transpose());
+		auto cov_mat = custom::cov(vals.transpose());
 		cov_mat.diagonal().array() += 1e-4;
 
 		constexpr double s{ 0.75 };
@@ -370,7 +370,7 @@ bool CiceroWorker::estimate_distance_parameter() {
 	while (!in.atEnd()) {
 		QString line = in.readLine();
 		QStringList content = line.split('\t');
-		QString chr_name = _Cs standardize_chromosome_name(content[0]);
+		QString chr_name = custom::standardize_chromosome_name(content[0]);
 		int chr_size = content[1].toInt();
 
 		if (chr_size <= 1) {
@@ -397,7 +397,7 @@ bool CiceroWorker::estimate_distance_parameter() {
 	int n_agg = this->cicero_counts_.cols();
 
 	for (int i = 0; i < n_peak; ++i) {
-		auto [chr_name, start, end, success] = _Cs string_to_peak(this->atac_counts_->rownames_[i]);
+		auto [chr_name, start, end, success] = custom::string_to_peak(this->atac_counts_->rownames_[i]);
 
 		if (!success) {
 			G_TASK_WARN("Illegal Peak Name : " + this->atac_counts_->rownames_[i]);
@@ -451,7 +451,7 @@ bool CiceroWorker::estimate_distance_parameter() {
 				continue;
 			}
 
-			auto dist_matrix = _Cs distance(mean_bp);
+			auto dist_matrix = custom::distance(mean_bp);
 
 			if ((dist_matrix.array() > (double)distance_constraint_).count() < 2) {
 				continue;
@@ -472,7 +472,7 @@ bool CiceroWorker::estimate_distance_parameter() {
 					vals.row(i) = this->cicero_counts_.row(peak_index[i]).cast<double>();
 				}
 
-				auto cov_mat = _Cs cov(vals.transpose());
+				auto cov_mat = custom::cov(vals.transpose());
 				cov_mat.diagonal().array() += 1e-4;
 
 				constexpr double s{ 0.75 };

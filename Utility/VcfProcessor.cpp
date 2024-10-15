@@ -66,7 +66,7 @@ bool VcfProcessor::generate_snp_matrix(const std::string& output_name, int min_m
 		return false;
 	}
 
-	auto sp = _Cs split_view(line, '\t');
+	auto sp = custom::split_view(line, '\t');
 
 	if (!this->check_header(sp)) {
 		return false;
@@ -104,7 +104,7 @@ bool VcfProcessor::generate_snp_matrix(const std::string& output_name, int min_m
 
 	#pragma omp parallel for
 		for (int i = 0; i < cache_storage; ++i) {
-			auto sv = _Cs split_view(this->cache_[i], '\t');
+			auto sv = custom::split_view(this->cache_[i], '\t');
 
 			if (sv.size() != n_column) {
 				error = true;
@@ -133,7 +133,7 @@ bool VcfProcessor::generate_snp_matrix(const std::string& output_name, int min_m
 				}
 				else{
 
-					auto sample_info = _Cs split(sv[j], ':');
+					auto sample_info = custom::split(sv[j], ':');
 
 					if (sample_info.size() < 2) {
 						error = true;
@@ -148,7 +148,7 @@ bool VcfProcessor::generate_snp_matrix(const std::string& output_name, int min_m
 							break;
 						}
 					
-						auto allelic_depth = _Cs split(sample_info[1], ',');
+						auto allelic_depth = custom::split(sample_info[1], ',');
 						int n_alle = allelic_depth.size();
 						if (n_alle < 2) {
 							error = true;

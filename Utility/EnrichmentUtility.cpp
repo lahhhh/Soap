@@ -156,7 +156,7 @@ CustomMatrix enrich(
 	auto pathway_to_name = load_pathway_name(database_name, species);
 	auto symbol_to_pathway = load_symbol_to_path(database_name, species);
 
-	QStringList filtered_genes = _Cs intersect(gene_names, symbol_to_pathway.keys());
+	QStringList filtered_genes = custom::intersect(gene_names, symbol_to_pathway.keys());
 
 	auto filtered_size = filtered_genes.size();
 
@@ -181,7 +181,7 @@ CustomMatrix enrich(
 		++query[path_name];
 	}
 
-	QStringList unique_paths = _Cs unique(path_names);
+	QStringList unique_paths = custom::unique(path_names);
 	QStringList filtered_paths;
 
 	if (ontology == "ALL") {
@@ -227,17 +227,17 @@ CustomMatrix enrich(
 		return {};
 	}
 
-	p_adjusted = _Cs adjust_p_value(p_value, adjust_p_value_method);
-	auto index = _Cs order(p_adjusted);
-	p_adjusted = _Cs reordered(p_adjusted, index);
-	path_id = _Cs reordered(path_id, index);
-	ret_path = _Cs reordered(ret_path, index);
-	p_value = _Cs reordered(p_value, index);
-	query_genes = _Cs reordered(query_genes, index);
-	pathway_genes = _Cs reordered(pathway_genes, index);
-	gene_ratio = _Cs reordered(gene_ratio, index);
-	background_ratio = _Cs reordered(background_ratio, index);
-	count = _Cs reordered(count, index);
+	p_adjusted = custom::adjust_p_value(p_value, adjust_p_value_method);
+	auto index = custom::order(p_adjusted);
+	p_adjusted = custom::reordered(p_adjusted, index);
+	path_id = custom::reordered(path_id, index);
+	ret_path = custom::reordered(ret_path, index);
+	p_value = custom::reordered(p_value, index);
+	query_genes = custom::reordered(query_genes, index);
+	pathway_genes = custom::reordered(pathway_genes, index);
+	gene_ratio = custom::reordered(gene_ratio, index);
+	background_ratio = custom::reordered(background_ratio, index);
+	count = custom::reordered(count, index);
 
 	CustomMatrix ret(path_id);
 
@@ -248,7 +248,7 @@ CustomMatrix enrich(
 	ret.update(METADATA_ENRICHMENT_GENE_RATIO, gene_ratio);
 	ret.update(METADATA_ENRICHMENT_BACKGROUND_RATIO, background_ratio);
 	ret.update(METADATA_ENRICHMENT_COUNT, count);
-	ret.row_slice(_Cs less_than(p_adjusted, p_threshold));
+	ret.row_slice(custom::less_than(p_adjusted, p_threshold));
 
 	return ret;
 };

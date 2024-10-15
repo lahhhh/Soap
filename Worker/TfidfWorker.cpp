@@ -13,7 +13,7 @@ void TfidfWorker::run() {
 		counts->colnames_);
 
 	Eigen::SparseMatrix<double>& normalized_data = normalized->mat_;
-	Eigen::ArrayXd column_sum = _Cs col_sum_mt(normalized_data), idf = _Cs row_sum(normalized_data);
+	Eigen::ArrayXd column_sum = custom::col_sum_mt(normalized_data), idf = custom::row_sum(normalized_data);
 	const int ncol = normalized->cols();
 	std::ranges::for_each(idf, [ncol](auto&& d) {if (d != 0) { d = ncol / d; }});
 

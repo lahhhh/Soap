@@ -54,51 +54,51 @@ public:
     void adjust_length_by_cell_name_length();
 
     template <typename SliceType>
-        requires _Cs is_slice_container<SliceType>
+        requires custom::is_slice_container<SliceType>
     void slice(const SliceType& slice) {
 
-        this->cell_names_ = _Cs sliced(this->cell_names_, slice);
+        this->cell_names_ = custom::sliced(this->cell_names_, slice);
 
         for (auto& [chr, data] : this->data_) {
-            data = _Cs sliced(data, slice);
+            data = custom::sliced(data, slice);
         }
     }
 
     template <typename SliceType>
-        requires _Cs is_slice_container<SliceType>
+        requires custom::is_slice_container<SliceType>
     [[nodiscard]] Fragments sliced(const SliceType& slice) const {
 
         Fragments ret;
         
-        ret.cell_names_ = _Cs sliced(this->cell_names_, slice);
+        ret.cell_names_ = custom::sliced(this->cell_names_, slice);
 
         for (const auto& [chr, data] : this->data_) {
-            ret.data_[chr] = _Cs sliced(data, slice);
+            ret.data_[chr] = custom::sliced(data, slice);
         }
         return ret;
     }
 
     template <typename OrderType>
-        requires _Cs is_order_container<OrderType>
+        requires custom::is_order_container<OrderType>
     void reorder(const OrderType& order) {
 
-        this->cell_names_ = _Cs reordered(this->cell_names_, order);
+        this->cell_names_ = custom::reordered(this->cell_names_, order);
 
         for (auto& [chr, data] : this->data_) {
-            data = _Cs reordered(data, order);
+            data = custom::reordered(data, order);
         }
     }
 
     template <typename OrderType>
-        requires _Cs is_order_container<OrderType>
+        requires custom::is_order_container<OrderType>
     [[nodiscard]] Fragments reordered(const OrderType& order) const {
 
         Fragments ret;
         
-        ret.cell_names_ = _Cs reordered(this->cell_names_, order);
+        ret.cell_names_ = custom::reordered(this->cell_names_, order);
 
         for (const auto& [chr, data] : this->data_) {
-            ret.data_[chr] = _Cs reordered(data, order);
+            ret.data_[chr] = custom::reordered(data, order);
         }
         return ret;
     }

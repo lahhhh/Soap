@@ -13,7 +13,7 @@ int CalculateGeneActivityWorker::create_index_human() {
 	while (!line.isNull()) {
 		QStringList loc = line.split('\t');
 
-		QString seq_name = _Cs standardize_chromosome_name(loc[0]);
+		QString seq_name = custom::standardize_chromosome_name(loc[0]);
 		int start = loc[1].toInt();
 		int end = loc[2].toInt();
 
@@ -129,10 +129,10 @@ void CalculateGeneActivityWorker::build_matrix() {
 
 	constexpr int min_peak_umi_count = 5;
 
-	auto filtered = _Cs which(this->dense_counts_.array().rowwise().sum() > 5);
+	auto filtered = custom::which(this->dense_counts_.array().rowwise().sum() > 5);
 
 	counts_matrix = this->dense_counts_(filtered, Eigen::all).sparseView();
-	this->counts_->rownames_ = _Cs reordered(this->counts_->rownames_, filtered);
+	this->counts_->rownames_ = custom::reordered(this->counts_->rownames_, filtered);
 
 	this->dense_counts_.resize(0, 0);
 }

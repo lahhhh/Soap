@@ -33,7 +33,7 @@ SimpleChoiceWithLineEditAndColorChoiceLayout::SimpleChoiceWithLineEditAndColorCh
 
 	connect(color_button, &QPushButton::clicked, this, &SimpleChoiceWithLineEditAndColorChoiceLayout::s_choose_color);
 
-	QColor color = _Cs random_color();
+	QColor color = custom::random_color();
 	QLabel* color_label = new QLabel(color.name(), this);
 	color_label->setStyleSheet("QLabel{color:" + color.name() + "}");
 	color_label->setFixedSize(soap::MiddleSize);
@@ -102,7 +102,7 @@ void SimpleChoiceWithLineEditAndColorChoiceLayout::s_add_choice() {
 
 	connect(color_button, &QPushButton::clicked, this, &SimpleChoiceWithLineEditAndColorChoiceLayout::s_choose_color);
 
-	QColor color = _Cs random_color();
+	QColor color = custom::random_color();
 	QLabel* color_label = new QLabel(color.name(), this);
 	color_label->setStyleSheet("QLabel{color:" + color.name() + "}");
 	this->color_labels_ << color_label;

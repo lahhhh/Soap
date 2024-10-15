@@ -65,7 +65,7 @@ bool GseaWorker::load_database() {
 		int size = gene_names.size();
 		if (size >= this->minimum_size_ && size <= this->maximum_size_) {
 
-			int overlap = _Cs intersect_length(gene_names, this->sd_.rownames_);
+			int overlap = custom::intersect_length(gene_names, this->sd_.rownames_);
 
 			if (overlap >= this->minimum_overlap_) {
 				this->pathway_to_symbol_[path] = gene_names;
@@ -83,8 +83,8 @@ bool GseaWorker::load_database() {
 		return false;
 	}
 
-	database_symbols = _Cs unique(database_symbols);
-	auto filter = _Cs in(this->sd_.rownames_, database_symbols);
+	database_symbols = custom::unique(database_symbols);
+	auto filter = custom::in(this->sd_.rownames_, database_symbols);
 
 	if (filter.count() < 500) {
 		return false;
@@ -93,7 +93,7 @@ bool GseaWorker::load_database() {
 	this->sd_.row_slice(filter);
 
 	auto fun2 = [this](const QString& path) {
-		QVector<int> loc = _Cs valid_index_of(this->pathway_to_symbol_[path], this->sd_.rownames_);
+		QVector<int> loc = custom::valid_index_of(this->pathway_to_symbol_[path], this->sd_.rownames_);
 
 		this->mutex_.lock();
 		this->pathway_to_location_[path] = loc;
@@ -104,46 +104,46 @@ bool GseaWorker::load_database() {
 	auto f = QtConcurrent::map(params, fun2);
 	f.waitForFinished();
 
-	this->gene_locations_ = _Cs seq_n(0, this->sd_.rownames_.size());
+	this->gene_locations_ = custom::seq_n(0, this->sd_.rownames_.size());
 
 	return true;
 };
 
 void GseaWorker::preprocess() {
 
-	Eigen::ArrayX<bool> group1 = _Cs equal(this->metadata_, this->comparison_[1]), group2;
+	Eigen::ArrayX<bool> group1 = custom::equal(this->metadata_, this->comparison_[1]), group2;
 
 	if (this->comparison_[2] != "REST") {
-		group2 = _Cs equal(this->metadata_, this->comparison_[2]);
+		group2 = custom::equal(this->metadata_, this->comparison_[2]);
 	}
 	else {
 		group2 = !group1;
 	}
 
 	Eigen::ArrayX<bool> group12 = group1 + group2;
-	Eigen::ArrayX<bool> filter = (_Cs col_sliced_row_sum(this->sd_.mat_, group12) > 0);
+	Eigen::ArrayX<bool> filter = (custom::col_sliced_row_sum(this->sd_.mat_, group12) > 0);
 
 	this->sd_.row_slice(filter);
 
-	auto order = _Cs which(group1) << _Cs which(group2);
+	auto order = custom::which(group1) << custom::which(group2);
 
 	this->sd_.col_reorder(order);
-	this->metadata_ = _Cs reordered(this->metadata_, order);
+	this->metadata_ = custom::reordered(this->metadata_, order);
 };
 
 
 void GseaWorker::get_order() {
-	Eigen::ArrayX<bool> group1 = _Cs equal(this->metadata_, this->comparison_[1]), group2;
+	Eigen::ArrayX<bool> group1 = custom::equal(this->metadata_, this->comparison_[1]), group2;
 
 	if (this->comparison_[2] != "REST") {
-		group2 = _Cs equal(this->metadata_, this->comparison_[2]);
+		group2 = custom::equal(this->metadata_, this->comparison_[2]);
 	}
 	else {
 		group2 = !group1;
 	}
 
-	Eigen::ArrayXXd exp1 = _Cs col_sliced(this->sd_.mat_, group1).toDense().array();
-	Eigen::ArrayXXd exp2 = _Cs col_sliced(this->sd_.mat_, group2).toDense().array();
+	Eigen::ArrayXXd exp1 = custom::col_sliced(this->sd_.mat_, group1).toDense().array();
+	Eigen::ArrayXXd exp2 = custom::col_sliced(this->sd_.mat_, group2).toDense().array();
 
 	const int gene_number = this->sd_.mat_.rows();
 
@@ -169,8 +169,8 @@ void GseaWorker::get_order() {
 		}
 	}
 
-	this->sorted_gene_list_ = _Cs reordered(this->gene_locations_, _Cs order(signal_to_noise, true));
-	this->correlations_ = _Cs sorted(signal_to_noise, true);
+	this->sorted_gene_list_ = custom::reordered(this->gene_locations_, custom::order(signal_to_noise, true));
+	this->correlations_ = custom::sorted(signal_to_noise, true);
 	this->weights_ = this->correlations_.abs();
 };
 
@@ -178,7 +178,7 @@ void GseaWorker::calculate_enrichment_score() {
 
 	for (auto&& path : this->pathway_list_) {
 
-		auto gene_location = _Cs which(_Cs in(this->sorted_gene_list_, this->pathway_to_location_[path]));
+		auto gene_location = custom::which(custom::in(this->sorted_gene_list_, this->pathway_to_location_[path]));
 		int n_gene = this->sorted_gene_list_.size(), n_hit = gene_location.size(), n_loss = n_gene - n_hit;
 
 		Eigen::ArrayXd weights = this->weights_(gene_location);
@@ -194,7 +194,7 @@ void GseaWorker::calculate_enrichment_score() {
 		}
 
 		Eigen::ArrayXd down = gaps / n_loss;
-		Eigen::ArrayXd ridge_enrichment_score = _Cs cumsum(up - down);
+		Eigen::ArrayXd ridge_enrichment_score = custom::cumsum(up - down);
 		Eigen::ArrayXd valleys = ridge_enrichment_score - up;
 
 		double maximum_enrichment_score = ridge_enrichment_score.maxCoeff(), minimum_enrichment_score = valleys.minCoeff();
@@ -228,7 +228,7 @@ void GseaWorker::permutation_score_phenotype(const QString& gene_set_name) {
 		auto& gene_list = this->permuted_gene_location_[i];
 		Eigen::ArrayXd& weights = this->weights_list_[i];
 
-		auto new_location = _Cs which(_Cs in(gene_list, gene_location));
+		auto new_location = custom::which(custom::in(gene_list, gene_location));
 
 		int n_gene = gene_list.size(), n_hit = new_location.size(), n_loss = n_gene - n_hit;
 		double down_unit = 1 / (double)n_loss;
@@ -265,7 +265,7 @@ void GseaWorker::gsea_gene_set() {
 
 	for (const auto& path : this->pathway_list_) {
 
-		auto gene_location = _Cs which(_Cs in(this->sorted_gene_list_, this->pathway_to_location_[path]));
+		auto gene_location = custom::which(custom::in(this->sorted_gene_list_, this->pathway_to_location_[path]));
 
 		int n_gene = this->sorted_gene_list_.size(), n_hit = gene_location.size(), n_loss = n_gene - n_hit;
 
@@ -282,7 +282,7 @@ void GseaWorker::gsea_gene_set() {
 			gaps[i] = gene_location[i] - gene_location[i - 1] - 1;
 		}
 		Eigen::ArrayXd down = gaps / n_loss;
-		Eigen::ArrayXd ridge_enrichment_score = _Cs cumsum(up - down);
+		Eigen::ArrayXd ridge_enrichment_score = custom::cumsum(up - down);
 		Eigen::ArrayXd valleys = ridge_enrichment_score - up;
 
 		double maximum_enrichment_score = ridge_enrichment_score.maxCoeff(), minimum_enrichment_score = valleys.minCoeff();
@@ -319,7 +319,7 @@ void GseaWorker::gsea_gene_set() {
 
 			std::shuffle(shuffled_location.begin(), shuffled_location.end(), local_random_engine);
 
-			auto new_location = _Cs which(_Cs in(shuffled_location, gene_location));
+			auto new_location = custom::which(custom::in(shuffled_location, gene_location));
 
 			int n_gene = size, n_hit = new_location.size(), n_loss = n_gene - n_hit;
 
@@ -347,7 +347,7 @@ void GseaWorker::gsea_gene_set() {
 			this->enrichment_scores_[path] << enrichment_score;
 			this->mutex2_.unlock();
 		};
-		auto params = _Cs seq_n(0, this->n_permutation_);
+		auto params = custom::seq_n(0, this->n_permutation_);
 		QFuture<void> f = QtConcurrent::map(params, fun);
 		f.waitForFinished();
 	}
@@ -357,9 +357,9 @@ void GseaWorker::permutate_phenotype() {
 
 	std::shuffle(this->metadata_.begin(), this->metadata_.end(), this->random_engine_);
 
-	Eigen::ArrayX<bool> group1 = _Cs equal(this->metadata_, this->comparison_[1]), group2;
+	Eigen::ArrayX<bool> group1 = custom::equal(this->metadata_, this->comparison_[1]), group2;
 	if (this->comparison_[2] != "REST") {
-		group2 = _Cs equal(this->metadata_, this->comparison_[2]);
+		group2 = custom::equal(this->metadata_, this->comparison_[2]);
 	}
 	else {
 		group2 = !group1;
@@ -371,13 +371,13 @@ void GseaWorker::permutate_phenotype() {
 	{
 	#pragma omp section
 		{
-			exp1 = _Cs col_sliced(this->sd_.mat_, group1).toDense().array();
+			exp1 = custom::col_sliced(this->sd_.mat_, group1).toDense().array();
 			mean1 = exp1.rowwise().mean();
 			std1 = ((exp1.colwise() -= mean1).rowwise().squaredNorm().array() / exp1.cols()).sqrt();
 		}
 	#pragma omp section
 		{
-			exp2 = _Cs col_sliced(this->sd_.mat_, group2).toDense().array();
+			exp2 = custom::col_sliced(this->sd_.mat_, group2).toDense().array();
 			mean2 = exp2.rowwise().mean();
 			std2 = ((exp2.colwise() -= mean2).rowwise().squaredNorm().array() / exp2.cols()).sqrt();
 		}
@@ -402,8 +402,8 @@ void GseaWorker::permutate_phenotype() {
 		}
 	}
 
-	this->permuted_gene_location_ << _Cs reordered(this->gene_locations_, _Cs order(signal_to_noise, true));
-	Eigen::ArrayXd correlations = _Cs sorted(signal_to_noise, true);
+	this->permuted_gene_location_ << custom::reordered(this->gene_locations_, custom::order(signal_to_noise, true));
+	Eigen::ArrayXd correlations = custom::sorted(signal_to_noise, true);
 	this->weights_list_ << correlations.abs();
 };
 
@@ -424,7 +424,7 @@ void GseaWorker::calculate_p_value() {
 			}
 			if (pos.isEmpty()) {
 				this->normalized_enrichment_score_[path] = 2 * pathway_enrichment_score;
-				enrichment_scores = _Cs multiply(enrichment_scores, 2.0);
+				enrichment_scores = custom::multiply(enrichment_scores, 2.0);
 
 				if (pathway_enrichment_score > 0.5) {
 					this->p_values_[path] = 1 / (double)this->n_permutation_;
@@ -434,12 +434,12 @@ void GseaWorker::calculate_p_value() {
 				}
 			}
 			else {
-				double mean_enrichment_score = _Cs mean(pos);
+				double mean_enrichment_score = custom::mean(pos);
 
 				this->normalized_enrichment_score_[path] = pathway_enrichment_score / mean_enrichment_score;
-				enrichment_scores = _Cs divide(enrichment_scores, mean_enrichment_score);
+				enrichment_scores = custom::divide(enrichment_scores, mean_enrichment_score);
 
-				this->p_values_[path] = _Cs greater_equal(pos, pathway_enrichment_score).count() / (double)pos.size();
+				this->p_values_[path] = custom::greater_equal(pos, pathway_enrichment_score).count() / (double)pos.size();
 			}
 		}
 		else {
@@ -452,7 +452,7 @@ void GseaWorker::calculate_p_value() {
 
 			if (neg.isEmpty()) {
 				this->normalized_enrichment_score_[path] = 2 * pathway_enrichment_score;
-				enrichment_scores = _Cs multiply(enrichment_scores, 2.0);
+				enrichment_scores = custom::multiply(enrichment_scores, 2.0);
 				if (pathway_enrichment_score < -0.5) {
 					this->p_values_[path] = 1 / (double)this->n_permutation_;
 				}
@@ -461,12 +461,12 @@ void GseaWorker::calculate_p_value() {
 				}
 			}
 			else {
-				double mean_enrichment_score = _Cs mean(neg);
+				double mean_enrichment_score = custom::mean(neg);
 
 				this->normalized_enrichment_score_[path] = pathway_enrichment_score / (-mean_enrichment_score);
-				enrichment_scores = _Cs divide(enrichment_scores, -mean_enrichment_score);
+				enrichment_scores = custom::divide(enrichment_scores, -mean_enrichment_score);
 
-				this->p_values_[path] = _Cs less_equal(neg, pathway_enrichment_score).count() / (double)neg.size();
+				this->p_values_[path] = custom::less_equal(neg, pathway_enrichment_score).count() / (double)neg.size();
 			}
 		}
 	}
@@ -493,11 +493,11 @@ void GseaWorker::calculate_fwer() {
 	for (const auto& path : this->pathway_list_) {
 		double pathway_normalized_enrichment_score = this->normalized_enrichment_score_[path], fwer;
 		if (pathway_normalized_enrichment_score >= 0) {
-			fwer = _Cs greater_equal(maximum_enrichment_score_positive, pathway_normalized_enrichment_score).count() /
+			fwer = custom::greater_equal(maximum_enrichment_score_positive, pathway_normalized_enrichment_score).count() /
 				(double)this->n_permutation_;
 		}
 		else {
-			fwer = _Cs less_equal(minimum_enrichment_score_negative, pathway_normalized_enrichment_score).count() / 
+			fwer = custom::less_equal(minimum_enrichment_score_negative, pathway_normalized_enrichment_score).count() / 
 				(double)this->n_permutation_;
 		}
 		this->fwer_[path] = fwer;
@@ -513,8 +513,8 @@ void GseaWorker::calculate_fdr() {
 
 	QVector<double> all_nes = this->normalized_enrichment_score_.values();
 
-	_Cs sort(all_scores);
-	_Cs sort(all_nes);
+	custom::sort(all_scores);
+	custom::sort(all_nes);
 
 	int n_score = all_scores.size();
 	int n_nes = all_nes.size();
@@ -632,7 +632,7 @@ void GseaWorker::run() {
 		this->fdr_,
 		this->fwer_,
 		this->pathway_to_size_,
-		_Cs cast<QVector>(this->original_correlations_),
+		custom::cast<QVector>(this->original_correlations_),
 		this->gene_location_,
 		this->point_x_,
 		this->point_y_

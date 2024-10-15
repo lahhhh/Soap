@@ -48,7 +48,7 @@ void SlmWorker::run() {
 
     emit x_cluster_ready(cluster);
 
-    G_TASK_LOG(QString::number(_Cs unique_element_number(cluster)) + " clusters were found in partition.");
+    G_TASK_LOG(QString::number(custom::unique_element_number(cluster)) + " clusters were found in partition.");
 
     G_TASK_END;
 }

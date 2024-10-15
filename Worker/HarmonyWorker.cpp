@@ -29,7 +29,7 @@ Eigen::MatrixXd arma2eigen(const arma::mat& a) {
 
 arma::mat kmeans_centers(const arma::mat& mat, int k) {
     
-    auto [centers, cluster] = _Cs kmeans_hartigan_wong_mt(arma2eigen(mat), k);
+    auto [centers, cluster] = custom::kmeans_hartigan_wong_mt(arma2eigen(mat), k);
 
     return eigen2arma(centers);
 }
@@ -95,7 +95,7 @@ void HarmonyWorker::run() {
         int level = 0;
         for (int i = 0; i < metadata_number; ++i) {
             const auto& metadata = metadata_list[i];
-            QStringList factors = _Cs unique(metadata);
+            QStringList factors = custom::unique(metadata);
             QMap<QString, int> sub_order;
             for (const auto& factor : factors) {
                 sub_order[factor] = level++;

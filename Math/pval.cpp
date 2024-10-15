@@ -213,13 +213,13 @@ double p_wilcox(double q, double m, double n, bool lower_tail) {
 		for (i = 0; i <= q; ++i) {
 			p += cwilcox(i, mm, nn) / c;
 		}
-		return lower_tail ? p : 1 - p;
+		return lower_tail ? p : (1 - p);
 	}
 	else {
 		q = m * n - q;
 		for (i = 0; i < q; ++i)
 			p += cwilcox(i, mm, nn) / c;
-		return lower_tail ? 1 - p : p;
+		return lower_tail ? (1 - p) : p;
 	}
 };
 
@@ -230,7 +230,7 @@ double p_normal(double x, double mu, double sigma, bool lower_tail) {
 
 	double p = boost::math::cdf(distribution, x);
 	
-	return lower_tail ? p : 1.0 - p;
+	return lower_tail ? p : (1.0 - p);
 }
 
 double dnorm(double x, double mu, double sigma) {
@@ -265,7 +265,7 @@ double p_students_t(double x, double n, bool lower_tail) {
 
 	double p = boost::math::cdf(distribution, x);
 
-	return lower_tail ? p : 1.0 - p;
+	return lower_tail ? p : (1.0 - p);
 };
 
 double p_fisher_f(double f, double m, double n, bool lower_tail) {
@@ -274,7 +274,7 @@ double p_fisher_f(double f, double m, double n, bool lower_tail) {
 
 	double p = boost::math::cdf(distribution, f);
 
-	return lower_tail ? p : 1.0 - p;
+	return lower_tail ? p : (1.0 - p);
 };
 
 double p_logistic(double q, double location, double scale, bool lower_tail) {
@@ -283,5 +283,17 @@ double p_logistic(double q, double location, double scale, bool lower_tail) {
 
 	double p = boost::math::cdf(distribution, q);
 
-	return lower_tail ? p : 1.0 - p;
+	return lower_tail ? p : (1.0 - p);
 };
+
+double p_chisq(double q, int df, bool lower_tail) {
+
+	boost::math::chi_squared chi_sq_dist(df);
+
+	if (lower_tail) {
+		return boost::math::cdf(chi_sq_dist, q);  
+	}
+	else {
+		return boost::math::cdf(complement(chi_sq_dist, q));  
+	}
+}

@@ -14,7 +14,7 @@ TssPlotWorker::TssPlotWorker(soap::Species species, const Fragments* fragments) 
 void TssPlotWorker::run() {
 
 	if (this->species_ == soap::Species::Human) {
-		bool success = ItemDatabase::read_item(FILE_HUMAN_GENOME_GENOMIC_RANGE_GCS, this->genome_);
+		bool success = ItemDatabase::read_item(FILE_HUMAN_GENOME_GENOMIC_RANGE_SIF, this->genome_);
 
 		if (!success) {
 			G_TASK_WARN("Loading faied.");
@@ -49,7 +49,7 @@ void TssPlotWorker::create_index() {
 void TssPlotWorker::get_results() {
 
 	Eigen::ArrayXd row_mean = this->tss_matrix_.rowwise().mean();
-	auto order = _Cs order(row_mean);
+	auto order = custom::order(row_mean);
 	this->tss_matrix_ = this->tss_matrix_(order, Eigen::all);
 
 	int n_gene = this->tss_matrix_.rows();
@@ -58,13 +58,13 @@ void TssPlotWorker::get_results() {
 	int compress_fold = n_row / 500;
 
 	if (compress_fold > 1) {
-		this->tss_matrix_ = _Cs row_compressed(this->tss_matrix_, compress_fold);
+		this->tss_matrix_ = custom::row_compressed(this->tss_matrix_, compress_fold);
 	}
 
-	this->tss_matrix_ = _Cs column_compressed(this->tss_matrix_, 10);
+	this->tss_matrix_ = custom::column_compressed(this->tss_matrix_, 10);
 
-	this->tss_vector_ = _Cs cast<QVector>(this->tss_matrix_.colwise().sum());
-	this->tss_vector_ = _Cs divide(this->tss_vector_, this->tss_vector_.first() + this->tss_vector_.last() / 2.0);
+	this->tss_vector_ = custom::cast<QVector>(this->tss_matrix_.colwise().sum());
+	this->tss_vector_ = custom::divide(this->tss_vector_, this->tss_vector_.first() + this->tss_vector_.last() / 2.0);
 };
 
 void TssPlotWorker::find_insertion_location_in_tss(
@@ -116,34 +116,34 @@ void TssPlotWorker::calculate_tss() {
 };
 
 void TssPlotWorker::get_tss_position() {
-	auto filter = _Cs equal(this->genome_.metadata_.get_const_qstring_reference(METADATA_GENOMIC_RANGE_GENE_BIOTYPE), QString("protein_coding"));
-	filter *= !_Cs test(this->genome_.sequence_names_,
+	auto filter = custom::equal(this->genome_.metadata_.get_const_qstring_reference(METADATA_GENOMIC_RANGE_GENE_BIOTYPE), QString("protein_coding"));
+	filter *= !custom::test(this->genome_.sequence_names_,
 		[](const QString& seq_name)->bool {return seq_name == "chrM" || seq_name == "MT" || seq_name == "Mt"; });
 
 	this->genome_.row_slice(filter);
 	this->genome_.strand_.assign('+', this->genome_.strand_ == '*');
 
 	const QStringList& gene_id = this->genome_.metadata_.get_const_qstring_reference(METADATA_GENOMIC_RANGE_GENE_ID);
-	QStringList unique_gene_ids = _Cs unique(gene_id);
+	QStringList unique_gene_ids = custom::unique(gene_id);
 
-	QVector<int> index_first = _Cs index_of(unique_gene_ids, gene_id);
-	QVector<int> index_last = _Cs last_index_of(unique_gene_ids, gene_id);
+	QVector<int> index_first = custom::index_of(unique_gene_ids, gene_id);
+	QVector<int> index_last = custom::last_index_of(unique_gene_ids, gene_id);
 
 	auto end = this->genome_.get_sequence_end();
 
 	this->genome_.sequence_names_.reorder(index_first);
 	this->genome_.strand_.reorder(index_first);
-	this->genome_.ranges_.start_ = _Cs ifelse<QVector<int>>(
+	this->genome_.ranges_.start_ = custom::ifelse<QVector<int>>(
 		this->genome_.strand_ == '+',
-		_Cs reordered(this->genome_.ranges_.start_, index_first),
-		_Cs reordered(_Cs minus(end, 1), index_last)
+		custom::reordered(this->genome_.ranges_.start_, index_first),
+		custom::reordered(custom::minus(end, 1), index_last)
 		);
 	this->genome_.ranges_.width_.resize(index_first.size());
 	this->genome_.ranges_.width_.fill(1);
 
 	this->genome_.metadata_.row_reorder(index_first);
 	this->genome_.metadata_.update(METADATA_GENOMIC_RANGE_GENE_NAME,
-		_Cs make_unique(this->genome_.metadata_.get_const_qstring_reference(METADATA_GENOMIC_RANGE_GENE_NAME)));
+		custom::make_unique(this->genome_.metadata_.get_const_qstring_reference(METADATA_GENOMIC_RANGE_GENE_NAME)));
 
 	this->genome_.extend(2999, 3000);
 };

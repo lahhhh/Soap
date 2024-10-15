@@ -80,7 +80,7 @@ public:
 	QVector<double>& get_mutable_double_reference(const QString& name);
 
 	template <typename SliceType>
-	requires _Cs is_slice_container<SliceType>
+	requires custom::is_slice_container<SliceType>
 	void edit(const QString& feature_name, const SliceType& filter, const QString& value) {
 
 		if (!this->colnames_.contains(feature_name)) {
@@ -94,67 +94,67 @@ public:
 			int val = value.toInt();
 			
 			QVector<int>* vec = static_cast<QVector<int> *>(this->at(feature_name));			
-			_Cs assign(*vec, val, filter);
+			custom::assign(*vec, val, filter);
 			
 			if (type == DataType::IntegerFactor) {
-				this->integer_factors_[feature_name] = _Cs unique(*vec);
+				this->integer_factors_[feature_name] = custom::unique(*vec);
 			}
 		}
 		else if (type == DataType::DoubleNumeric) {
 			double val = value.toDouble();
 
 			QVector<double>* vec = static_cast<QVector<double> *>(this->at(feature_name));
-			_Cs assign(*vec, val, filter);
+			custom::assign(*vec, val, filter);
 		}
 		else if (type == DataType::QString || type == DataType::QStringFactor) {
 
 			QStringList* vec = static_cast<QStringList*>(this->at(feature_name));
-			_Cs assign(*vec, value, filter);
+			custom::assign(*vec, value, filter);
 			
 			if (type == DataType::QStringFactor) {
-				this->string_factors_[feature_name] = _Cs unique(*vec);
+				this->string_factors_[feature_name] = custom::unique(*vec);
 			}
 		}
 	};
 
 	template <typename SliceType>
-	requires _Cs is_slice_container<SliceType>
+	requires custom::is_slice_container<SliceType>
 	void row_slice(const SliceType& slice) {
 		for (auto& [name, data] : this->data_) {
 			DataType type = this->data_type_[name];
 
 			if (type == DataType::IntegerNumeric || type == DataType::IntegerFactor) {
-				auto tmp = _Cs sliced_ptr(*static_cast<QVector<int> *>(data), slice);
+				auto tmp = custom::sliced_ptr(*static_cast<QVector<int> *>(data), slice);
 				delete static_cast<QVector<int>*>(data);
 				data = tmp;
 				if (type == DataType::IntegerFactor) {
-					this->integer_factors_[name] = _Cs unique(*tmp);
+					this->integer_factors_[name] = custom::unique(*tmp);
 				}
 			}
 			else if (type == DataType::DoubleNumeric) {
-				auto tmp = _Cs sliced_ptr(*static_cast<QVector<double> *>(data), slice);
+				auto tmp = custom::sliced_ptr(*static_cast<QVector<double> *>(data), slice);
 				delete static_cast<QVector<double>*>(data);
 				data = tmp;
 			}
 			else if (type == DataType::QStringFactor || type == DataType::QString) {
-				auto tmp = _Cs sliced_ptr(*static_cast<QStringList*>(data), slice);
+				auto tmp = custom::sliced_ptr(*static_cast<QStringList*>(data), slice);
 				delete static_cast<QStringList*>(data);
 				data = tmp;
 				if (type == DataType::QStringFactor) {
-					this->string_factors_[name] = _Cs unique(*tmp);
+					this->string_factors_[name] = custom::unique(*tmp);
 				}
 			}
 
 		}
 
-		this->rownames_ = _Cs sliced(this->rownames_, slice);
+		this->rownames_ = custom::sliced(this->rownames_, slice);
 	}
 
 	template <typename SliceType>
-		requires _Cs is_slice_container<SliceType>
+		requires custom::is_slice_container<SliceType>
 	void col_slice(const SliceType& slice) {
 
-		QStringList removed = _Cs sliced(this->colnames_, _Cs flip(slice));
+		QStringList removed = custom::sliced(this->colnames_, custom::flip(slice));
 		
 		for (const auto& name : removed) {
 			this->remove(name);
@@ -162,7 +162,7 @@ public:
 	}
 
 	template <typename SliceType1, typename SliceType2>
-	requires _Cs is_slice_container<SliceType1> && _Cs is_slice_container<SliceType2>
+	requires custom::is_slice_container<SliceType1> && custom::is_slice_container<SliceType2>
 	void slice(const SliceType1& row_slice, const SliceType2& col_slice) {
 
 		this->row_slice(row_slice);
@@ -171,23 +171,23 @@ public:
 	};
 
 	template <typename SliceType>
-		requires _Cs is_slice_container<SliceType>
+		requires custom::is_slice_container<SliceType>
 	CustomMatrix row_sliced(const SliceType& slice) const {
 
-		CustomMatrix ret(_Cs sliced(this->rownames_, slice));
+		CustomMatrix ret(custom::sliced(this->rownames_, slice));
 
 		for (auto&& name : this->colnames_) {
 
 			auto type = this->data_type_.at(name);
 
 			if (type == DataType::QStringFactor || type == DataType::QString) {
-				ret.update(name, _Cs sliced(*static_cast<QStringList*>(this->at(name)), slice), type);
+				ret.update(name, custom::sliced(*static_cast<QStringList*>(this->at(name)), slice), type);
 			}
 			else if (type == DataType::IntegerNumeric || type == DataType::IntegerFactor) {
-				ret.update(name, _Cs sliced(*static_cast<QVector<int> *>(this->at(name)), slice), type);
+				ret.update(name, custom::sliced(*static_cast<QVector<int> *>(this->at(name)), slice), type);
 			}
 			else if (type == DataType::DoubleNumeric) {
-				ret.update(name, _Cs sliced(*static_cast<QVector<double> *>(this->at(name)), slice), type);
+				ret.update(name, custom::sliced(*static_cast<QVector<double> *>(this->at(name)), slice), type);
 			}
 		}
 
@@ -195,22 +195,22 @@ public:
 	};
 
 	template <typename OrderContainer>
-	requires _Cs is_order_container<OrderContainer>
+	requires custom::is_order_container<OrderContainer>
 	CustomMatrix row_reordered(const OrderContainer& order) const {
 
-		CustomMatrix ret(_Cs reordered(this->rownames_, order));
+		CustomMatrix ret(custom::reordered(this->rownames_, order));
 
 		for (auto&& name : this->colnames_) {
 
 			auto type = this->data_type_.at(name);
 			if (type == DataType::QStringFactor || type == DataType::QString) {
-				ret.update(name, _Cs reordered(*static_cast<QStringList*>(this->at(name)), order), type);
+				ret.update(name, custom::reordered(*static_cast<QStringList*>(this->at(name)), order), type);
 			}
 			else if (type == DataType::IntegerNumeric || type == DataType::IntegerFactor) {
-				ret.update(name, _Cs reordered(*static_cast<QVector<int> *>(this->at(name)), order), type);
+				ret.update(name, custom::reordered(*static_cast<QVector<int> *>(this->at(name)), order), type);
 			}
 			else if (type == DataType::DoubleNumeric) {
-				ret.update(name, _Cs reordered(*static_cast<QVector<double> *>(this->at(name)), order), type);
+				ret.update(name, custom::reordered(*static_cast<QVector<double> *>(this->at(name)), order), type);
 			}
 		}
 
@@ -218,12 +218,12 @@ public:
 	};
 
 	template <typename SliceType>
-		requires _Cs is_slice_container<SliceType>
+		requires custom::is_slice_container<SliceType>
 	CustomMatrix col_sliced(const SliceType& slice) const {
 
 		CustomMatrix ret(this->rownames_);
 		
-		QStringList remained = _Cs sliced(this->colnames_, slice);
+		QStringList remained = custom::sliced(this->colnames_, slice);
 		
 		for (const auto& name : remained) {
 
@@ -244,43 +244,43 @@ public:
 	};
 
 	template <typename SliceType1, typename SliceType2>
-		requires _Cs is_slice_container<SliceType1>&& _Cs is_slice_container<SliceType2>
+		requires custom::is_slice_container<SliceType1>&& custom::is_slice_container<SliceType2>
 	CustomMatrix sliced(const SliceType1& row_slice, const SliceType2& col_slice) const {
 		return this->row_sliced(row_slice).col_sliced(col_slice);
 	};
 
 	template <typename OrderContainer>
-		requires _Cs is_order_container<OrderContainer>
+		requires custom::is_order_container<OrderContainer>
 	void row_reorder(const OrderContainer& order) {
 
 		for (auto& [name, data] : this->data_) {
 			DataType type = this->data_type_[name];
 
 			if (type == DataType::IntegerNumeric || type == DataType::IntegerFactor) {
-				auto tmp = _Cs reordered_ptr(*static_cast<QVector<int> *>(data), order);
+				auto tmp = custom::reordered_ptr(*static_cast<QVector<int> *>(data), order);
 				delete static_cast<QVector<int>*>(data);
 				data = tmp;
 				if (type == DataType::IntegerFactor) {
-					this->integer_factors_[name] = _Cs unique(*tmp);
+					this->integer_factors_[name] = custom::unique(*tmp);
 				}
 			}
 			else if (type == DataType::DoubleNumeric) {
-				auto tmp = _Cs reordered_ptr(*static_cast<QVector<double> *>(data), order);
+				auto tmp = custom::reordered_ptr(*static_cast<QVector<double> *>(data), order);
 				delete static_cast<QVector<double>*>(data);
 				data = tmp;
 			}
 			else if (type == DataType::QStringFactor || type == DataType::QString) {
-				auto tmp = _Cs reordered_ptr(*static_cast<QStringList*>(data), order);
+				auto tmp = custom::reordered_ptr(*static_cast<QStringList*>(data), order);
 				delete static_cast<QStringList*>(data);
 				data = tmp;
 				if (type == DataType::QStringFactor) {
-					this->string_factors_[name] = _Cs unique(*tmp);
+					this->string_factors_[name] = custom::unique(*tmp);
 				}
 			}
 
 		}
 
-		this->rownames_ = _Cs reordered(this->rownames_, order);
+		this->rownames_ = custom::reordered(this->rownames_, order);
 	};
 
 	CustomMatrix row_reordered(const QStringList& order) const;

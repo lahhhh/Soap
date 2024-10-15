@@ -232,7 +232,7 @@ void EmbeddingItem::s_multiple_numeric_feature_plot() {
 			return;
 		}
 
-		auto data = _Cs sapply(features, [&handler, normalized](auto&& t) {return handler.get_data({ t, normalized }); });
+		auto data = custom::sapply(features, [&handler, normalized](auto&& t) {return handler.get_data({ t, normalized }); });
 
 		int n_valid{ 0 };
 		for (auto&& d : data) {
@@ -252,7 +252,7 @@ void EmbeddingItem::s_multiple_numeric_feature_plot() {
 		int count{ 0 };
 		for (auto&& d : data) {
 			if (d.is_continuous()) {
-				feature_mat.col(count++) = _Cs cast<Eigen::ArrayX>(d.get_continuous());
+				feature_mat.col(count++) = custom::cast<Eigen::ArrayX>(d.get_continuous());
 				valid_features << d.name;
 			}
 		}
@@ -291,7 +291,7 @@ void EmbeddingItem::s_multiple_numeric_feature_plot() {
 			return;
 		}
 
-		auto data = _Cs sapply(features,
+		auto data = custom::sapply(features,
 			[&handler, normalized, gene_activity](auto&& t) {return handler.get_data({ t, normalized, gene_activity }); });
 
 		int n_valid{ 0 };
@@ -312,7 +312,7 @@ void EmbeddingItem::s_multiple_numeric_feature_plot() {
 		int count{ 0 };
 		for (auto&& d : data) {
 			if (d.is_continuous()) {
-				feature_mat.col(count++) = _Cs cast<Eigen::ArrayX>(d.get_continuous());
+				feature_mat.col(count++) = custom::cast<Eigen::ArrayX>(d.get_continuous());
 				valid_features << d.name;
 			}
 		}
@@ -327,7 +327,7 @@ void EmbeddingItem::s_multiple_numeric_feature_plot() {
 
 			feature_mat.col(i).array() -= mean;
 
-			double sd = _Cs sd(feature_mat.col(i));
+			double sd = custom::sd(feature_mat.col(i));
 			if (sd != 0.0) {
 				feature_mat.col(i).array() /= sd;
 			}
@@ -339,7 +339,7 @@ void EmbeddingItem::s_multiple_numeric_feature_plot() {
 
 
 	auto& gs = this->draw_suite_->graph_settings_;
-	auto [draw_area, left_layout, legend_layout] = _Cp prepare_lg_lg(gs);
+	auto [draw_area, left_layout, legend_layout] = custom_plot::prepare_lg_lg(gs);
 
 	for (int i = 0; i < n_valid_feature; ++i) {
 		QCPLayoutGrid* sub_layout = new QCPLayoutGrid;
@@ -349,9 +349,9 @@ void EmbeddingItem::s_multiple_numeric_feature_plot() {
 
 		QCPAxisRect* axis_rect = new QCPAxisRect(draw_area);
 		sub_layout->addElement(0, 0, axis_rect);
-		_CpPatch set_range(axis_rect, _CpUtility get_range(x, y));
-		_CpPatch set_border_only(axis_rect, Qt::black, 2);
-		_CpPatch scatter_gradient(
+		custom_plot::patch::set_range(axis_rect, custom_plot::utility::get_range(x, y));
+		custom_plot::patch::set_border_only(axis_rect, Qt::black, 2);
+		custom_plot::patch::scatter_gradient(
 			draw_area,
 			axis_rect,
 			x,
@@ -365,11 +365,11 @@ void EmbeddingItem::s_multiple_numeric_feature_plot() {
 			gs.get_scatter_point_size()
 		);
 
-		_CpPatch add_title(draw_area, sub_layout, valid_features[i], gs.get_title_font());
+		custom_plot::patch::add_title(draw_area, sub_layout, valid_features[i], gs.get_title_font());
 	}
 
 	if (scale) {
-		_CpPatch add_gradient_legend(
+		custom_plot::patch::add_gradient_legend(
 			draw_area,
 			legend_layout,
 			-1.0,
@@ -385,7 +385,7 @@ void EmbeddingItem::s_multiple_numeric_feature_plot() {
 		);
 	}
 	else {
-		_Cp add_gradient_legend(draw_area, legend_layout, min_val, max_val, "Expression", gs);
+		custom_plot::add_gradient_legend(draw_area, legend_layout, min_val, max_val, "Expression", gs);
 	}
 
 	this->draw_suite_->update(draw_area);
@@ -436,10 +436,10 @@ void EmbeddingItem::s_highlight() {
 	QString left_title = embedding->data_.colnames_[1];
 
 	auto&& gs = this->draw_suite_->graph_settings_;
-	auto [draw_area, axis_rect, legend_layout] = _Cp prepare(gs);
+	auto [draw_area, axis_rect, legend_layout] = custom_plot::prepare(gs);
 
-	_CpPatch set_range(axis_rect, _CpUtility get_range(x, y));
-	_Cp set_scatter_plot_axis_style(draw_area, axis_rect, bottom_title, left_title, x, y, gs);
+	custom_plot::patch::set_range(axis_rect, custom_plot::utility::get_range(x, y));
+	custom_plot::set_scatter_plot_axis_style(draw_area, axis_rect, bottom_title, left_title, x, y, gs);
 
 	const int n_level = levels.size();
 	QStringList values = metadata->mat_.get_qstring(factor_name);
@@ -449,17 +449,17 @@ void EmbeddingItem::s_highlight() {
 
 	for (int i = 0; i < n_level; ++i) {
 
-		auto filter = _Cs equal(values, levels[i]);
+		auto filter = custom::equal(values, levels[i]);
 		bg_filter += filter;
 	}
 
-	bg_filter = _Cs flip(bg_filter);
+	bg_filter = custom::flip(bg_filter);
 	if (bg_filter.count() > 0) {
 
-		auto sub_x = _Cs sliced(x, bg_filter);
-		auto sub_y = _Cs sliced(y, bg_filter);
+		auto sub_x = custom::sliced(x, bg_filter);
+		auto sub_y = custom::sliced(y, bg_filter);
 
-		_CpPatch scatter(
+		custom_plot::patch::scatter(
 			draw_area,
 			axis_rect,
 			sub_x,
@@ -471,11 +471,11 @@ void EmbeddingItem::s_highlight() {
 
 	for (int i = 0; i < n_level; ++i) {
 
-		auto filter = _Cs equal(values, levels[i]);
-		auto sub_x = _Cs sliced(x, filter);
-		auto sub_y = _Cs sliced(y, filter);
+		auto filter = custom::equal(values, levels[i]);
+		auto sub_x = custom::sliced(x, filter);
+		auto sub_y = custom::sliced(y, filter);
 
-		_CpPatch scatter(
+		custom_plot::patch::scatter(
 			draw_area,
 			axis_rect,
 			sub_x,
@@ -485,7 +485,7 @@ void EmbeddingItem::s_highlight() {
 		);
 	}
 
-	_CpPatch add_round_legend(
+	custom_plot::patch::add_round_legend(
 		draw_area,
 		legend_layout,
 		levels,
@@ -497,7 +497,7 @@ void EmbeddingItem::s_highlight() {
 		gs.get_legend_label_font()
 	);
 
-	_Cp add_title(draw_area, factor_name, gs);
+	custom_plot::add_title(draw_area, factor_name, gs);
 
 	this->draw_suite_->update(draw_area);
 };
@@ -549,7 +549,7 @@ void EmbeddingItem::s_feature_plot() {
 			return;
 		}
 
-		auto data = _Cs sapply(features, [&handler, normalized](auto&& t) {return handler.get_data({t, normalized}); });
+		auto data = custom::sapply(features, [&handler, normalized](auto&& t) {return handler.get_data({t, normalized}); });
 
 		int n_valid{ 0 };
 		for (auto&& d : data) {
@@ -565,7 +565,7 @@ void EmbeddingItem::s_feature_plot() {
 			return;
 		}
 
-		auto draw_area = _Cp feature_plot(data, this->data(), scale, nrow, this->draw_suite_->graph_settings_);
+		auto draw_area = custom_plot::feature_plot(data, this->data(), scale, nrow, this->draw_suite_->graph_settings_);
 		this->draw_suite_->update(draw_area);
 	}
 	else if (this->stem_from(soap::VariableType::SingleCellMultiome)) {
@@ -601,7 +601,7 @@ void EmbeddingItem::s_feature_plot() {
 			return;
 		}
 
-		auto data = _Cs sapply(features, 
+		auto data = custom::sapply(features, 
 			[&handler, normalized, gene_activity](auto&& t) {return handler.get_data({ t, normalized, gene_activity }); });
 
 		int n_valid{ 0 };
@@ -618,7 +618,7 @@ void EmbeddingItem::s_feature_plot() {
 			return;
 		}
 
-		auto draw_area = _Cp feature_plot(data, this->data(), scale, nrow, this->draw_suite_->graph_settings_);
+		auto draw_area = custom_plot::feature_plot(data, this->data(), scale, nrow, this->draw_suite_->graph_settings_);
 		this->draw_suite_->update(draw_area);
 	}
 };
@@ -638,7 +638,7 @@ void EmbeddingItem::s_raw_plot() {
 			}
 		}
 
-		auto [draw_area, _, __] = _Cp embedding_single_color_plot(
+		auto [draw_area, _, __] = custom_plot::embedding_single_color_plot(
 			this->title_,
 			this->data()->data_.mat_,
 			Qt::blue,
@@ -650,7 +650,7 @@ void EmbeddingItem::s_raw_plot() {
 	}
 	else {
 
-		auto [draw_area, _, __] = _Cp embedding_single_color_plot(
+		auto [draw_area, _, __] = custom_plot::embedding_single_color_plot(
 			this->title_,
 			this->data()->data_.mat_,
 			Qt::blue,
@@ -671,10 +671,10 @@ void EmbeddingItem::show(
 	QUERY_DATA d;
 	d.name = title;
 	d.type = QUERY_DATA::DataType::numeric;
-	d.dd = _Cs cast<QVector>(data);
+	d.dd = custom::cast<QVector>(data);
 	d.info["Source"] = "Others";
 
-	auto [draw_area, _, __] = _Cp feature_plot(d, this->data(), scale, this->draw_suite_->graph_settings_);
+	auto [draw_area, _, __] = custom_plot::feature_plot(d, this->data(), scale, this->draw_suite_->graph_settings_);
 
 	this->draw_suite_->update(draw_area);
 
@@ -688,11 +688,11 @@ void EmbeddingItem::show(
 	QUERY_DATA d;
 	d.name = name;
 	d.type = QUERY_DATA::DataType::string;
-	d.ds = _Cs cast<QVector>(data);
-	d.dsl = _Cs unique(d.ds);
+	d.ds = custom::cast<QVector>(data);
+	d.dsl = custom::unique(d.ds);
 	d.info["Source"] = "Others";
 
-	auto [draw_area, _, __] = _Cp feature_plot(d, this->data(), false, this->draw_suite_->graph_settings_);
+	auto [draw_area, _, __] = custom_plot::feature_plot(d, this->data(), false, this->draw_suite_->graph_settings_);
 
 	this->draw_suite_->update(draw_area);
 
@@ -768,16 +768,16 @@ void EmbeddingItem::s_deviation_plot() {
 		return;
 	}
 
-	QVector<double> x = _Cs linspaced(y.size(), 1, y.size());
+	QVector<double> x = custom::linspaced(y.size(), 1, y.size());
 	auto& gs = this->draw_suite_->graph_settings_;
 	
-	auto [draw_area, axis_rect] = _Cp prepare_ar(gs);
+	auto [draw_area, axis_rect] = custom_plot::prepare_ar(gs);
 	
-	_Cp set_simple_axis(axis_rect, "PCA components", "Standard Deviation", gs);
+	custom_plot::set_simple_axis(axis_rect, "PCA components", "Standard Deviation", gs);
 
-	_CpPatch scatter(draw_area, axis_rect, x, y, Qt::black, 5);
+	custom_plot::patch::scatter(draw_area, axis_rect, x, y, Qt::black, 5);
 
-	_CpPatch set_range(axis_rect, QCPRange(0, y.size() + 1), QCPRange(0, y[0] + 1));
+	custom_plot::patch::set_range(axis_rect, QCPRange(0, y.size() + 1), QCPRange(0, y[0] + 1));
 	this->draw_suite_->update(draw_area);
 };
 
@@ -817,7 +817,7 @@ void EmbeddingItem::s_show_depth_correlation() {
 	QVector<double> y(n_dimension);
 
 	for (int i = 0; i < n_dimension; ++i) {
-		double cor = _Cs correlation_pearson(depth, mat.col(i));
+		double cor = custom::correlation_pearson(depth, mat.col(i));
 		if (std::isnan(cor)) {
 			cor = 0.0;
 		}
@@ -825,13 +825,13 @@ void EmbeddingItem::s_show_depth_correlation() {
 	}
 
 	auto& gs = this->draw_suite_->graph_settings_;
-	auto [draw_area, axis_rect] = _Cp prepare_ar(gs);
+	auto [draw_area, axis_rect] = custom_plot::prepare_ar(gs);
 	
-	_Cp set_simple_axis(axis_rect, "PCA components", "Correlation with Sequencing Depth", gs);
+	custom_plot::set_simple_axis(axis_rect, "PCA components", "Correlation with Sequencing Depth", gs);
 
-	_CpPatch scatter(draw_area, axis_rect, _Cs linspaced(n_dimension, 1, n_dimension), y, Qt::black, 5);
+	custom_plot::patch::scatter(draw_area, axis_rect, custom::linspaced(n_dimension, 1, n_dimension), y, Qt::black, 5);
 
-	_CpPatch set_range(axis_rect, QCPRange(0, n_dimension + 1), _CpUtility get_range(y));
+	custom_plot::patch::set_range(axis_rect, QCPRange(0, n_dimension + 1), custom_plot::utility::get_range(y));
 
 	this->draw_suite_->update(draw_area);
 };

@@ -68,7 +68,7 @@ void DenseIntItem::s_search_row() {
 
     quest = multiple_line_edit_to_list(quest[0]);
 
-    QVector<int> row_index = _Cs valid_index_of(quest, this->data()->rownames_);
+    QVector<int> row_index = custom::valid_index_of(quest, this->data()->rownames_);
 
     if (row_index.isEmpty()) {
         G_LOG("Feature Not Found.");
@@ -95,7 +95,7 @@ void DenseIntItem::s_search_column() {
 
     quest = multiple_line_edit_to_list(quest[0]);
 
-    QVector<int> column_index = _Cs valid_index_of(quest, this->data()->colnames_);
+    QVector<int> column_index = custom::valid_index_of(quest, this->data()->colnames_);
 
     if (column_index.isEmpty()) {
         G_LOG("Column Not Found.");
@@ -122,8 +122,8 @@ void DenseIntItem::s_search_block() {
     QStringList row_quests = multiple_line_edit_to_list(quest[0]);
     QStringList col_quests = multiple_line_edit_to_list(quest[1]);
 
-    QVector<int> row_index = _Cs valid_index_of(row_quests, this->data()->rownames_);
-    QVector<int> column_index = _Cs valid_index_of(col_quests, this->data()->colnames_);
+    QVector<int> row_index = custom::valid_index_of(row_quests, this->data()->rownames_);
+    QVector<int> column_index = custom::valid_index_of(col_quests, this->data()->colnames_);
     if (column_index.isEmpty() || row_index.isEmpty()) {
         G_LOG("Data Not Found.");
         return;
@@ -171,9 +171,9 @@ void DenseIntItem::s_correlation_plot() {
     Eigen::ArrayXd f2 = this->data()->mat_.row(index_2).cast<double>();
 
     auto&& gs = this->draw_suite_->graph_settings_;
-    auto [draw_area, axis_rect] = _Cp prepare_ar(gs);
+    auto [draw_area, axis_rect] = custom_plot::prepare_ar(gs);
 
-    _Cp set_scatter_plot_axis_style(
+    custom_plot::set_scatter_plot_axis_style(
         draw_area,
         axis_rect,
         feature_1,
@@ -183,7 +183,7 @@ void DenseIntItem::s_correlation_plot() {
         gs
     );
 
-    _CpPatch scatter(
+    custom_plot::patch::scatter(
         draw_area,
         axis_rect,
         f1,
@@ -192,9 +192,9 @@ void DenseIntItem::s_correlation_plot() {
         gs.get_scatter_point_size()
     );
 
-    double cor = _Cs correlation_pearson(f1, f2);
+    double cor = custom::correlation_pearson(f1, f2);
 
-    _Cp add_title(draw_area, "Correlation : " + QString::number(cor), gs);
+    custom_plot::add_title(draw_area, "Correlation : " + QString::number(cor), gs);
 
     this->draw_suite_->update(draw_area);
 

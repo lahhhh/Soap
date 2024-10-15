@@ -198,7 +198,7 @@ std::tuple<double, std::vector<double>, std::vector<double>> integrate_rk12(
 {
 	constexpr double max_error = 0.003;
 
-	double max_ds = _Cs min(1.0 / dmap.mask_.nx_, 1.0 / dmap.mask_.ny_, 0.1);
+	double max_ds = custom::min(1.0 / dmap.mask_.nx_, 1.0 / dmap.mask_.ny_, 0.1);
 
 	double ds{ max_ds };
 

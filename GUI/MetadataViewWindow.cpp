@@ -141,7 +141,7 @@ void MetadataViewWindow::set_layout() {
 	this->left_layout_->addWidget(this->save_picture_button_);
 
 	this->information_area_ = new InformationTextBrowser(this);
-	this->information_area_->setFixedWidth(200);
+	this->information_area_->setFixedWidth(150);
 	this->information_area_->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Expanding);
 
 	this->left_layout_->addStretch();
@@ -321,7 +321,7 @@ void MetadataViewWindow::s_save_pdf_and_png() {
 	std::string pdf_file_name = pdf_name.toStdString();
 	std::string picture_file_name = picture_name.toStdString();
 
-	if (!_Cs save_pdf_page_as_png(pdf_file_name, 0, picture_file_name)) {
+	if (!custom::save_pdf_page_as_png(pdf_file_name, 0, picture_file_name)) {
 		G_WARN("PNG Saving Failed.");
 	}
 	else {
@@ -430,48 +430,48 @@ void MetadataViewWindow::no_group_plot() {
 
 			auto [imin, imax] = std::ranges::minmax(feature_data.di);
 			double min = imin, max = imax;
-			auto [draw_area, axis_rect] = _Cp prepare_ar(gs);
+			auto [draw_area, axis_rect] = custom_plot::prepare_ar(gs);
 
 			if (gs.use_boxplot()) {
-				_CpPatch box(
+				custom_plot::patch::box(
 					draw_area,
 					axis_rect,
 					colors[0],
-					_Cs cast<QVector>(_Cs cast<double>(feature_data.di)),
+					custom::cast<QVector>(custom::cast<double>(feature_data.di)),
 					1.0,
 					gs.boxplot_draw_outlier(),
 					gs.get_scatter_point_size()
 				);
 			}
 			else {
-				std::tie(min, max) = _CpPatch violin(
+				std::tie(min, max) = custom_plot::patch::violin(
 					draw_area,
 					axis_rect,
 					colors[0],
-					_Cs cast<QVector>(_Cs cast<double>(feature_data.di)),
+					custom::cast<QVector>(custom::cast<double>(feature_data.di)),
 					1.0
 				);
 			}
 
-			_Cp set_left_title(axis_rect, feature, gs, true);
-			_Cp set_simple_axis_no_title(axis_rect, gs);
-			_CpPatch remove_bottom_ticks(axis_rect);
-			_CpPatch set_range(axis_rect, QCPRange(0, 2), _CpUtility get_range(min, max));
-			_Cp add_title(draw_area, feature, gs);
+			custom_plot::set_left_title(axis_rect, feature, gs, true);
+			custom_plot::set_simple_axis_no_title(axis_rect, gs);
+			custom_plot::patch::remove_bottom_ticks(axis_rect);
+			custom_plot::patch::set_range(axis_rect, QCPRange(0, 2), custom_plot::utility::get_range(min, max));
+			custom_plot::add_title(draw_area, feature, gs);
 			this->draw_suite_->update(draw_area);
 		}
 		else {
-			auto distribution = _Cs table(_Cs cast<QString>(feature_data.di));
-			QStringList levels = _Cs cast<QString>(_Cs sorted(feature_data.dil));
+			auto distribution = custom::table(custom::cast<QString>(feature_data.di));
+			QStringList levels = custom::cast<QString>(custom::sorted(feature_data.dil));
 
 			auto colors = gs.palette(levels);
 
-			auto [draw_area, axis_rect, legend_layout] = _Cp prepare(gs);
-			_CpPatch pie(draw_area, axis_rect, distribution, levels, colors, 0, 0, 1);
-			_Cp add_round_legend(draw_area, legend_layout, levels, colors, feature, gs);
-			_CpPatch set_range(axis_rect, QCPRange(-1.2, 1.2), QCPRange(-1.2, 1.2));
-			_Cp add_title(draw_area, feature, gs);
-			_CpPatch remove_left_bottom_axis(axis_rect);
+			auto [draw_area, axis_rect, legend_layout] = custom_plot::prepare(gs);
+			custom_plot::patch::pie(draw_area, axis_rect, distribution, levels, colors, 0, 0, 1);
+			custom_plot::add_round_legend(draw_area, legend_layout, levels, colors, feature, gs);
+			custom_plot::patch::set_range(axis_rect, QCPRange(-1.2, 1.2), QCPRange(-1.2, 1.2));
+			custom_plot::add_title(draw_area, feature, gs);
+			custom_plot::patch::remove_left_bottom_axis(axis_rect);
 			this->draw_suite_->update(draw_area);
 		}
 	}
@@ -480,34 +480,34 @@ void MetadataViewWindow::no_group_plot() {
 
 		auto [imin, imax] = std::ranges::minmax(feature_data.dd);
 		double min = imin, max = imax;
-		auto [draw_area, axis_rect] = _Cp prepare_ar(gs);
+		auto [draw_area, axis_rect] = custom_plot::prepare_ar(gs);
 
 		if (gs.use_boxplot()) {
-			_CpPatch box(
+			custom_plot::patch::box(
 				draw_area,
 				axis_rect,
 				colors[0],
-				_Cs cast<QVector>(feature_data.dd),
+				custom::cast<QVector>(feature_data.dd),
 				1.0,
 				gs.boxplot_draw_outlier(),
 				gs.get_scatter_point_size()
 			);
 		}
 		else {
-			std::tie(min, max) = _CpPatch violin(
+			std::tie(min, max) = custom_plot::patch::violin(
 				draw_area,
 				axis_rect,
 				colors[0],
-				_Cs cast<QVector>(feature_data.dd),
+				custom::cast<QVector>(feature_data.dd),
 				1.0
 			);
 		}
 
-		_Cp set_left_title(axis_rect, feature, gs, true);
-		_Cp set_simple_axis_no_title(axis_rect, gs);
-		_CpPatch remove_bottom_ticks(axis_rect);
-		_CpPatch set_range(axis_rect, QCPRange(0, 2), _CpUtility get_range(min, max));
-		_Cp add_title(draw_area, feature, gs);
+		custom_plot::set_left_title(axis_rect, feature, gs, true);
+		custom_plot::set_simple_axis_no_title(axis_rect, gs);
+		custom_plot::patch::remove_bottom_ticks(axis_rect);
+		custom_plot::patch::set_range(axis_rect, QCPRange(0, 2), custom_plot::utility::get_range(min, max));
+		custom_plot::add_title(draw_area, feature, gs);
 		this->draw_suite_->update(draw_area);
 	}
 
@@ -515,17 +515,17 @@ void MetadataViewWindow::no_group_plot() {
 
 		if (!feature_data.dsl.isEmpty()) {
 
-			auto distribution = _Cs table(feature_data.ds);
-			QStringList levels = _Cs sorted(feature_data.dsl);
+			auto distribution = custom::table(feature_data.ds);
+			QStringList levels = custom::sorted(feature_data.dsl);
 
 			auto colors = gs.palette(levels);
 
-			auto [draw_area, axis_rect, legend_layout] = _Cp prepare(gs);
-			_CpPatch pie(draw_area, axis_rect, distribution, levels, colors, 0, 0, 1);
-			_Cp add_round_legend(draw_area, legend_layout, levels, colors, feature, gs);
-			_CpPatch set_range(axis_rect, QCPRange(-1.2, 1.2), QCPRange(-1.2, 1.2));
-			_Cp add_title(draw_area, feature, gs);
-			_CpPatch remove_left_bottom_axis(axis_rect);
+			auto [draw_area, axis_rect, legend_layout] = custom_plot::prepare(gs);
+			custom_plot::patch::pie(draw_area, axis_rect, distribution, levels, colors, 0, 0, 1);
+			custom_plot::add_round_legend(draw_area, legend_layout, levels, colors, feature, gs);
+			custom_plot::patch::set_range(axis_rect, QCPRange(-1.2, 1.2), QCPRange(-1.2, 1.2));
+			custom_plot::add_title(draw_area, feature, gs);
+			custom_plot::patch::remove_left_bottom_axis(axis_rect);
 			this->draw_suite_->update(draw_area);
 		}
 	}
@@ -562,8 +562,8 @@ void MetadataViewWindow::mainplot() {
 			return;
 		}
 
-		group = _Cs cast<QString>(group_data.di);
-		levels = _Cs cast<QString>(_Cs sorted(group_data.dil));
+		group = custom::cast<QString>(group_data.di);
+		levels = custom::cast<QString>(custom::sorted(group_data.dil));
 	}
 	else if (group_data.type == QUERY_DATA::DataType::string) {
 		if (group_data.dsl.isEmpty()) {
@@ -572,7 +572,7 @@ void MetadataViewWindow::mainplot() {
 		}
 
 		group = group_data.ds;
-		levels = _Cs sorted(group_data.dsl);
+		levels = custom::sorted(group_data.dsl);
 	}
 	else {
 		G_WARN("Meeting error when querying data.");
@@ -585,7 +585,7 @@ void MetadataViewWindow::mainplot() {
 	if (feature_data.type == QUERY_DATA::DataType::integer) {
 		if (feature_data.dsl.isEmpty()) {
 
-			auto [draw_area, axis_rect, legend_layout] = _Cp prepare(gs);
+			auto [draw_area, axis_rect, legend_layout] = custom_plot::prepare(gs);
 			double min{ 0.0 }, max{ 0.0 };
 
 			if (gs.use_boxplot()) {
@@ -593,13 +593,13 @@ void MetadataViewWindow::mainplot() {
 				min = imin;
 				max = imax;
 
-				_CpPatch box_batch(
+				custom_plot::patch::box_batch(
 					draw_area,
 					axis_rect,
 					group,
 					levels,
 					colors,
-					_Cs cast<Eigen::ArrayX>(_Cs cast<double>(feature_data.di)),
+					custom::cast<Eigen::ArrayX>(custom::cast<double>(feature_data.di)),
 					1.0,
 					2.0,
 					gs.boxplot_draw_outlier(),
@@ -608,24 +608,24 @@ void MetadataViewWindow::mainplot() {
 			}
 			else {
 
-				std::tie(min, max) = _CpPatch violin_batch(
+				std::tie(min, max) = custom_plot::patch::violin_batch(
 					draw_area,
 					axis_rect,
 					group,
 					levels,
 					colors,
-					_Cs cast<Eigen::ArrayX>(_Cs cast<double>(feature_data.di)),
+					custom::cast<Eigen::ArrayX>(custom::cast<double>(feature_data.di)),
 					1.0,
 					2.0);
 			}
 
-			_Cp add_round_legend(draw_area, legend_layout, levels, colors, main_group_feature, gs);
+			custom_plot::add_round_legend(draw_area, legend_layout, levels, colors, main_group_feature, gs);
 
-			_Cp set_left_title(axis_rect, feature, gs, true);
-			_CpPatch set_range(axis_rect, QCPRange(0, 2 * n_level), _CpUtility get_range(min, max));
-			_Cp add_title(draw_area, feature, gs);
-			_Cp set_simple_axis_no_title(axis_rect, gs);
-			_Cp set_bottom_axis_label(
+			custom_plot::set_left_title(axis_rect, feature, gs, true);
+			custom_plot::patch::set_range(axis_rect, QCPRange(0, 2 * n_level), custom_plot::utility::get_range(min, max));
+			custom_plot::add_title(draw_area, feature, gs);
+			custom_plot::set_simple_axis_no_title(axis_rect, gs);
+			custom_plot::set_bottom_axis_label(
 				axis_rect,
 				Eigen::ArrayXd::LinSpaced(n_level, 1, 2 * n_level - 1),
 				levels,
@@ -637,20 +637,20 @@ void MetadataViewWindow::mainplot() {
 		}
 		else {
 
-			QStringList feature_group = _Cs cast<QString>(feature_data.di);
-			QStringList feature_levels = _Cs cast<QString>(_Cs sorted(feature_data.dil));
+			QStringList feature_group = custom::cast<QString>(feature_data.di);
+			QStringList feature_levels = custom::cast<QString>(custom::sorted(feature_data.dil));
 			auto feature_colors = gs.palette(feature_levels);
 
-			auto [draw_area, axis_rect, legend_layout] = _Cp prepare(gs);
-			_CpPatch bar_stack(draw_area, axis_rect, group, levels, feature_group, feature_levels, feature_colors, 1.0, 0.4, 1.0);
-			_Cp add_round_legend(draw_area, legend_layout, feature_levels, feature_colors, feature, gs);
-			_Cp set_left_title(axis_rect, feature, gs, true);
-			_CpPatch set_proportion_left_axis(axis_rect, gs.get_left_label_font());
-			_CpPatch set_range(axis_rect, QCPRange(0, n_level + 1), QCPRange(0, 1));
-			_Cp add_title(draw_area, feature, gs);
+			auto [draw_area, axis_rect, legend_layout] = custom_plot::prepare(gs);
+			custom_plot::patch::bar_stack(draw_area, axis_rect, group, levels, feature_group, feature_levels, feature_colors, 1.0, 0.4, 1.0);
+			custom_plot::add_round_legend(draw_area, legend_layout, feature_levels, feature_colors, feature, gs);
+			custom_plot::set_left_title(axis_rect, feature, gs, true);
+			custom_plot::patch::set_proportion_left_axis(axis_rect, gs.get_left_label_font());
+			custom_plot::patch::set_range(axis_rect, QCPRange(0, n_level + 1), QCPRange(0, 1));
+			custom_plot::add_title(draw_area, feature, gs);
 
-			_CpPatch remove_bottom_axis(axis_rect);
-			_Cp set_bottom_axis_label(
+			custom_plot::patch::remove_bottom_axis(axis_rect);
+			custom_plot::set_bottom_axis_label(
 				axis_rect,
 				Eigen::ArrayXd::LinSpaced(n_level, 1, n_level),
 				levels,
@@ -663,7 +663,7 @@ void MetadataViewWindow::mainplot() {
 
 	if (feature_data.type == QUERY_DATA::DataType::numeric) {
 
-		auto [draw_area, axis_rect, legend_layout] = _Cp prepare(gs);
+		auto [draw_area, axis_rect, legend_layout] = custom_plot::prepare(gs);
 
 		double min{ 0.0 }, max{ 0.0 };
 
@@ -672,13 +672,13 @@ void MetadataViewWindow::mainplot() {
 			min = imin;
 			max = imax;
 
-			_CpPatch box_batch(
+			custom_plot::patch::box_batch(
 				draw_area,
 				axis_rect,
 				group,
 				levels,
 				colors,
-				_Cs cast<Eigen::ArrayX>(feature_data.dd),
+				custom::cast<Eigen::ArrayX>(feature_data.dd),
 				1.0,
 				2.0,
 				gs.boxplot_draw_outlier(),
@@ -687,24 +687,24 @@ void MetadataViewWindow::mainplot() {
 		}
 		else {
 
-			std::tie(min, max) = _CpPatch violin_batch(
+			std::tie(min, max) = custom_plot::patch::violin_batch(
 				draw_area,
 				axis_rect,
 				group,
 				levels,
 				colors,
-				_Cs cast<Eigen::ArrayX>(feature_data.dd),
+				custom::cast<Eigen::ArrayX>(feature_data.dd),
 				1.0,
 				2.0);
 		}
 
-		_Cp add_round_legend(draw_area, legend_layout, levels, colors, main_group_feature, gs);
+		custom_plot::add_round_legend(draw_area, legend_layout, levels, colors, main_group_feature, gs);
 
-		_Cp set_left_title(axis_rect, feature, gs, true);
-		_CpPatch set_range(axis_rect, QCPRange(0, 2 * n_level), _CpUtility get_range(min, max));
-		_Cp add_title(draw_area, feature, gs);
-		_Cp set_simple_axis_no_title(axis_rect, gs);
-		_Cp set_bottom_axis_label(
+		custom_plot::set_left_title(axis_rect, feature, gs, true);
+		custom_plot::patch::set_range(axis_rect, QCPRange(0, 2 * n_level), custom_plot::utility::get_range(min, max));
+		custom_plot::add_title(draw_area, feature, gs);
+		custom_plot::set_simple_axis_no_title(axis_rect, gs);
+		custom_plot::set_bottom_axis_label(
 			axis_rect,
 			Eigen::ArrayXd::LinSpaced(n_level, 1, 2 * n_level - 1),
 			levels,
@@ -718,20 +718,20 @@ void MetadataViewWindow::mainplot() {
 	if (feature_data.type == QUERY_DATA::DataType::string) {
 		if (!feature_data.dsl.isEmpty()) {
 			QStringList feature_group = feature_data.ds;
-			QStringList feature_levels = _Cs sorted(feature_data.dsl);
+			QStringList feature_levels = custom::sorted(feature_data.dsl);
 
 			auto feature_colors = gs.palette(feature_levels);
 
-			auto [draw_area, axis_rect, legend_layout] = _Cp prepare(gs);
-			_CpPatch bar_stack(draw_area, axis_rect, group, levels, feature_group, feature_levels, feature_colors, 1.0, 0.4, 1.0);
-			_Cp add_round_legend(draw_area, legend_layout, feature_levels, feature_colors, feature, gs);
-			_Cp set_left_title(axis_rect, feature, gs, true);
-			_CpPatch set_proportion_left_axis(axis_rect, gs.get_left_label_font());
-			_CpPatch set_range(axis_rect, QCPRange(0, n_level + 1), QCPRange(0, 1));
-			_Cp add_title(draw_area, feature, gs);
+			auto [draw_area, axis_rect, legend_layout] = custom_plot::prepare(gs);
+			custom_plot::patch::bar_stack(draw_area, axis_rect, group, levels, feature_group, feature_levels, feature_colors, 1.0, 0.4, 1.0);
+			custom_plot::add_round_legend(draw_area, legend_layout, feature_levels, feature_colors, feature, gs);
+			custom_plot::set_left_title(axis_rect, feature, gs, true);
+			custom_plot::patch::set_proportion_left_axis(axis_rect, gs.get_left_label_font());
+			custom_plot::patch::set_range(axis_rect, QCPRange(0, n_level + 1), QCPRange(0, 1));
+			custom_plot::add_title(draw_area, feature, gs);
 
-			_CpPatch remove_bottom_axis(axis_rect);
-			_Cp set_bottom_axis_label(
+			custom_plot::patch::remove_bottom_axis(axis_rect);
+			custom_plot::set_bottom_axis_label(
 				axis_rect,
 				Eigen::ArrayXd::LinSpaced(n_level, 1, n_level),
 				levels,
@@ -774,8 +774,8 @@ void MetadataViewWindow::subplot() {
 			return;
 		}
 
-		group = _Cs cast<QString>(group_data.di);
-		levels = _Cs cast<QString>(_Cs sorted(group_data.dil));
+		group = custom::cast<QString>(group_data.di);
+		levels = custom::cast<QString>(custom::sorted(group_data.dil));
 	}
 	else if (group_data.type == QUERY_DATA::DataType::string) {
 		if (group_data.dsl.isEmpty()) {
@@ -784,7 +784,7 @@ void MetadataViewWindow::subplot() {
 		}
 
 		group = group_data.ds;
-		levels = _Cs sorted(group_data.dsl);
+		levels = custom::sorted(group_data.dsl);
 	}
 	else {
 		G_WARN("Meeting error when querying data.");
@@ -796,29 +796,29 @@ void MetadataViewWindow::subplot() {
 	if (feature_data.type == QUERY_DATA::DataType::integer) {
 		if (feature_data.dsl.isEmpty()) {
 
-			auto [draw_area, axis_rect, legend_layout] = _Cp prepare(gs);
+			auto [draw_area, axis_rect, legend_layout] = custom_plot::prepare(gs);
 
-			_Cp set_simple_axis_no_title(axis_rect, gs);
+			custom_plot::set_simple_axis_no_title(axis_rect, gs);
 
 			if (gs.use_boxplot()) {
 				auto [imin, imax] = std::ranges::minmax(feature_data.di);
 				double min = imin;
 				double max = imax;
 
-				_CpPatch box_batch(
+				custom_plot::patch::box_batch(
 					draw_area,
 					axis_rect,
 					group,
 					levels,
 					colors,
-					_Cs cast<Eigen::ArrayX>(_Cs cast<double>(feature_data.di)),
+					custom::cast<Eigen::ArrayX>(custom::cast<double>(feature_data.di)),
 					1.0,
 					2.0,
 					gs.boxplot_draw_outlier(),
 					gs.get_scatter_point_size()
 				);
-				_CpPatch set_range(axis_rect, QCPRange(0, 2 * n_level), _CpUtility get_range(min, max));
-				_Cp set_bottom_axis_label(
+				custom_plot::patch::set_range(axis_rect, QCPRange(0, 2 * n_level), custom_plot::utility::get_range(min, max));
+				custom_plot::set_bottom_axis_label(
 					axis_rect,
 					Eigen::ArrayXd::LinSpaced(n_level, 1, 2 * n_level - 1),
 					levels,
@@ -829,29 +829,29 @@ void MetadataViewWindow::subplot() {
 			else {
 
 				if (n_level == 2 && gs.use_facet_violin_plot()) {
-					auto [min, max] = _CpPatch violin_facet(
+					auto [min, max] = custom_plot::patch::violin_facet(
 						draw_area,
 						axis_rect,
 						group,
 						levels,
 						colors,
-						_Cs cast<Eigen::ArrayX>(_Cs cast<double>(feature_data.di)),
+						custom::cast<Eigen::ArrayX>(custom::cast<double>(feature_data.di)),
 						1.0);
-					_CpPatch set_range(axis_rect, QCPRange(0, 2), _CpUtility get_range(min, max));
-					_Cp set_bottom_title(axis_rect, sub_group_feature, gs, true);
+					custom_plot::patch::set_range(axis_rect, QCPRange(0, 2), custom_plot::utility::get_range(min, max));
+					custom_plot::set_bottom_title(axis_rect, sub_group_feature, gs, true);
 				}
 				else {
-					auto [min, max] = _CpPatch violin_batch(
+					auto [min, max] = custom_plot::patch::violin_batch(
 						draw_area,
 						axis_rect,
 						group,
 						levels,
 						colors,
-						_Cs cast<Eigen::ArrayX>(_Cs cast<double>(feature_data.di)),
+						custom::cast<Eigen::ArrayX>(custom::cast<double>(feature_data.di)),
 						1.0,
 						2.0);
-					_CpPatch set_range(axis_rect, QCPRange(0, 2 * n_level), _CpUtility get_range(min, max));
-					_Cp set_bottom_axis_label(
+					custom_plot::patch::set_range(axis_rect, QCPRange(0, 2 * n_level), custom_plot::utility::get_range(min, max));
+					custom_plot::set_bottom_axis_label(
 						axis_rect,
 						Eigen::ArrayXd::LinSpaced(n_level, 1, 2 * n_level - 1),
 						levels,
@@ -861,34 +861,34 @@ void MetadataViewWindow::subplot() {
 				}
 			}
 
-			_Cp add_round_legend(draw_area, legend_layout, levels, colors, sub_group_feature, gs);
-			_Cp set_left_title(axis_rect, feature, gs, true);
-			_Cp add_title(draw_area, feature, gs);
+			custom_plot::add_round_legend(draw_area, legend_layout, levels, colors, sub_group_feature, gs);
+			custom_plot::set_left_title(axis_rect, feature, gs, true);
+			custom_plot::add_title(draw_area, feature, gs);
 
 			this->draw_suite_->update(draw_area);
 		}
 		else {
 
-			QStringList feature_group = _Cs cast<QString>(feature_data.di);
-			QStringList feature_levels = _Cs cast<QString>(_Cs sorted(feature_data.dil));
+			QStringList feature_group = custom::cast<QString>(feature_data.di);
+			QStringList feature_levels = custom::cast<QString>(custom::sorted(feature_data.dil));
 
 			auto feature_colors = gs.palette(feature_levels);
 
-			auto [draw_area, axis_rect, legend_layout] = _Cp prepare(gs);
-			_CpPatch bar_stack(draw_area, axis_rect, group, levels, feature_group, feature_levels, feature_colors, 1.0, 0.4, 1.0);
-			_CpPatch set_proportion_left_axis(axis_rect, gs.get_left_label_font());
-			_Cp set_bottom_axis_label(
+			auto [draw_area, axis_rect, legend_layout] = custom_plot::prepare(gs);
+			custom_plot::patch::bar_stack(draw_area, axis_rect, group, levels, feature_group, feature_levels, feature_colors, 1.0, 0.4, 1.0);
+			custom_plot::patch::set_proportion_left_axis(axis_rect, gs.get_left_label_font());
+			custom_plot::set_bottom_axis_label(
 				axis_rect,
 				Eigen::ArrayXd::LinSpaced(n_level, 1, n_level),
 				levels,
 				6,
 				gs
 			);
-			_Cp add_round_legend(draw_area, legend_layout, feature_levels, feature_colors, feature, gs);
-			_Cp set_left_title(axis_rect, feature, gs, true);
-			_CpPatch set_range(axis_rect, QCPRange(0, n_level + 1), QCPRange(0, 1));
-			_Cp add_title(draw_area, feature, gs);
-			_CpPatch remove_bottom_axis(axis_rect);
+			custom_plot::add_round_legend(draw_area, legend_layout, feature_levels, feature_colors, feature, gs);
+			custom_plot::set_left_title(axis_rect, feature, gs, true);
+			custom_plot::patch::set_range(axis_rect, QCPRange(0, n_level + 1), QCPRange(0, 1));
+			custom_plot::add_title(draw_area, feature, gs);
+			custom_plot::patch::remove_bottom_axis(axis_rect);
 			axis_rect->axis(QCPAxis::atLeft)->grid()->setVisible(false);
 			this->draw_suite_->update(draw_area);
 		}
@@ -896,27 +896,27 @@ void MetadataViewWindow::subplot() {
 
 	if (feature_data.type == QUERY_DATA::DataType::numeric) {
 
-		auto [draw_area, axis_rect, legend_layout] = _Cp prepare(gs);
+		auto [draw_area, axis_rect, legend_layout] = custom_plot::prepare(gs);
 
-		_Cp set_simple_axis_no_title(axis_rect, gs);
+		custom_plot::set_simple_axis_no_title(axis_rect, gs);
 
 		if (gs.use_boxplot()) {
 			auto [min, max] = std::ranges::minmax(feature_data.dd);
 
-			_CpPatch box_batch(
+			custom_plot::patch::box_batch(
 				draw_area,
 				axis_rect,
 				group,
 				levels,
 				colors,
-				_Cs cast<Eigen::ArrayX>(feature_data.dd),
+				custom::cast<Eigen::ArrayX>(feature_data.dd),
 				1.0,
 				2.0,
 				gs.boxplot_draw_outlier(),
 				gs.get_scatter_point_size()
 			);
-			_CpPatch set_range(axis_rect, QCPRange(0, 2 * n_level), _CpUtility get_range(min, max));
-			_Cp set_bottom_axis_label(
+			custom_plot::patch::set_range(axis_rect, QCPRange(0, 2 * n_level), custom_plot::utility::get_range(min, max));
+			custom_plot::set_bottom_axis_label(
 				axis_rect,
 				Eigen::ArrayXd::LinSpaced(n_level, 1, 2 * n_level - 1),
 				levels,
@@ -927,30 +927,30 @@ void MetadataViewWindow::subplot() {
 		else {
 
 			if (n_level == 2 && gs.use_facet_violin_plot()) {
-				auto [min, max] = _CpPatch violin_facet(
+				auto [min, max] = custom_plot::patch::violin_facet(
 					draw_area,
 					axis_rect,
 					group,
 					levels,
 					colors,
-					_Cs cast<Eigen::ArrayX>(feature_data.dd),
+					custom::cast<Eigen::ArrayX>(feature_data.dd),
 					1.0);
-				_CpPatch set_range(axis_rect, QCPRange(0, 2), _CpUtility get_range(min, max));
-				_Cp set_bottom_title(axis_rect, sub_group_feature, gs, true);
+				custom_plot::patch::set_range(axis_rect, QCPRange(0, 2), custom_plot::utility::get_range(min, max));
+				custom_plot::set_bottom_title(axis_rect, sub_group_feature, gs, true);
 			}
 			else {
 
-				auto [min, max] = _CpPatch violin_batch(
+				auto [min, max] = custom_plot::patch::violin_batch(
 					draw_area,
 					axis_rect,
 					group,
 					levels,
 					colors,
-					_Cs cast<Eigen::ArrayX>(feature_data.dd),
+					custom::cast<Eigen::ArrayX>(feature_data.dd),
 					1.0,
 					2.0);
-				_CpPatch set_range(axis_rect, QCPRange(0, 2 * n_level), _CpUtility get_range(min, max));
-				_Cp set_bottom_axis_label(
+				custom_plot::patch::set_range(axis_rect, QCPRange(0, 2 * n_level), custom_plot::utility::get_range(min, max));
+				custom_plot::set_bottom_axis_label(
 					axis_rect,
 					Eigen::ArrayXd::LinSpaced(n_level, 1, 2 * n_level - 1),
 					levels,
@@ -960,9 +960,9 @@ void MetadataViewWindow::subplot() {
 			}
 		}
 
-		_Cp add_round_legend(draw_area, legend_layout, levels, colors, sub_group_feature, gs);
-		_Cp set_left_title(axis_rect, feature, gs, true);
-		_Cp add_title(draw_area, feature, gs);
+		custom_plot::add_round_legend(draw_area, legend_layout, levels, colors, sub_group_feature, gs);
+		custom_plot::set_left_title(axis_rect, feature, gs, true);
+		custom_plot::add_title(draw_area, feature, gs);
 
 		this->draw_suite_->update(draw_area);
 	}
@@ -970,25 +970,25 @@ void MetadataViewWindow::subplot() {
 	if (feature_data.type == QUERY_DATA::DataType::string) {
 		if (!feature_data.dsl.isEmpty()) {
 			QStringList feature_group = feature_data.ds;
-			QStringList feature_levels = _Cs sorted(feature_data.dsl);
+			QStringList feature_levels = custom::sorted(feature_data.dsl);
 
 			auto feature_colors = gs.palette(feature_levels);
 
-			auto [draw_area, axis_rect, legend_layout] = _Cp prepare(gs);
-			_CpPatch bar_stack(draw_area, axis_rect, group, levels, feature_group, feature_levels, feature_colors, 1.0, 0.4, 1.0);
-			_CpPatch set_proportion_left_axis(axis_rect, gs.get_left_label_font());
-			_Cp set_bottom_axis_label(
+			auto [draw_area, axis_rect, legend_layout] = custom_plot::prepare(gs);
+			custom_plot::patch::bar_stack(draw_area, axis_rect, group, levels, feature_group, feature_levels, feature_colors, 1.0, 0.4, 1.0);
+			custom_plot::patch::set_proportion_left_axis(axis_rect, gs.get_left_label_font());
+			custom_plot::set_bottom_axis_label(
 				axis_rect,
 				Eigen::ArrayXd::LinSpaced(n_level, 1, n_level),
 				levels,
 				6,
 				gs
 			);
-			_Cp add_round_legend(draw_area, legend_layout, feature_levels, feature_colors, feature, gs);
-			_Cp set_left_title(axis_rect, feature, gs, true);
-			_CpPatch set_range(axis_rect, QCPRange(0, n_level + 1), QCPRange(0, 1));
-			_Cp add_title(draw_area, feature, gs);
-			_CpPatch remove_bottom_axis(axis_rect);
+			custom_plot::add_round_legend(draw_area, legend_layout, feature_levels, feature_colors, feature, gs);
+			custom_plot::set_left_title(axis_rect, feature, gs, true);
+			custom_plot::patch::set_range(axis_rect, QCPRange(0, n_level + 1), QCPRange(0, 1));
+			custom_plot::add_title(draw_area, feature, gs);
+			custom_plot::patch::remove_bottom_axis(axis_rect);
 			axis_rect->axis(QCPAxis::atLeft)->grid()->setVisible(false);
 			this->draw_suite_->update(draw_area);
 		}
@@ -1030,8 +1030,8 @@ void MetadataViewWindow::plot() {
 			return;
 		}
 
-		main_group = _Cs cast<QString>(main_group_data.di);
-		main_levels = _Cs cast<QString>(_Cs sorted(main_group_data.dil));
+		main_group = custom::cast<QString>(main_group_data.di);
+		main_levels = custom::cast<QString>(custom::sorted(main_group_data.dil));
 	}
 	else if (main_group_data.type == QUERY_DATA::DataType::string) {
 		if (main_group_data.dsl.isEmpty()) {
@@ -1040,7 +1040,7 @@ void MetadataViewWindow::plot() {
 		}
 
 		main_group = main_group_data.ds;
-		main_levels = _Cs sorted(main_group_data.dsl);
+		main_levels = custom::sorted(main_group_data.dsl);
 	}
 	else {
 		G_WARN("Meeting error when querying data.");
@@ -1056,8 +1056,8 @@ void MetadataViewWindow::plot() {
 			return;
 		}
 
-		sub_group = _Cs cast<QString>(sub_group_data.di);
-		sub_levels = _Cs cast<QString>(_Cs sorted(sub_group_data.dil));
+		sub_group = custom::cast<QString>(sub_group_data.di);
+		sub_levels = custom::cast<QString>(custom::sorted(sub_group_data.dil));
 	}
 	else if (sub_group_data.type == QUERY_DATA::DataType::string) {
 		if (sub_group_data.dsl.isEmpty()) {
@@ -1066,7 +1066,7 @@ void MetadataViewWindow::plot() {
 		}
 
 		sub_group = sub_group_data.ds;
-		sub_levels = _Cs sorted(sub_group_data.dsl);
+		sub_levels = custom::sorted(sub_group_data.dsl);
 	}
 	else {
 		G_WARN("Meeting error when querying data.");
@@ -1081,26 +1081,26 @@ void MetadataViewWindow::plot() {
 	if (feature_data.type == QUERY_DATA::DataType::integer) {
 		if (feature_data.dsl.isEmpty()) {
 
-			auto [draw_area, axis_rect, legend_layout] = _Cp prepare(gs);
+			auto [draw_area, axis_rect, legend_layout] = custom_plot::prepare(gs);
 
-			_Cp set_simple_axis_no_title(axis_rect, gs);
+			custom_plot::set_simple_axis_no_title(axis_rect, gs);
 
-			Eigen::ArrayXd data = _Cs cast<Eigen::ArrayX>(_Cs cast<double>(feature_data.di));
+			Eigen::ArrayXd data = custom::cast<Eigen::ArrayX>(custom::cast<double>(feature_data.di));
 
 			auto [min, max] = std::ranges::minmax(data);
 
 			for (int i = 0; i < n_main_level; ++i) {
 				QString level = main_levels[i];
-				auto filter = _Cs equal(main_group, level);
+				auto filter = custom::equal(main_group, level);
 				if (filter.count() == 0) {
 					continue;
 				}
-				auto sub_feature_data = _Cs sliced(data, filter);
-				auto sub_sub_data = _Cs sliced(sub_group, filter);
+				auto sub_feature_data = custom::sliced(data, filter);
+				auto sub_sub_data = custom::sliced(sub_group, filter);
 
 				if (gs.use_boxplot()) {
 
-					_CpPatch box_batch(
+					custom_plot::patch::box_batch(
 						draw_area,
 						axis_rect,
 						sub_sub_data,
@@ -1117,7 +1117,7 @@ void MetadataViewWindow::plot() {
 
 
 					if (n_sub_level == 2 && gs.use_facet_violin_plot()) {
-						auto [sub_min, sub_max] = _CpPatch violin_facet(
+						auto [sub_min, sub_max] = custom_plot::patch::violin_facet(
 							draw_area,
 							axis_rect,
 							sub_sub_data,
@@ -1135,7 +1135,7 @@ void MetadataViewWindow::plot() {
 						}
 					}
 					else {
-						auto [sub_min, sub_max] = _CpPatch violin_batch(
+						auto [sub_min, sub_max] = custom_plot::patch::violin_batch(
 							draw_area,
 							axis_rect,
 							sub_sub_data,
@@ -1157,8 +1157,8 @@ void MetadataViewWindow::plot() {
 			}
 			
 			if (gs.use_boxplot()) {
-				_CpPatch set_range(axis_rect, QCPRange(0, n_main_level* (n_sub_level * 2 + 1) - 1), _CpUtility get_range(min, max));
-				_Cp set_bottom_axis_label(
+				custom_plot::patch::set_range(axis_rect, QCPRange(0, n_main_level* (n_sub_level * 2 + 1) - 1), custom_plot::utility::get_range(min, max));
+				custom_plot::set_bottom_axis_label(
 					axis_rect,
 					Eigen::ArrayXd::LinSpaced(n_main_level, n_sub_level, n_main_level* (n_sub_level * 2 + 1) - 1 - n_sub_level),
 					main_levels,
@@ -1168,8 +1168,8 @@ void MetadataViewWindow::plot() {
 			}
 			else {
 				if (n_sub_level == 2 && gs.use_facet_violin_plot()) {
-					_CpPatch set_range(axis_rect, QCPRange(0, n_main_level * 2), _CpUtility get_range(min, max));
-					_Cp set_bottom_axis_label(
+					custom_plot::patch::set_range(axis_rect, QCPRange(0, n_main_level * 2), custom_plot::utility::get_range(min, max));
+					custom_plot::set_bottom_axis_label(
 						axis_rect,
 						Eigen::ArrayXd::LinSpaced(n_main_level, 1, 2 * n_main_level - 1),
 						main_levels,
@@ -1178,8 +1178,8 @@ void MetadataViewWindow::plot() {
 					);
 				}
 				else {
-					_CpPatch set_range(axis_rect, QCPRange(0, n_main_level * (n_sub_level * 2 + 1) - 1), _CpUtility get_range(min, max));
-					_Cp set_bottom_axis_label(
+					custom_plot::patch::set_range(axis_rect, QCPRange(0, n_main_level * (n_sub_level * 2 + 1) - 1), custom_plot::utility::get_range(min, max));
+					custom_plot::set_bottom_axis_label(
 						axis_rect,
 						Eigen::ArrayXd::LinSpaced(n_main_level, n_sub_level, n_main_level * (n_sub_level * 2 + 1) - 1 - n_sub_level),
 						main_levels,
@@ -1189,30 +1189,30 @@ void MetadataViewWindow::plot() {
 				}
 			}
 
-			_Cp add_round_legend(draw_area, legend_layout, sub_levels, sub_colors, sub_group_feature, gs);
-			_Cp set_left_title(axis_rect, feature, gs, true);
-			_Cp add_title(draw_area, feature, gs);
+			custom_plot::add_round_legend(draw_area, legend_layout, sub_levels, sub_colors, sub_group_feature, gs);
+			custom_plot::set_left_title(axis_rect, feature, gs, true);
+			custom_plot::add_title(draw_area, feature, gs);
 
 			this->draw_suite_->update(draw_area);
 		}
 		else {
 
-			QStringList data = _Cs cast<QString>(feature_data.di);
-			QStringList feature_levels = _Cs cast<QString>(_Cs sorted(feature_data.dil));
+			QStringList data = custom::cast<QString>(feature_data.di);
+			QStringList feature_levels = custom::cast<QString>(custom::sorted(feature_data.dil));
 
 			auto feature_colors = gs.palette(feature_levels);
 
-			auto [draw_area, axis_rect, legend_layout] = _Cp prepare(gs);
+			auto [draw_area, axis_rect, legend_layout] = custom_plot::prepare(gs);
 
 			for (int i = 0; i < n_main_level; ++i) {
 				QString level = main_levels[i];
-				auto filter = _Cs equal(main_group, level);
+				auto filter = custom::equal(main_group, level);
 				if (filter.count() == 0) {
 					continue;
 				}
-				auto sub_feature_data = _Cs sliced(data, filter);
-				auto sub_sub_data = _Cs sliced(sub_group, filter);
-				_CpPatch bar_stack(
+				auto sub_feature_data = custom::sliced(data, filter);
+				auto sub_sub_data = custom::sliced(sub_group, filter);
+				custom_plot::patch::bar_stack(
 					draw_area, 
 					axis_rect, 
 					sub_sub_data, 
@@ -1226,13 +1226,13 @@ void MetadataViewWindow::plot() {
 				);
 			}
 
-			_Cp add_round_legend(draw_area, legend_layout, feature_levels, feature_colors, feature, gs);
-			_Cp set_left_title(axis_rect, feature, gs, true);
-			_CpPatch set_range(axis_rect, QCPRange(0, n_main_level * (n_sub_level + 1)), QCPRange(0, 1));
-			_Cp add_title(draw_area, feature, gs);
-			_CpPatch set_proportion_left_axis(axis_rect, gs.get_left_label_font());
-			_CpPatch remove_bottom_axis(axis_rect);
-			_Cp set_bottom_axis_label(
+			custom_plot::add_round_legend(draw_area, legend_layout, feature_levels, feature_colors, feature, gs);
+			custom_plot::set_left_title(axis_rect, feature, gs, true);
+			custom_plot::patch::set_range(axis_rect, QCPRange(0, n_main_level * (n_sub_level + 1)), QCPRange(0, 1));
+			custom_plot::add_title(draw_area, feature, gs);
+			custom_plot::patch::set_proportion_left_axis(axis_rect, gs.get_left_label_font());
+			custom_plot::patch::remove_bottom_axis(axis_rect);
+			custom_plot::set_bottom_axis_label(
 				axis_rect,
 				Eigen::ArrayXd::LinSpaced(n_main_level, (n_sub_level + 1) / 2., n_main_level * (n_sub_level + 1) - (n_sub_level + 1) / 2.),
 				main_levels,
@@ -1246,11 +1246,11 @@ void MetadataViewWindow::plot() {
 
 	if (feature_data.type == QUERY_DATA::DataType::numeric) {
 
-		auto [draw_area, axis_rect, legend_layout] = _Cp prepare(gs);
+		auto [draw_area, axis_rect, legend_layout] = custom_plot::prepare(gs);
 
-		_Cp set_simple_axis_no_title(axis_rect, gs);
+		custom_plot::set_simple_axis_no_title(axis_rect, gs);
 
-		Eigen::ArrayXd data = _Cs cast<Eigen::ArrayX>(feature_data.dd);
+		Eigen::ArrayXd data = custom::cast<Eigen::ArrayX>(feature_data.dd);
 
 		auto [min, max] = std::ranges::minmax(data);
 		
@@ -1258,16 +1258,16 @@ void MetadataViewWindow::plot() {
 
 		for (int i = 0; i < n_main_level; ++i) {
 			QString level = main_levels[i];
-			auto filter = _Cs equal(main_group, level);
+			auto filter = custom::equal(main_group, level);
 			if (filter.count() == 0) {
 				continue;
 			}
-			auto sub_feature_data = _Cs sliced(data, filter);
-			auto sub_sub_data = _Cs sliced(sub_group, filter);
+			auto sub_feature_data = custom::sliced(data, filter);
+			auto sub_sub_data = custom::sliced(sub_group, filter);
 
 			if (gs.use_boxplot()) {
 
-				_CpPatch box_batch(
+				custom_plot::patch::box_batch(
 					draw_area,
 					axis_rect,
 					sub_sub_data,
@@ -1283,7 +1283,7 @@ void MetadataViewWindow::plot() {
 			else {
 
 				if (n_sub_level == 2 && gs.use_facet_violin_plot()) {
-					auto [sub_min, sub_max] = _CpPatch violin_facet(
+					auto [sub_min, sub_max] = custom_plot::patch::violin_facet(
 						draw_area,
 						axis_rect,
 						sub_sub_data,
@@ -1301,7 +1301,7 @@ void MetadataViewWindow::plot() {
 					}
 				}
 				else {
-					auto [sub_min, sub_max] = _CpPatch violin_batch(
+					auto [sub_min, sub_max] = custom_plot::patch::violin_batch(
 						draw_area,
 						axis_rect,
 						sub_sub_data,
@@ -1324,8 +1324,8 @@ void MetadataViewWindow::plot() {
 
 		if (gs.use_boxplot()) {
 
-			_CpPatch set_range(axis_rect, QCPRange(0, n_main_level* (n_sub_level * 2 + 1) - 1), _CpUtility get_range(min, max));
-			_Cp set_bottom_axis_label(
+			custom_plot::patch::set_range(axis_rect, QCPRange(0, n_main_level* (n_sub_level * 2 + 1) - 1), custom_plot::utility::get_range(min, max));
+			custom_plot::set_bottom_axis_label(
 				axis_rect,
 				Eigen::ArrayXd::LinSpaced(n_main_level, n_sub_level, n_main_level* (n_sub_level * 2 + 1) - 1 - n_sub_level),
 				main_levels,
@@ -1335,8 +1335,8 @@ void MetadataViewWindow::plot() {
 		}
 		else {
 			if (n_sub_level == 2 && gs.use_facet_violin_plot()) {
-				_CpPatch set_range(axis_rect, QCPRange(0, n_main_level * 2), _CpUtility get_range(min, max));
-				_Cp set_bottom_axis_label(
+				custom_plot::patch::set_range(axis_rect, QCPRange(0, n_main_level * 2), custom_plot::utility::get_range(min, max));
+				custom_plot::set_bottom_axis_label(
 					axis_rect,
 					Eigen::ArrayXd::LinSpaced(n_main_level, 1, 2 * n_main_level - 1),
 					main_levels,
@@ -1345,8 +1345,8 @@ void MetadataViewWindow::plot() {
 				);
 			}
 			else {
-				_CpPatch set_range(axis_rect, QCPRange(0, n_main_level * (n_sub_level * 2 + 1) - 1), _CpUtility get_range(min, max));
-				_Cp set_bottom_axis_label(
+				custom_plot::patch::set_range(axis_rect, QCPRange(0, n_main_level * (n_sub_level * 2 + 1) - 1), custom_plot::utility::get_range(min, max));
+				custom_plot::set_bottom_axis_label(
 					axis_rect,
 					Eigen::ArrayXd::LinSpaced(n_main_level, n_sub_level, n_main_level * (n_sub_level * 2 + 1) - 1 - n_sub_level),
 					main_levels,
@@ -1356,9 +1356,9 @@ void MetadataViewWindow::plot() {
 			}
 		}
 
-		_Cp add_round_legend(draw_area, legend_layout, sub_levels, colors, sub_group_feature, gs);
-		_Cp set_left_title(axis_rect, feature, gs, true);
-		_Cp add_title(draw_area, feature, gs);
+		custom_plot::add_round_legend(draw_area, legend_layout, sub_levels, colors, sub_group_feature, gs);
+		custom_plot::set_left_title(axis_rect, feature, gs, true);
+		custom_plot::add_title(draw_area, feature, gs);
 
 		this->draw_suite_->update(draw_area);
 	}
@@ -1367,22 +1367,22 @@ void MetadataViewWindow::plot() {
 		if (!feature_data.dsl.isEmpty()) {
 
 			QStringList data = feature_data.ds;
-			QStringList feature_levels = _Cs sorted(feature_data.dsl);
+			QStringList feature_levels = custom::sorted(feature_data.dsl);
 
 			int n_feature_level = feature_levels.size();
 			auto feature_colors = gs.palette(feature_levels);
 
-			auto [draw_area, axis_rect, legend_layout] = _Cp prepare(gs);
+			auto [draw_area, axis_rect, legend_layout] = custom_plot::prepare(gs);
 
 			for (int i = 0; i < n_main_level; ++i) {
 				QString level = main_levels[i];
-				auto filter = _Cs equal(main_group, level);
+				auto filter = custom::equal(main_group, level);
 				if (filter.count() == 0) {
 					continue;
 				}
-				auto sub_feature_data = _Cs sliced(data, filter);
-				auto sub_sub_data = _Cs sliced(sub_group, filter);
-				_CpPatch bar_stack(
+				auto sub_feature_data = custom::sliced(data, filter);
+				auto sub_sub_data = custom::sliced(sub_group, filter);
+				custom_plot::patch::bar_stack(
 					draw_area,
 					axis_rect,
 					sub_sub_data,
@@ -1396,13 +1396,13 @@ void MetadataViewWindow::plot() {
 				);
 			}
 
-			_Cp add_round_legend(draw_area, legend_layout, feature_levels, feature_colors, feature, gs);
-			_Cp set_left_title(axis_rect, feature, gs, true);
-			_CpPatch set_range(axis_rect, QCPRange(0, n_main_level * (n_sub_level + 1)), QCPRange(0, 1));
-			_Cp add_title(draw_area, feature, gs);
-			_CpPatch set_proportion_left_axis(axis_rect, gs.get_left_label_font());
-			_CpPatch remove_bottom_axis(axis_rect);
-			_Cp set_bottom_axis_label(
+			custom_plot::add_round_legend(draw_area, legend_layout, feature_levels, feature_colors, feature, gs);
+			custom_plot::set_left_title(axis_rect, feature, gs, true);
+			custom_plot::patch::set_range(axis_rect, QCPRange(0, n_main_level * (n_sub_level + 1)), QCPRange(0, 1));
+			custom_plot::add_title(draw_area, feature, gs);
+			custom_plot::patch::set_proportion_left_axis(axis_rect, gs.get_left_label_font());
+			custom_plot::patch::remove_bottom_axis(axis_rect);
+			custom_plot::set_bottom_axis_label(
 				axis_rect,
 				Eigen::ArrayXd::LinSpaced(n_main_level, (n_sub_level + 1) / 2., n_main_level * (n_sub_level + 1) - (n_sub_level + 1) / 2.),
 				main_levels,

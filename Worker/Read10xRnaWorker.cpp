@@ -20,7 +20,7 @@ bool Read10XRnaWorker::read_barcodes() {
 
 	while ((gzgets(barcodes, buffer, 256)) != 0)
 	{
-		this->barcodes_ << QString::fromUtf8(buffer, _Cs line_length(buffer));
+		this->barcodes_ << QString::fromUtf8(buffer, custom::line_length(buffer));
 	}
 	gzclose(barcodes);
 
@@ -97,9 +97,9 @@ bool Read10XRnaWorker::read_matrix() {
 
 	const char* c = buffer;
 
-	int n_row = _Cs atoi_specialized(&c);
-	int n_column = _Cs atoi_specialized(&c);
-	int n_counts = _Cs atoi_specialized(&c);
+	int n_row = custom::atoi_specialized(&c);
+	int n_column = custom::atoi_specialized(&c);
+	int n_counts = custom::atoi_specialized(&c);
 
 	if (n_row != this->gene_symbols_.size() || n_column != this->barcodes_.length()) {
 		return false;
@@ -116,9 +116,9 @@ bool Read10XRnaWorker::read_matrix() {
 	for (int i = 0; i < n_counts; ++i) {
 		gzgets(matrix, buffer, 256);
 		c = buffer;
-		data[3 * i] = _Cs atoi_specialized(&c) - 1;
-		data[3 * i + 1] = _Cs atoi_specialized(&c) - 1;
-		data[3 * i + 2] = _Cs atoi_specialized(&c);
+		data[3 * i] = custom::atoi_specialized(&c) - 1;
+		data[3 * i + 1] = custom::atoi_specialized(&c) - 1;
+		data[3 * i + 2] = custom::atoi_specialized(&c);
 		++wi(data[3 * i]);
 	}
 
@@ -131,8 +131,8 @@ bool Read10XRnaWorker::read_matrix() {
 	trmat.collapseDuplicates(Eigen::internal::scalar_sum_op<int, int>());
 
 	counts.mat_ = trmat;
-	counts.rownames_ = _Cs make_unique(this->gene_symbols_);
-	counts.colnames_ = _Cs make_unique(this->barcodes_);
+	counts.rownames_ = custom::make_unique(this->gene_symbols_);
+	counts.colnames_ = custom::make_unique(this->barcodes_);
 	delete[] buffer;
 
 	return true;
@@ -141,10 +141,10 @@ bool Read10XRnaWorker::read_matrix() {
 void Read10XRnaWorker::calculate_metadata() {
 	SparseInt& counts = SUBMODULES(*this->single_cell_rna_, SparseInt)[VARIABLE_COUNTS];
 	
-	Eigen::ArrayX<bool> gene_detected = _Cs row_sum(counts.mat_) > 0;
+	Eigen::ArrayX<bool> gene_detected = custom::row_sum(counts.mat_) > 0;
 	counts.row_slice(gene_detected);
 
-	Eigen::ArrayXi col_count = _Cs col_sum_mt(counts.mat_);
+	Eigen::ArrayXi col_count = custom::col_sum_mt(counts.mat_);
 	const int ncol = counts.mat_.cols();
 	Eigen::ArrayXi col_gene(ncol);
 	Eigen::ArrayXd mitochondrial_content = Eigen::ArrayXd::Zero(ncol);
@@ -194,15 +194,15 @@ void Read10XRnaWorker::calculate_metadata() {
 		ribosomal_content /= col_count.cast<double>();
 	}
 
-	_Cs remove_na(mitochondrial_content);
-	_Cs remove_na(ribosomal_content);
+	custom::remove_na(mitochondrial_content);
+	custom::remove_na(ribosomal_content);
 
 	Metadata& metadata = SUBMODULES(*this->single_cell_rna_, Metadata)[VARIABLE_METADATA];
 	metadata.mat_.set_rownames(counts.colnames_);
 	metadata.mat_.update(METADATA_RNA_UMI_NUMBER, QVector<int>(col_count.begin(), col_count.end()));
 	metadata.mat_.update(METADATA_RNA_UNIQUE_GENE_NUMBER, QVector<int>(col_gene.begin(), col_gene.end()));
-	metadata.mat_.update(METADATA_RNA_MITOCHONDRIAL_CONTENT, _Cs cast<QVector>(mitochondrial_content));
-	metadata.mat_.update(METADATA_RNA_RIBOSOMAL_CONTENT, _Cs cast<QVector>(ribosomal_content)); 
+	metadata.mat_.update(METADATA_RNA_MITOCHONDRIAL_CONTENT, custom::cast<QVector>(mitochondrial_content));
+	metadata.mat_.update(METADATA_RNA_RIBOSOMAL_CONTENT, custom::cast<QVector>(ribosomal_content)); 
 	metadata.mat_.update(METADATA_BARCODES, this->barcodes_);
 };
 

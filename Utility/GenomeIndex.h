@@ -148,13 +148,13 @@ void GenomeIndex<Mode>::reorganize() {
 
 		auto&& [start, end, id] = seq_index;
 
-		auto order = _Cs order(start);
+		auto order = custom::order(start);
 
-		start = _Cs reordered(start, order);
-		end = _Cs reordered(end, order);
+		start = custom::reordered(start, order);
+		end = custom::reordered(end, order);
 
 		if (!id.empty()) {
-			id = _Cs reordered(id, order);
+			id = custom::reordered(id, order);
 		}
 	}
 
@@ -162,12 +162,12 @@ void GenomeIndex<Mode>::reorganize() {
 
 		auto&& [start, end, id] = seq_index;
 
-		auto order = _Cs order(start);
+		auto order = custom::order(start);
 
-		start = _Cs reordered(start, order);
-		end = _Cs reordered(end, order);
+		start = custom::reordered(start, order);
+		end = custom::reordered(end, order);
 		if (!id.empty()) {
-			id = _Cs reordered(id, order);
+			id = custom::reordered(id, order);
 		}
 
 	}
@@ -641,7 +641,7 @@ void GenomeIndex<Mode>::set(const QStringList& names)
 	this->clear();
 
 	for (const auto& peak_name : names) {
-		auto [sequence_name, start, end, success] = _Cs string_to_peak(peak_name);
+		auto [sequence_name, start, end, success] = custom::string_to_peak(peak_name);
 		if (success) {
 			this->major_index_[sequence_name].append(start, end);
 		}

@@ -16,25 +16,25 @@ public:
 		Metadata(Mat&& df) : mat_(std::forward<Mat>(df)) {}
 
 	template <typename SliceType>
-		requires _Cs is_slice_container<SliceType>
+		requires custom::is_slice_container<SliceType>
 	void row_slice(const SliceType& slice) {
 		this->mat_.row_slice(slice);
 	}
 
 	template <typename SliceType>
-		requires _Cs is_slice_container<SliceType>
+		requires custom::is_slice_container<SliceType>
 	[[nodiscard]] Metadata row_sliced(const SliceType& slice) const {
 		return Metadata(this->mat_.row_sliced(slice));
 	}
 
 	template <typename OrderType>
-		requires _Cs is_order_container<OrderType>
+		requires custom::is_order_container<OrderType>
 	void row_reorder(const OrderType& order) {
 		this->mat_.row_reorder(order);
 	}
 
 	template <typename OrderType>
-		requires _Cs is_order_container<OrderType>
+		requires custom::is_order_container<OrderType>
 	[[nodiscard]] Metadata row_reordered(const OrderType& order) const {
 		return Metadata(this->mat_.row_reorder(order));
 	}

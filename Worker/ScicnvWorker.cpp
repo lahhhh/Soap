@@ -5,7 +5,7 @@
 #include "Custom.h"
 
 bool ScicnvWorker::filter_data() {
-	Eigen::ArrayX<bool> filter = _Cs row_count<double, true, false>(this->mat_.mat_, 0).cast<double>() > (2. / this->n_cell_);
+	Eigen::ArrayX<bool> filter = custom::row_count<double, true, false>(this->mat_.mat_, 0).cast<double>() > (2. / this->n_cell_);
 	this->mat_.row_slice(filter);
 
 	return this->mat_.rows() > 0;
@@ -33,22 +33,22 @@ bool ScicnvWorker::sort_expression_by_chromosome() {
 
 	QStringList gene_list = gene_location->get_qstring("Column 1");
 	QStringList chromosome_list = gene_location->get_qstring("Column 2");
-	std::ranges::for_each(chromosome_list, [](auto&& t) {t = _Cs standardize_chromosome_name(t); });
+	std::ranges::for_each(chromosome_list, [](auto&& t) {t = custom::standardize_chromosome_name(t); });
 
-	QStringList unique_chromosome = _Cs unique(chromosome_list);	
+	QStringList unique_chromosome = custom::unique(chromosome_list);	
 
 	if (this->species_ == soap::Species::Human) {
-		unique_chromosome = _Cs sliced(soap::HumanChromosomeOrder, _Cs in(soap::HumanChromosomeOrder, unique_chromosome));
+		unique_chromosome = custom::sliced(soap::HumanChromosomeOrder, custom::in(soap::HumanChromosomeOrder, unique_chromosome));
 	}
 	else if (this->species_ == soap::Species::Mouse) {
-		unique_chromosome = _Cs sliced(soap::MouseChromosomeOrder, _Cs in(soap::MouseChromosomeOrder, unique_chromosome));
+		unique_chromosome = custom::sliced(soap::MouseChromosomeOrder, custom::in(soap::MouseChromosomeOrder, unique_chromosome));
 	}
 
 	QVector<int> gene_index;
 
 	for (const auto& chr : unique_chromosome) {
-		QStringList chr_gene_list = _Cs sliced(gene_list, _Cs equal(chromosome_list, chr));
-		auto chr_gene_index = _Cs valid_index_of(chr_gene_list, this->mat_.rownames_);
+		QStringList chr_gene_list = custom::sliced(gene_list, custom::equal(chromosome_list, chr));
+		auto chr_gene_index = custom::valid_index_of(chr_gene_list, this->mat_.rownames_);
 		int n_gene = chr_gene_index.size();
 
 		if (n_gene > 20) {
@@ -74,10 +74,10 @@ bool ScicnvWorker::sort_expression_by_chromosome() {
 void ScicnvWorker::compute_reference() {
 
 	if (this->reference_.isEmpty()) {
-		this->reference_expression_ = _Cs row_mean(this->mat_.mat_);
+		this->reference_expression_ = custom::row_mean(this->mat_.mat_);
 	}
 	else {
-		this->reference_expression_ = _Cs col_sliced_row_mean(this->mat_.mat_, _Cs in(this->metadata_, this->reference_));
+		this->reference_expression_ = custom::col_sliced_row_mean(this->mat_.mat_, custom::in(this->metadata_, this->reference_));
 	}
 };
 
@@ -124,7 +124,7 @@ void ScicnvWorker::compute_moving_average(bool sharp) {
 			int gene_end = j + half_width < end ? j + half_width : end;
 
 			if (j == start) {
-				col_sum = _Cs row_reorder_and_column_sum(this->mat_.mat_, _Cs seq_n(gene_start, gene_end - gene_start));
+				col_sum = custom::row_reorder_and_column_sum(this->mat_.mat_, custom::seq_n(gene_start, gene_end - gene_start));
 			}
 			else {
 				if (j - half_width > start) {
@@ -166,7 +166,7 @@ void ScicnvWorker::compute_W() {
 #pragma omp parallel for
 	for(int i = 0; i < this->n_cell_; ++i){
 		Eigen::ArrayXd w = (this->moving_average_.col(i) - this->reference_moving_average_) / (this->moving_average_.col(i) + this->reference_moving_average_ + 0.00001);
-		w -= _Cs median(w);
+		w -= custom::median(w);
 		w = w * w * w * w * 3.3222 + w * w * w * 5.6399 + w * w * 4.2189 + 3.8956 * w;
 		this->W_.col(i) = w;
 	}
@@ -178,7 +178,7 @@ void ScicnvWorker::compute_U() {
 #pragma omp parallel for
 	for (int i = 0; i < this->n_cell_; ++i) {
 		Eigen::ArrayXd w = (this->moving_average_.col(i) - this->reference_moving_average_) / (this->moving_average_.col(i) + this->reference_moving_average_ + 0.00001);
-		w = _Cs cumsum(digitalize(w - _Cs median(w)));
+		w = custom::cumsum(digitalize(w - custom::median(w)));
 		this->U_.col(i) = w;
 	};
 };
@@ -191,7 +191,7 @@ void ScicnvWorker::compute_V() {
 		Eigen::ArrayXd w = this->mat_.mat_.col(i);
 		w = (w - this->reference_expression_) / (w + this->reference_expression_ + 0.00001);
 		double d = ((w > 0).count() - (w < 0).count()) / (double)this->n_gene_;
-		w = _Cs cumsum(digitalize(w - _Cs median(w)) - d);
+		w = custom::cumsum(digitalize(w - custom::median(w)) - d);
 		this->V_.col(i) = w;
 	};
 

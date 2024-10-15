@@ -169,7 +169,7 @@ void ChromVARItem::s_receive_umap(Eigen::MatrixXd emb) {
 		Embedding::DataType::Umap,
 		emb,
 		rna_counts->colnames_,
-		_Cs paste("ChromVAR UMAP-", _Cs cast<QString>(_Cs seq_n(1, emb.cols()))));
+		custom::paste("ChromVAR UMAP-", custom::cast<QString>(custom::seq_n(1, emb.cols()))));
 
 	auto item = new EmbeddingItem(
 		title,

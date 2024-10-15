@@ -40,7 +40,7 @@ struct QUERY_DATA {
 	QMap<QString, QString> info;
 	QSet<QString> message;
 
-	qsizetype length() const { return _Cs max(di.size(), dd.size(), ds.size()); };
+	qsizetype length() const { return custom::max(di.size(), dd.size(), ds.size()); };
 	bool is_valid() const { return type != DataType::notype; };
 	bool is_continuous() const { return type == DataType::numeric || (type == DataType::integer && dil.isEmpty()); }
 	QVector<double> get_continuous() const {
@@ -50,7 +50,7 @@ struct QUERY_DATA {
 		}
 
 		if (type == DataType::integer && dil.isEmpty()) {
-			return _Cs cast<double>(di);
+			return custom::cast<double>(di);
 		}
 
 		return {};
@@ -64,7 +64,7 @@ struct QUERY_DATA {
 		}
 
 		if (type == DataType::integer) {
-			return _Cs cast<QString>(di);
+			return custom::cast<QString>(di);
 		}
 
 		return {};
@@ -77,30 +77,30 @@ struct QUERY_DATA {
 		}
 
 		if (!dil.isEmpty()) {
-			return _Cs cast<QString>(dil);
+			return custom::cast<QString>(dil);
 		}
 
 		return {};
 	}
 
 	template<typename SliceType>
-	requires _Cs is_slice_container<SliceType>
+	requires custom::is_slice_container<SliceType>
 	void slice(const SliceType& slice) {
 		if (!dd.isEmpty()) {
-			dd = _Cs sliced(dd, slice);
+			dd = custom::sliced(dd, slice);
 		}
 
 		if (!di.isEmpty()) {
-			di = _Cs sliced(di, slice);
+			di = custom::sliced(di, slice);
 			if (!dil.isEmpty()) {
-				dil = _Cs unique(dil);
+				dil = custom::unique(dil);
 			}
 		}
 
 		if (!ds.isEmpty()) {
-			ds = _Cs sliced(ds, slice);
+			ds = custom::sliced(ds, slice);
 			if (!dsl.isEmpty()) {
-				dsl = _Cs unique(dsl);
+				dsl = custom::unique(dsl);
 			}
 		}
 	}

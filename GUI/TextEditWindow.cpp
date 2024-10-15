@@ -111,7 +111,7 @@ void TextEditWindow::closeEvent(QCloseEvent* e) {
 				*this->note_ = this->text_edit_->toHtml();
 			}
 			else if (this->mode_ == WorkMode::StringVectorEdit) {
-				*this->string_vector_data_ = _Cs split_lines(this->text_edit_->toPlainText());
+				*this->string_vector_data_ = custom::split_lines(this->text_edit_->toPlainText());
 				this->signal_emitter_->x_update_interface();
 			}
 		}

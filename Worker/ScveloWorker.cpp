@@ -29,13 +29,13 @@ void ScveloWorker::fuzzy_simplicial_set() {
 	constexpr int n_trees = 50;
 
 	if (this->metric_ == "Euclidean") {
-		std::tie(this->knn_indices_, this->knn_distance_) = _Cs get_knn_mt<Euclidean, true>(this->mat_, this->n_neighbors_, n_trees);
+		std::tie(this->knn_indices_, this->knn_distance_) = custom::get_knn_mt<Euclidean, true>(this->mat_, this->n_neighbors_, n_trees);
 	}
 	else if (this->metric_ == "Angular") {
-		std::tie(this->knn_indices_, this->knn_distance_) = _Cs get_knn_mt<Angular, true>(this->mat_, this->n_neighbors_, n_trees);
+		std::tie(this->knn_indices_, this->knn_distance_) = custom::get_knn_mt<Angular, true>(this->mat_, this->n_neighbors_, n_trees);
 	}
 	else {
-		std::tie(this->knn_indices_, this->knn_distance_) = _Cs get_knn_mt<Manhattan, true>(this->mat_, this->n_neighbors_, n_trees);
+		std::tie(this->knn_indices_, this->knn_distance_) = custom::get_knn_mt<Manhattan, true>(this->mat_, this->n_neighbors_, n_trees);
 	}
 
 	auto [sigmas, rho] = this->smooth_knn_distance();
@@ -56,7 +56,7 @@ std::pair<Eigen::ArrayXd, Eigen::ArrayXd> ScveloWorker::smooth_knn_distance(doub
 		double cnt = this->knn_distance_.row(i).count();
 
 		Eigen::ArrayXd ith_distances = this->knn_distance_.row(i);
-		Eigen::ArrayXd non_zero_dists = _Cs sliced(ith_distances, ith_distances > 0);
+		Eigen::ArrayXd non_zero_dists = custom::sliced(ith_distances, ith_distances > 0);
 
 		if (cnt > local_connectivity) {
 			if (index > 0) {
@@ -134,11 +134,11 @@ bool ScveloWorker::normalize_counts() {
 	this->spliced_normalized_ = spliced_counts->mat_.cast<double>();
 	this->unspliced_normalized_ = unspliced_counts->mat_.cast<double>();
 
-	Eigen::ArrayXd cell_size_s = _Cs col_sum(this->spliced_normalized_).cwiseMax(1.0) / 10000;
-	Eigen::ArrayXd cell_size_u = _Cs col_sum(this->unspliced_normalized_).cwiseMax(1.0) / 10000;
+	Eigen::ArrayXd cell_size_s = custom::col_sum(this->spliced_normalized_).cwiseMax(1.0) / 10000;
+	Eigen::ArrayXd cell_size_u = custom::col_sum(this->unspliced_normalized_).cwiseMax(1.0) / 10000;
 
-	_Cs rowwise_divide_in_place(this->spliced_normalized_, cell_size_s);
-	_Cs rowwise_divide_in_place(this->unspliced_normalized_, cell_size_u);
+	custom::rowwise_divide_in_place(this->spliced_normalized_, cell_size_s);
+	custom::rowwise_divide_in_place(this->unspliced_normalized_, cell_size_u);
 
 	return true;
 
@@ -218,10 +218,10 @@ void ScveloWorker::compute_stochastic() {
 
 #pragma omp parallel for
 	for (int i = 0; i < n_gene; ++i) {
-		res_std(i) = _Cs sd(this->residual_.col(i));
+		res_std(i) = custom::sd(this->residual_.col(i));
 
 		Eigen::ArrayXd col = cov_us.col(i).array() - gamma2(i) * var_ss.col(i).array();
-		res_std2(i) = _Cs sd(col);
+		res_std2(i) = custom::sd(col);
 	};
 
 #pragma omp parallel for
@@ -265,14 +265,14 @@ bool ScveloWorker::compute_deterministic() {
 		}
 
 		Eigen::ArrayXd normalized = s_array / s_max + u_array / u_max;
-		auto sorted = _Cs sorted(normalized);
+		auto sorted = custom::sorted(normalized);
 
-		double p5 = _Cs linear_percentile_no_sort(sorted, 5);
-		double p95 = _Cs linear_percentile_no_sort(sorted, 95);
+		double p5 = custom::linear_percentile_no_sort(sorted, 5);
+		double p95 = custom::linear_percentile_no_sort(sorted, 95);
 
 		auto filter = (normalized <= p5) + (normalized >= p95);
-		s_array = _Cs sliced(s_array, filter);
-		u_array = _Cs sliced(u_array, filter);
+		s_array = custom::sliced(s_array, filter);
+		u_array = custom::sliced(u_array, filter);
 
 		auto fit_res = lm(u_array, s_array, false);
 
@@ -310,12 +310,12 @@ bool ScveloWorker::compute_deterministic() {
 		return false;
 	}
 
-	this->ms_ = _Cs col_sliced(this->ms_, filter);
-	this->mu_ = _Cs col_sliced(this->mu_, filter);
-	this->residual_ = _Cs col_sliced(this->residual_, filter);
+	this->ms_ = custom::col_sliced(this->ms_, filter);
+	this->mu_ = custom::col_sliced(this->mu_, filter);
+	this->residual_ = custom::col_sliced(this->residual_, filter);
 
-	this->spliced_normalized_ = _Cs row_sliced(this->spliced_normalized_, filter);
-	this->unspliced_normalized_ = _Cs row_sliced(this->unspliced_normalized_, filter);
+	this->spliced_normalized_ = custom::row_sliced(this->spliced_normalized_, filter);
+	this->unspliced_normalized_ = custom::row_sliced(this->unspliced_normalized_, filter);
 
 	return true;
 };
@@ -372,15 +372,15 @@ void ScveloWorker::get_connectivities() {
 	for (int i = 0; i < n_cell; ++i) {
 		Eigen::ArrayXd c = this->strengths_.col(i);
 
-		auto ind = _Cs which(c > 0.0);
+		auto ind = custom::which(c > 0.0);
 
 		if (ind.size() < this->n_neighbors_) {
 			this->connectivities_[i].append_range(ind);
 		}
 		else {
 			Eigen::ArrayXd d = c(ind);
-			auto order = _Cs order(d, true);
-			ind = _Cs reordered(ind, order.segment(0, this->n_neighbors_));
+			auto order = custom::order(d, true);
+			ind = custom::reordered(ind, order.segment(0, this->n_neighbors_));
 			this->connectivities_[i].append_range(ind);
 		}
 
@@ -418,7 +418,7 @@ void ScveloWorker::compute_membership_strengths(const Eigen::ArrayXd& sigmas, co
 
 	constexpr double set_op_mix_ratio = 1.0;
 	this->strengths_ = /*set_op_mix_ratio * */ (this->strengths_ + transpose - prod_matrix).eval() /* + (1.0 - set_op_mix_ratio) * prod_matrix */;
-	this->strengths_ = _Cs eliminate_zero(this->strengths_);
+	this->strengths_ = custom::eliminate_zero(this->strengths_);
 };
 
 void ScveloWorker::velocity_graph() {
@@ -455,10 +455,10 @@ void ScveloWorker::velocity_graph() {
 		QVector<int> neighbor_index;
 		neighbor_index.reserve(this->n_neighbors_ * this->n_neighbors_);
 		for (auto neighbor : this->knn_indices_.row(i)) {
-			neighbor_index << _Cs cast<QVector>(this->knn_indices_.row(neighbor));
+			neighbor_index << custom::cast<QVector>(this->knn_indices_.row(neighbor));
 		}
 
-		neighbor_index = _Cs unique(neighbor_index);
+		neighbor_index = custom::unique(neighbor_index);
 
 		Eigen::MatrixXd dX = this->ms_(neighbor_index, Eigen::all).array().rowwise() - this->ms_.row(i).array();
 
@@ -496,9 +496,9 @@ void ScveloWorker::velocity_graph() {
 	this->scvelo_estimate_->graph_.setFromTriplets(graph_triplets.cbegin(), graph_triplets.cend());
 	this->scvelo_estimate_->graph_neg_.setFromTriplets(graph_neg_triplets.cbegin(), graph_neg_triplets.cend());
 
-	Eigen::ArrayXd confidence = _Cs row_max(this->scvelo_estimate_->graph_);
+	Eigen::ArrayXd confidence = custom::row_max(this->scvelo_estimate_->graph_);
 
-	this->scvelo_estimate_->self_probability_ = (_Cs linear_percentile(confidence, 98) - confidence).cwiseMin(1.0).cwiseMax(0.0);
+	this->scvelo_estimate_->self_probability_ = (custom::linear_percentile(confidence, 98) - confidence).cwiseMin(1.0).cwiseMax(0.0);
 };
 
 Eigen::ArrayXd ScveloWorker::cosine_correlation(const Eigen::MatrixXd& mat, const Eigen::ArrayXd& arr) {

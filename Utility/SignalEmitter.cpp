@@ -66,7 +66,7 @@ bool SignalEmitter::is_lock_free(IndexTree* index_tree) const{
 
 QList<IndexTree*> SignalEmitter::search(const QStringList& data) {
 
-	return _Cs sapply(data, [this](const QString& data) {return this->search(data); });
+	return custom::sapply(data, [this](const QString& data) {return this->search(data); });
 };
 
 IndexTree* SignalEmitter::search(const QString& data) {
@@ -84,7 +84,7 @@ IndexTree* SignalEmitter::search(const QString& data) {
 
 QList<IndexTree*> SignalEmitter::search(const QList<void*>& data) {
 
-	return _Cs sapply(data, [this](void* data) {return this->search(data); });
+	return custom::sapply(data, [this](void* data) {return this->search(data); });
 };
 
 void* SignalEmitter::get_item(const QString& name) {

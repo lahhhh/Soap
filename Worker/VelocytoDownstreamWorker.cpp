@@ -31,7 +31,7 @@ void VelocytoDownstreamWorker::get_conv_mat() {
 	emat_norm.resize(0, 0);
 
 	constexpr int knn_maxl = 100;
-	auto knn = _Cs balanced_knn_mt(emat_log_norm, this->n_cell_, knn_maxl * this->n_cell_);
+	auto knn = custom::balanced_knn_mt(emat_log_norm, this->n_cell_, knn_maxl * this->n_cell_);
 	emat_log_norm.resize(0, 0);
 
 	const int n_gene = emat.rows(), n_cell = emat.cols();
@@ -49,7 +49,7 @@ void VelocytoDownstreamWorker::get_conv_mat() {
 #pragma omp parallel for
 	for (int i = 0; i < n_cell; ++i) {
 		Eigen::ArrayXi cell_index = cell_knn.row(i);
-		cell_index = _Cs unique(cell_index);
+		cell_index = custom::unique(cell_index);
 
 		Eigen::ArrayXd col_eexp = Eigen::ArrayXd::Zero(n_gene);
 		Eigen::ArrayXd col_nexp = Eigen::ArrayXd::Zero(n_gene);
@@ -87,8 +87,8 @@ void VelocytoDownstreamWorker::get_conv_mat() {
 		this->conv_nmat_norm_2 = conv_nmat_norm;
 
 
-		knn = _Cs balanced_knn_mt(log(conv_emat_norm.array() + this->pseudo_count_).transpose(), this->n_gene_, this->n_gene_ * 1.2e3);
-		Eigen::MatrixXd gene_knn = _Cs create_matrix_from_knn_index(knn).cast<double>().toDense();
+		knn = custom::balanced_knn_mt(log(conv_emat_norm.array() + this->pseudo_count_).transpose(), this->n_gene_, this->n_gene_ * 1.2e3);
+		Eigen::MatrixXd gene_knn = custom::create_matrix_from_knn_index(knn).cast<double>().toDense();
 
 		for (int i = 0; i < n_gene; ++i) {
 			gene_knn(i, i) = 1;
@@ -97,7 +97,7 @@ void VelocytoDownstreamWorker::get_conv_mat() {
 		Eigen::ArrayXd gt = conv_emat_norm.rowwise().sum();
 
 		for (int i = 0; i < n_gene; ++i) {
-			gene_knn.col(i).array() *= (_Cs median(_Cs sliced(gt, gene_knn.col(i).array() > 0)) / gt).cwiseMin(1.0).array();
+			gene_knn.col(i).array() *= (custom::median(custom::sliced(gt, gene_knn.col(i).array() > 0)) / gt).cwiseMin(1.0).array();
 		}
 
 		gene_knn.transposeInPlace();
@@ -123,16 +123,16 @@ bool VelocytoDownstreamWorker::fit_linear() {
 		Eigen::ArrayXd e_array = conv_emat_norm.row(i);
 		Eigen::ArrayXd n_array = conv_nmat_norm.row(i);
 
-		ko(i, 2) = _Cs correlation_spearman(e_array, n_array);
+		ko(i, 2) = custom::correlation_spearman(e_array, n_array);
 
-		auto sorted_e = _Cs sorted(e_array);
+		auto sorted_e = custom::sorted(e_array);
 		// fit.quantile = 0.02
-		double p2 = _Cs linear_percentile_no_sort(sorted_e, 2);
-		double p98 = _Cs linear_percentile_no_sort(sorted_e, 98);
+		double p2 = custom::linear_percentile_no_sort(sorted_e, 2);
+		double p98 = custom::linear_percentile_no_sort(sorted_e, 98);
 
 		auto filter = (e_array <= p2) + (e_array >= p98);
-		e_array = _Cs sliced(e_array, filter);
-		n_array = _Cs sliced(n_array, filter);
+		e_array = custom::sliced(e_array, filter);
+		n_array = custom::sliced(n_array, filter);
 
 		auto fit_res = lm(n_array, e_array);
 		ko(i, 0) = fit_res.coefficients[0];
@@ -162,7 +162,7 @@ bool VelocytoDownstreamWorker::fit_linear() {
 		G_TASK_LOG(QString::number(n_gene_remain - pass) + " gene filtered out of " + QString::number(n_gene_remain) + " genes due to nan filter.");
 
 		n_gene_remain = pass;
-		ko = _Cs row_sliced(ko, nan_filter);
+		ko = custom::row_sliced(ko, nan_filter);
 	}
 
 
@@ -178,7 +178,7 @@ bool VelocytoDownstreamWorker::fit_linear() {
 	else if (pass < n_gene_remain) {
 		G_TASK_LOG(QString::number(n_gene_remain - pass) + " gene filtered out of " + QString::number(n_gene_remain) + " genes due to correlation filter.");
 		n_gene_remain = pass;
-		ko = _Cs row_sliced(ko, correlation_filter);
+		ko = custom::row_sliced(ko, correlation_filter);
 	}
 
 
@@ -194,13 +194,13 @@ bool VelocytoDownstreamWorker::fit_linear() {
 	else if (pass < n_gene_remain) {
 		G_TASK_LOG(QString::number(n_gene_remain - pass) + " gene filtered out of " + QString::number(n_gene_remain) + " genes due to slope filter.");
 		n_gene_remain = pass;
-		ko = _Cs row_sliced(ko, slope_filter);
+		ko = custom::row_sliced(ko, slope_filter);
 	}
 
-	auto gene_index = _Cs seq_n(0, n_gene);
-	gene_index = _Cs sliced(gene_index, nan_filter);
-	gene_index = _Cs sliced(gene_index, correlation_filter);
-	gene_index = _Cs sliced(gene_index, slope_filter);
+	auto gene_index = custom::seq_n(0, n_gene);
+	gene_index = custom::sliced(gene_index, nan_filter);
+	gene_index = custom::sliced(gene_index, correlation_filter);
+	gene_index = custom::sliced(gene_index, slope_filter);
 
 	this->ko_index_ = gene_index;
 };
@@ -217,7 +217,7 @@ void VelocytoDownstreamWorker::calculate_velocity_shift() {
 		Eigen::MatrixXd y = (conv_nmat_norm_1(this->ko_index_, Eigen::all).array().colwise() - this->ko_.col(0).array()).cwiseMax(0.0);
 		this->estimate_->deltaE_ = conv_emat_norm_1(this->ko_index_, Eigen::all).array().colwise() * egt + (y.array().colwise() * (1 - egt)).colwise() / this->ko_.col(1).array() - conv_emat_norm_1(this->ko_index_, Eigen::all).array();
 		this->gamma_index_ = this->ko_index_;
-		this->estimate_->gene_names_ = _Cs reordered(this->velocyto_base_->get_spliced()->rownames_, this->gamma_index_);
+		this->estimate_->gene_names_ = custom::reordered(this->velocyto_base_->get_spliced()->rownames_, this->gamma_index_);
 		return;
 	}
 		
@@ -256,14 +256,14 @@ void VelocytoDownstreamWorker::calculate_velocity_shift() {
 
 	Eigen::ArrayX<bool> gamma_filter = row_sum_wm > 0;
 
-	auto gene_index2 = _Cs sliced(this->ko_index_, gamma_filter);
+	auto gene_index2 = custom::sliced(this->ko_index_, gamma_filter);
 	this->gamma_index_ = gene_index2;
-	this->estimate_->gene_names_ = _Cs reordered(this->velocyto_base_->get_spliced()->rownames_, this->gamma_index_);
-	auto gene_index3 = _Cs which(gamma_filter);
+	this->estimate_->gene_names_ = custom::reordered(this->velocyto_base_->get_spliced()->rownames_, this->gamma_index_);
+	auto gene_index3 = custom::which(gamma_filter);
 
 	Eigen::ArrayXd row_sum_fm = fm.array().rowwise().sum();
 
-	Eigen::ArrayXd gammaA = pow(2, _Cs sliced(row_sum_fm, gamma_filter) / _Cs sliced(row_sum_wm, gamma_filter));
+	Eigen::ArrayXd gammaA = pow(2, custom::sliced(row_sum_fm, gamma_filter) / custom::sliced(row_sum_wm, gamma_filter));
 
 	Eigen::ArrayXXd r = pow(2.0, mval(gene_index3, Eigen::all).array());
 

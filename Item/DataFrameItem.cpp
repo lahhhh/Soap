@@ -291,7 +291,7 @@ void DataFrameItem::s_convert_to_bulkrna() {
 	G_GETLOCK;
 	G_UNLOCK;
 
-	auto types = _Cs unique(_Cs values(this->data()->mat_.data_type_));
+	auto types = custom::unique(custom::values(this->data()->mat_.data_type_));
 
 	if (types.size() != 1 || types[0] != CustomMatrix::DataType::IntegerNumeric) {
 		G_WARN("Data should contain only integer numeric data.");
@@ -306,7 +306,7 @@ void DataFrameItem::s_convert_to_bulkrna() {
 
 	for (int i = 0; i < ncol; ++i) {
 
-		mat.col(i) = _Cs cast<Eigen::ArrayX>(data.get_const_integer_reference(data.colnames_[i]));
+		mat.col(i) = custom::cast<Eigen::ArrayX>(data.get_const_integer_reference(data.colnames_[i]));
 	}
 
 	BulkRna* rna = new BulkRna();
@@ -363,17 +363,17 @@ void DataFrameItem::s_convert_to_genome_annotation() {
 
 	GenomicRange* genomic_range = new GenomicRange(
 		RunLengthEncoding<QString>::from_container(
-			_Cs sapply(
-				this->data()->mat_.get_const_qstring_reference("Seq Names"), [](auto&& name) {return _Cs standardize_chromosome_name(name); }
+			custom::sapply(
+				this->data()->mat_.get_const_qstring_reference("Seq Names"), [](auto&& name) {return custom::standardize_chromosome_name(name); }
 			)
 		),
 		IRange(this->data()->mat_.get_const_integer_reference("Range Start"),
-			_Cs minus(
+			custom::minus(
 				this->data()->mat_.get_const_integer_reference("Range End"), this->data()->mat_.get_const_integer_reference("Range Start")
 			)
 		),
 		RunLengthEncoding<char>::from_container(
-			_Cs sapply(
+			custom::sapply(
 				this->data()->mat_.get_const_qstring_reference("Strand"), [](const QString& str)->char {	return str[0].toLatin1();}
 			)
 		)
@@ -399,7 +399,7 @@ QString DataFrameItem::metadata_insert(
 ) {
 	int match{ 0 };
 	if (style == 0) {
-		match = _Cs intersect_length(from_index, to_index);
+		match = custom::intersect_length(from_index, to_index);
 
 		if (match == 0) {
 			return "No Content Matched!";
@@ -413,22 +413,22 @@ QString DataFrameItem::metadata_insert(
 
 		if (style == 0) {
 
-			auto order = _Cs index_of(to_index, from_index);
+			auto order = custom::index_of(to_index, from_index);
 			for (auto&& [name, data_type] : from.data_type_) {
 				if (data_type == CustomMatrix::DataType::IntegerNumeric) {
-					to.update(name, _Cs reordered(from.get_const_integer_reference(name), order), CustomMatrix::DataType::IntegerNumeric);
+					to.update(name, custom::reordered(from.get_const_integer_reference(name), order), CustomMatrix::DataType::IntegerNumeric);
 				}
 				else if (data_type == CustomMatrix::DataType::DoubleNumeric) {
-					to.update(name, _Cs reordered(from.get_const_double_reference(name), order), CustomMatrix::DataType::DoubleNumeric);
+					to.update(name, custom::reordered(from.get_const_double_reference(name), order), CustomMatrix::DataType::DoubleNumeric);
 				}
 				else if (data_type == CustomMatrix::DataType::QStringFactor) {
-					to.update(name, _Cs reordered(from.get_const_qstring_reference(name), order), CustomMatrix::DataType::QStringFactor);
+					to.update(name, custom::reordered(from.get_const_qstring_reference(name), order), CustomMatrix::DataType::QStringFactor);
 				}
 				else if (data_type == CustomMatrix::DataType::QString) {
-					to.update(name, _Cs reordered(from.get_const_qstring_reference(name), order), CustomMatrix::DataType::QString);
+					to.update(name, custom::reordered(from.get_const_qstring_reference(name), order), CustomMatrix::DataType::QString);
 				}
 				else if (data_type == CustomMatrix::DataType::IntegerFactor) {
-					to.update(name, _Cs reordered(from.get_const_integer_reference(name), order), CustomMatrix::DataType::IntegerFactor);
+					to.update(name, custom::reordered(from.get_const_integer_reference(name), order), CustomMatrix::DataType::IntegerFactor);
 				}
 			}
 		}
@@ -461,53 +461,53 @@ QString DataFrameItem::metadata_insert(
 	QVector<int> order, from_order;
 	int nrow = to.rows();
 	if (style == 0) {
-		order = _Cs index_of(from_index, to_index);
-		from_order = _Cs match(order, [](auto t) {return t >= 0; });
+		order = custom::index_of(from_index, to_index);
+		from_order = custom::match(order, [](auto t) {return t >= 0; });
 		order.removeAll(-1);
 	}
 	else {
-		order = from_order = _Cs seq_n(0, match);
+		order = from_order = custom::seq_n(0, match);
 	}
 
 	for (auto&& [name, data_type] : from.data_type_) {
 		if (data_type == CustomMatrix::DataType::IntegerNumeric) {
 			if (type == 2 && to.contains(name) && to.data_type_[name] == CustomMatrix::DataType::IntegerNumeric) {
-				to.update(name, _Cs assigned(to.get_const_integer_reference(name), order, from.get_const_integer_reference(name), from_order), CustomMatrix::DataType::IntegerNumeric);
+				to.update(name, custom::assigned(to.get_const_integer_reference(name), order, from.get_const_integer_reference(name), from_order), CustomMatrix::DataType::IntegerNumeric);
 			}
 			else {
-				to.update(name, _Cs assigned(QVector<int>(nrow, -1), order, from.get_const_integer_reference(name), from_order), CustomMatrix::DataType::IntegerNumeric);
+				to.update(name, custom::assigned(QVector<int>(nrow, -1), order, from.get_const_integer_reference(name), from_order), CustomMatrix::DataType::IntegerNumeric);
 			}
 		}
 		else if (data_type == CustomMatrix::DataType::DoubleNumeric) {
 			if (type == 2 && to.contains(name) && to.data_type_[name] == CustomMatrix::DataType::DoubleNumeric) {
-				to.update(name, _Cs assigned(to.get_const_double_reference(name), order, from.get_const_double_reference(name), from_order), CustomMatrix::DataType::DoubleNumeric);
+				to.update(name, custom::assigned(to.get_const_double_reference(name), order, from.get_const_double_reference(name), from_order), CustomMatrix::DataType::DoubleNumeric);
 			}
 			else {
-				to.update(name, _Cs assigned(QVector<double>(nrow, -0.0), order, from.get_const_double_reference(name), from_order), CustomMatrix::DataType::DoubleNumeric);
+				to.update(name, custom::assigned(QVector<double>(nrow, -0.0), order, from.get_const_double_reference(name), from_order), CustomMatrix::DataType::DoubleNumeric);
 			}
 		}
 		else if (data_type == CustomMatrix::DataType::QStringFactor) {
 			if (type == 2 && to.contains(name) && to.data_type_[name] == CustomMatrix::DataType::QStringFactor) {
-				to.update(name, _Cs assigned(to.get_const_qstring_reference(name), order, from.get_const_qstring_reference(name), from_order), CustomMatrix::DataType::QStringFactor);
+				to.update(name, custom::assigned(to.get_const_qstring_reference(name), order, from.get_const_qstring_reference(name), from_order), CustomMatrix::DataType::QStringFactor);
 			}
 			else {
-				to.update(name, _Cs assigned(QStringList(nrow, "NA"), order, from.get_const_qstring_reference(name), from_order), CustomMatrix::DataType::QStringFactor);
+				to.update(name, custom::assigned(QStringList(nrow, "NA"), order, from.get_const_qstring_reference(name), from_order), CustomMatrix::DataType::QStringFactor);
 			}
 		}
 		else if (data_type == CustomMatrix::DataType::QString) {
 			if (type == 2 && to.contains(name) && to.data_type_[name] == CustomMatrix::DataType::QString) {
-				to.update(name, _Cs assigned(to.get_const_qstring_reference(name), order, from.get_const_qstring_reference(name), from_order), CustomMatrix::DataType::QString);
+				to.update(name, custom::assigned(to.get_const_qstring_reference(name), order, from.get_const_qstring_reference(name), from_order), CustomMatrix::DataType::QString);
 			}
 			else {
-				to.update(name, _Cs assigned(QStringList(nrow, "NA"), order, from.get_const_qstring_reference(name), from_order), CustomMatrix::DataType::QString);
+				to.update(name, custom::assigned(QStringList(nrow, "NA"), order, from.get_const_qstring_reference(name), from_order), CustomMatrix::DataType::QString);
 			}
 		}
 		else if (data_type == CustomMatrix::DataType::IntegerFactor) {
 			if (type == 2 && to.contains(name) && to.data_type_[name] == CustomMatrix::DataType::IntegerFactor) {
-				to.update(name, _Cs assigned(to.get_const_integer_reference(name), order, from.get_const_integer_reference(name), from_order), CustomMatrix::DataType::IntegerFactor);
+				to.update(name, custom::assigned(to.get_const_integer_reference(name), order, from.get_const_integer_reference(name), from_order), CustomMatrix::DataType::IntegerFactor);
 			}
 			else {
-				to.update(name, _Cs assigned(QVector<int>(nrow, -1), order, from.get_const_integer_reference(name), from_order), CustomMatrix::DataType::IntegerFactor);
+				to.update(name, custom::assigned(QVector<int>(nrow, -1), order, from.get_const_integer_reference(name), from_order), CustomMatrix::DataType::IntegerFactor);
 			}
 		}
 	}
@@ -566,7 +566,7 @@ void DataFrameItem::s_promote_to_metadata_by_metadata() {
 
 	auto factor = d.get_qstring(level[0]);
 
-	if (!_Cs is_unique(factor)) {
+	if (!custom::is_unique(factor)) {
 		G_WARN("Choosed Metadata is not unique for mapping");
 		G_UNLOCK;
 		return;
@@ -698,7 +698,7 @@ void DataFrameItem::s_first_column_as_rowname() {
 	this->__data_delete_soon();
 
 	auto& mat = this->data()->mat_;
-	mat.rownames_ = _Cs make_unique(mat.get_qstring(mat.colnames_[0]));
+	mat.rownames_ = custom::make_unique(mat.get_qstring(mat.colnames_[0]));
 
 	this->__s_update_interface();
 };
@@ -715,7 +715,7 @@ void DataFrameItem::s_choose_columns_remained() {
 		"Choose Colunms Remained",
 		{"Columns"},
 		{soap::InputStyle::MultiCheckBox},
-		{_Cs paste(this->data()->mat_.colnames_, ":true")}
+		{custom::paste(this->data()->mat_.colnames_, ":true")}
 	);
 
 	if (settings.isEmpty()) {
@@ -803,7 +803,7 @@ void DataFrameItem::s_column_as_rowname() {
 	}
 
 	auto& mat = this->data()->mat_;
-	mat.rownames_ = _Cs make_unique(mat.get_qstring(settings[0]));
+	mat.rownames_ = custom::make_unique(mat.get_qstring(settings[0]));
 
 	this->__s_update_interface();
 };
@@ -889,7 +889,7 @@ void DataFrameItem::s_first_row_as_colname() {
 
 	auto& mat = this->data()->mat_;
 	QStringList row1 = mat.get_row(0), column_names = mat.colnames_;
-	row1 = _Cs make_unique(row1);
+	row1 = custom::make_unique(row1);
 	int size = row1.size();
 	mat.colnames_ = row1;
 	for (int i = 0; i < size; ++i) {

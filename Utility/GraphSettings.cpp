@@ -118,20 +118,20 @@ void GraphSettings::apply_palette(const QString& name, QColor& color) const {
 
 QList<QColor> GraphSettings::palette(const QStringList& levels) const {
 
-	auto ulevels = _Cs unique(levels);
+	auto ulevels = custom::unique(levels);
 
-	auto colors = _CpUtility kmeans_palette(ulevels.size());
+	auto colors = custom_plot::utility::kmeans_palette(ulevels.size());
 
 	this->apply_palette(ulevels, colors);
 
-	return _Cs sapply(levels, [&ulevels, &colors](auto&& level) {return colors[ulevels.indexOf(level)]; });
+	return custom::sapply(levels, [&ulevels, &colors](auto&& level) {return colors[ulevels.indexOf(level)]; });
 };
 
 QMap<QString, QColor> GraphSettings::palette_map(const QStringList& levels) const {
 
-	auto ulevels = _Cs unique(levels);
+	auto ulevels = custom::unique(levels);
 
-	auto colors = _CpUtility kmeans_palette(ulevels.size());
+	auto colors = custom_plot::utility::kmeans_palette(ulevels.size());
 
 	this->apply_palette(ulevels, colors);
 

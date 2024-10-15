@@ -43,7 +43,7 @@ void GeneNameItem::s_edit_manually() {
 void GeneNameItem::s_edit_sort() {
 	G_GETLOCK;
 
-	this->data()->data_ = _Cs sorted(this->data()->data_);
+	this->data()->data_ = custom::sorted(this->data()->data_);
 
 	G_UNLOCK;
 };
@@ -52,7 +52,7 @@ void GeneNameItem::s_edit_unique() {
 
 	G_GETLOCK;
 
-	this->data()->data_ = _Cs unique(this->data()->data_);
+	this->data()->data_ = custom::unique(this->data()->data_);
 
 	this->__s_update_interface();
 
@@ -75,10 +75,10 @@ void GeneNameItem::s_remove_elements_by_regular_expression() {
 	}
 
 	QRegularExpression re(settings[0]);
-	auto filter = _Cs sapply(this->data()->data_,
+	auto filter = custom::sapply(this->data()->data_,
 		[&re](auto&& s) {return s.contains(re); }
 	);
-	this->data()->data_ = _Cs sliced(this->data()->data_, _Cs flip(filter));
+	this->data()->data_ = custom::sliced(this->data()->data_, custom::flip(filter));
 	this->__s_update_interface();
 
 	G_UNLOCK;
@@ -314,7 +314,7 @@ void GeneNameItem::s_remove_elements_by_chromosome_location() {
 		return;
 	}
 
-	auto hg38 = _Cs get_hg38_gene_location();
+	auto hg38 = custom::get_hg38_gene_location();
 
 	int n_loc = locs.size();
 
@@ -326,11 +326,11 @@ void GeneNameItem::s_remove_elements_by_chromosome_location() {
 		to_remove << hg38.find_chromosome_gene(locs[i]);
 	}
 
-	to_remove = _Cs unique(to_remove);
+	to_remove = custom::unique(to_remove);
 
 	QStringList d = this->data()->data_;
 
-	d = _Cs sliced(d, _Cs flip(_Cs in(d, to_remove)));
+	d = custom::sliced(d, custom::flip(custom::in(d, to_remove)));
 
 	this->data()->data_ = d;
 

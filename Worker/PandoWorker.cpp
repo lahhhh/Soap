@@ -14,7 +14,7 @@ void PandoWorker::run() {
 		G_TASK_END;
 	}
 
-	bool success = ItemDatabase::read_item(FILE_HUMAN_GENOME_GENOMIC_RANGE_GCS, this->annotation_);
+	bool success = ItemDatabase::read_item(FILE_HUMAN_GENOME_GENOMIC_RANGE_SIF, this->annotation_);
 
 	if (!success) {
 		G_TASK_WARN("Loading failed.");
@@ -34,7 +34,7 @@ void PandoWorker::run() {
 
 bool PandoWorker::initiate_grn() {
 
-	this->peaks_ = _Cs stringlist_to_genomic_range(this->single_cell_multiome_->atac_counts()->rownames_);
+	this->peaks_ = custom::stringlist_to_genomic_range(this->single_cell_multiome_->atac_counts()->rownames_);
 
 	if (this->peaks_.size() == 0) {
 		G_TASK_WARN("Invalid peak name.");
@@ -43,7 +43,7 @@ bool PandoWorker::initiate_grn() {
 
 	// get exon
 	auto exon_range = this->annotation_.row_sliced(
-		_Cs equal(this->annotation_.metadata_.get_const_qstring_reference(METADATA_GENOMIC_RANGE_GENE_TYPE), QString("exon")));
+		custom::equal(this->annotation_.metadata_.get_const_qstring_reference(METADATA_GENOMIC_RANGE_GENE_TYPE), QString("exon")));
 
 	if (exon_range.size() == 0) {
 		G_TASK_WARN("Invalid annotation file.");
@@ -79,25 +79,25 @@ bool PandoWorker::initiate_grn() {
 
 QStringList PandoWorker::find_variable_features(int n_feature) {
 
-	Eigen::SparseMatrix<double> mat = _Cs normalize(this->single_cell_multiome_->rna_counts()->mat_, 10000.0);
+	Eigen::SparseMatrix<double> mat = custom::normalize(this->single_cell_multiome_->rna_counts()->mat_, 10000.0);
 
 	const int ncol = mat.cols();
 	const int nrow = mat.rows();
 	double clipmax = std::sqrt(ncol);
-	Eigen::ArrayXd row_mean = _Cs row_mean(mat);
-	Eigen::ArrayXd row_var = _Cs row_var(mat);
+	Eigen::ArrayXd row_mean = custom::row_mean(mat);
+	Eigen::ArrayXd row_var = custom::row_var(mat);
 
 	Eigen::ArrayX<bool> not_const = row_var > 0;
 	const int not_const_row = not_const.count();
 	if (not_const_row < n_feature) {
 		return QStringList();
 	}
-	auto not_const_index = _Cs which(not_const);
+	auto not_const_index = custom::which(not_const);
 
-	Eigen::ArrayXd not_const_row_means = _Cs sliced(row_mean, not_const);
-	Eigen::ArrayXd not_const_row_var = _Cs sliced(row_var, not_const);
+	Eigen::ArrayXd not_const_row_means = custom::sliced(row_mean, not_const);
+	Eigen::ArrayXd not_const_row_var = custom::sliced(row_var, not_const);
 
-	Eigen::ArrayXd fitted = _Cs loess_mt(log10(not_const_row_var), log10(not_const_row_means), 2, 0.3, 50);
+	Eigen::ArrayXd fitted = custom::loess_mt(log10(not_const_row_var), log10(not_const_row_means), 2, 0.3, 50);
 
 	Eigen::ArrayXd expected_var = Eigen::ArrayXd::Zero(nrow);
 	expected_var(not_const_index) = pow(10, fitted);
@@ -119,7 +119,7 @@ QStringList PandoWorker::find_variable_features(int n_feature) {
 		standardized_row_var[i] += std::pow(row_mean[i] / expected_sd[i], 2) * n_zero[i];
 	}
 	standardized_row_var /= (ncol - 1);
-	Eigen::ArrayXi standardized_row_var_sorted_index = _Cs order(standardized_row_var, true);
+	Eigen::ArrayXi standardized_row_var_sorted_index = custom::order(standardized_row_var, true);
 	Eigen::ArrayX<bool> filter = Eigen::ArrayX<bool>::Constant(nrow, false);
 
 	for (int i = 0; i < n_feature; ++i) {
@@ -127,15 +127,15 @@ QStringList PandoWorker::find_variable_features(int n_feature) {
 		filter[index] = true;
 	}
 
-	return _Cs sliced(this->single_cell_multiome_->rna_counts()->rownames_, filter);
+	return custom::sliced(this->single_cell_multiome_->rna_counts()->rownames_, filter);
 };
 
 bool PandoWorker::infer_grn() {
 
-	auto gene_location = _Cs get_hg38_gene_location();
+	auto gene_location = custom::get_hg38_gene_location();
 	auto gene_names = this->find_variable_features(this->n_feature_);
 
-	auto gene_filter = _Cs in(gene_location.metadata_.get_const_qstring_reference(METADATA_GENOMIC_RANGE_GENE_NAME), gene_names);
+	auto gene_filter = custom::in(gene_location.metadata_.get_const_qstring_reference(METADATA_GENOMIC_RANGE_GENE_NAME), gene_names);
 	
 	if (gene_filter.count() == 0) {
 		G_TASK_WARN("Error in HG38 gene location File.");
@@ -145,7 +145,7 @@ bool PandoWorker::infer_grn() {
 	QStringList normalized_peaks = this->single_cell_multiome_->atac_normalized()->rownames_;
 	gene_location.row_slice(gene_filter);
 	gene_names = gene_location.metadata_.get_const_qstring_reference(METADATA_GENOMIC_RANGE_GENE_NAME);
-	auto gene_index = _Cs index_of(gene_names, normalized_genes);
+	auto gene_index = custom::index_of(gene_names, normalized_genes);
 	const int n_gene = gene_location.size();
 
 	QVector<QVector<int>> gene_to_peak(n_gene);
@@ -214,7 +214,7 @@ bool PandoWorker::infer_grn() {
 		Eigen::ArrayXd _gene = gene_data.row(gene_index[i]);
 
 		if (this->filter_cell_) {
-			_gene = _Cs sliced(_gene, this->cell_filter_);
+			_gene = custom::sliced(_gene, this->cell_filter_);
 		}
 		QString gene_name = normalized_genes[gene_index[i]];
 
@@ -222,10 +222,10 @@ bool PandoWorker::infer_grn() {
 
 			Eigen::ArrayXd _peak = peak_data.row(peak_index[peak_near[j]]);
 			if (this->filter_cell_) {
-				_peak = _Cs sliced(_peak, this->cell_filter_);
+				_peak = custom::sliced(_peak, this->cell_filter_);
 			}
 
-			double correlation = _Cs correlation_pearson(_gene, _peak);
+			double correlation = custom::correlation_pearson(_gene, _peak);
 
 			if (std::abs(correlation) > this->peak_correlation_threshold_) {
 				peak_reserve << peak_near[j];
@@ -237,27 +237,27 @@ bool PandoWorker::infer_grn() {
 			continue;
 		}
 
-		auto peak_tfs = _Cs sapply(peak_reserve,
+		auto peak_tfs = custom::sapply(peak_reserve,
 			[this, &peak_index](auto ind) {return this->motif_position_.peak_to_tf(ind); }
 		);
 
-		if (_Cs sum(_Cs sapply(peak_tfs, [](auto&& motif) {return motif.size(); })) == 0) {
+		if (custom::sum(custom::sapply(peak_tfs, [](auto&& motif) {return motif.size(); })) == 0) {
 			continue;
 		}
 
-		auto tf_names = _Cs unique(_Cs unroll(peak_tfs));
+		auto tf_names = custom::unique(custom::unroll(peak_tfs));
 
 		tf_names.removeOne(gene_names[i]);
 
 		if (tf_names.isEmpty()) {
 			continue;
 		} 
-		tf_names = _Cs intersect(tf_names, normalized_genes);
+		tf_names = custom::intersect(tf_names, normalized_genes);
 
 		if (tf_names.isEmpty()) {
 			continue;
 		}
-		auto tf_index = _Cs index_of(tf_names, normalized_genes);
+		auto tf_index = custom::index_of(tf_names, normalized_genes);
 		int n_tf = tf_index.size();
 
 		QStringList tf_use;
@@ -267,10 +267,10 @@ bool PandoWorker::infer_grn() {
 
 			Eigen::ArrayXd _tf = gene_data.row(tf_index[j]);
 			if (this->filter_cell_) {
-				_tf = _Cs sliced(_tf, this->cell_filter_);
+				_tf = custom::sliced(_tf, this->cell_filter_);
 			}
 
-			double correlation = _Cs correlation_pearson(_gene, _tf);
+			double correlation = custom::correlation_pearson(_gene, _tf);
 
 			if (std::abs(correlation) > this->motif_correlation_threshold_) {
 				tf_use << tf_names[j];
@@ -283,8 +283,8 @@ bool PandoWorker::infer_grn() {
 		}
 		n_peak = peak_reserve.size();
 
-		const int n_peak_tf_pair = _Cs sum(_Cs sapply(peak_tfs, [&tf_use](auto&& tfs)
-		{return _Cs intersect(tfs, tf_use).size(); }
+		const int n_peak_tf_pair = custom::sum(custom::sapply(peak_tfs, [&tf_use](auto&& tfs)
+		{return custom::intersect(tfs, tf_use).size(); }
 		));
 
 		if (n_peak_tf_pair == 0) {
@@ -306,7 +306,7 @@ bool PandoWorker::infer_grn() {
 		for (int j = 0; j < n_peak; ++j) {
 
 
-			auto peak_tf_use = _Cs intersect(peak_tfs[j], tf_use);
+			auto peak_tf_use = custom::intersect(peak_tfs[j], tf_use);
 
 			if (peak_tf_use.isEmpty()) {
 				continue;
@@ -318,7 +318,7 @@ bool PandoWorker::infer_grn() {
 
 			Eigen::ArrayXd _peak = peak_data.row(peak_ind);
 			if (this->filter_cell_) {
-				_peak = _Cs sliced(_peak, this->cell_filter_);
+				_peak = custom::sliced(_peak, this->cell_filter_);
 			}
 
 			int n_peak_tf_use = peak_tf_use.size();
@@ -338,7 +338,7 @@ bool PandoWorker::infer_grn() {
 
 				Eigen::ArrayXd _tf = gene_data.row(ind);
 				if (this->filter_cell_) {
-					_tf = _Cs sliced(_tf, this->cell_filter_);
+					_tf = custom::sliced(_tf, this->cell_filter_);
 				}
 
 				fit_x.col(peak_tf_pair_count++) = _tf * _peak;
@@ -365,10 +365,10 @@ bool PandoWorker::infer_grn() {
 			peak_name_res << gene_peak_names;
 			tf_name_res << gene_tf_names;
 			rsq_res << QVector<double>(n_peak_tf_pair, rsq);
-			estimate_res << _Cs cast<QVector>(summary.estimate.segment(1, n_peak_tf_pair));
-			std_error_res << _Cs cast<QVector>(summary.std_err.segment(1, n_peak_tf_pair));
-			t_val_res << _Cs cast<QVector>(summary.t_value.segment(1, n_peak_tf_pair));
-			p_val_res << _Cs cast<QVector>(summary.p.segment(1, n_peak_tf_pair));
+			estimate_res << custom::cast<QVector>(summary.estimate.segment(1, n_peak_tf_pair));
+			std_error_res << custom::cast<QVector>(summary.std_err.segment(1, n_peak_tf_pair));
+			t_val_res << custom::cast<QVector>(summary.t_value.segment(1, n_peak_tf_pair));
+			p_val_res << custom::cast<QVector>(summary.p.segment(1, n_peak_tf_pair));
 			n_variable_res << QVector<int>(n_peak_tf_pair, fit_x.cols());
 		}
 	}

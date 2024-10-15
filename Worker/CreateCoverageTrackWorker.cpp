@@ -34,11 +34,11 @@ void CreateCoverageTrackWorker::build_index() {
 		this->group_factors_ = metadata->string_factors_.at(this->group_name_);
 	}
 	else {
-		this->group_factors_ = _Cs cast<QString>(metadata->integer_factors_.at(this->group_name_));
+		this->group_factors_ = custom::cast<QString>(metadata->integer_factors_.at(this->group_name_));
 	}
 	const int n_level = this->group_factors_.size();
 	QStringList group = metadata->get_qstring(this->group_name_);
-	this->group_distribution_ = _Cs table(group);
+	this->group_distribution_ = custom::table(group);
 	const int n_cell = group.size();
 
 	this->cell_index_.resize(n_cell, 0);
@@ -50,7 +50,7 @@ void CreateCoverageTrackWorker::build_index() {
 
 bool CreateCoverageTrackWorker::load_annotation() {
 
-	bool success = ItemDatabase::read_item(FILE_HUMAN_GENOME_GENOMIC_RANGE_GCS, this->coverage_track_->annotation_);
+	bool success = ItemDatabase::read_item(FILE_HUMAN_GENOME_GENOMIC_RANGE_SIF, this->coverage_track_->annotation_);
 
 	if (!success) {
 		G_TASK_WARN("Loading faied.");
@@ -126,7 +126,7 @@ bool CreateCoverageTrackWorker::calculate_fragments_size() {
 			this->cell_size_[i] += data[i].second.size();
 		}
 	}
-	double mean_fragments_size = _Cs mean(this->cell_size_);
+	double mean_fragments_size = custom::mean(this->cell_size_);
 
 	for (auto&& size : this->cell_size_) {
 		if (size != 0.0) {

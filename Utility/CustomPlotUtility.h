@@ -6,14 +6,12 @@
 
 #include "Custom.h"
 
-#define _CpUtility ::custom_plot::utility::
-
 namespace custom_plot {
 
 	namespace utility {
 
 		template <typename ContainerType>
-			requires _Cs is_specific_container<ContainerType, double>
+			requires custom::is_specific_container<ContainerType, double>
 		QCPRange get_range(const ContainerType& vec, double margin_proportion = 0.1) {
 
 			auto [min_val, max_val] = ::std::ranges::minmax(vec);
@@ -24,7 +22,7 @@ namespace custom_plot {
 		}
 
 		template <typename ContainerType1, typename ContainerType2>
-			requires _Cs is_specific_container<ContainerType1, double>&& _Cs is_specific_container<ContainerType2, double>
+			requires custom::is_specific_container<ContainerType1, double>&& custom::is_specific_container<ContainerType2, double>
 		std::pair<QCPRange, QCPRange> get_range(const ContainerType1& x, const ContainerType2& y, double margin_proportion = 0.1) {
 
 			return std::make_pair(get_range(x, margin_proportion), get_range(y, margin_proportion));

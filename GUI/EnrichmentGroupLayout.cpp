@@ -19,7 +19,7 @@ EnrichmentGroupLayout::EnrichmentGroupLayout(
 	QHBoxLayout* row_layout = new QHBoxLayout;
 
 	this->legend_color_button_ = new QPushButton("Choose Color", this);
-	QColor color = _Cs random_color();
+	QColor color = custom::random_color();
 	this->legend_color_label_ = new QLabel(color.name(), this);
 	this->legend_color_label_->setStyleSheet("QLabel{color:" + color.name() + "}");
 

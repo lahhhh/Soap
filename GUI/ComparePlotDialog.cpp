@@ -24,6 +24,12 @@ ComparePlotDialog::ComparePlotDialog(
     G_SET_SWITCH(this->gene_activity_, false, this->gene_activity_label_, soap::MiddleSize);
     G_ADD_DOUBLE_ITEM_ROWLAYOUT_NO_STRETCH(this->main_layout_, layout, this->gene_activity_label_, this->gene_activity_);
 
+    G_SET_LABEL(this->method_label_, "Method", soap::MiddleSize);
+    G_SET_COMBOBOX_FIXED_WIDTH(this->choose_method_, QStringList() << "Auto" << "t test" << "Wilcoxon rank sum test" <<
+        "Kruskal-Wallis | Dunn test (Bonferroni correction)" << "ANOVA | Tukey HSD" << "ANOVA | Games-Howell test" <<
+        "Welch ANOVA | Games-Howell Test", 150, 30);
+    G_ADD_DOUBLE_ITEM_ROWLAYOUT_NO_STRETCH(this->main_layout_, layout, this->method_label_, this->choose_method_);
+
     G_SET_LABEL(this->group_label_, "Factor", soap::MiddleSize);
     G_SET_COMBOBOX(this->choose_group_, factors.keys(), 30);
     G_ADD_DOUBLE_ITEM_ROWLAYOUT_NO_STRETCH(this->main_layout_, layout, this->group_label_, this->choose_group_);
@@ -93,6 +99,7 @@ ComparePlotDialog::current_value() {
     bool use_gene_activity = this->gene_activity_->current_value() == SWITCH_ACCEPT;
     bool show_p_value = this->p_value_->current_value() == SWITCH_ACCEPT;
 
+    QString method = this->choose_method_->currentText();
     QString group = this->choose_group_->currentText();
     QString type = this->draw_type_->currentText();
 
@@ -102,7 +109,7 @@ ComparePlotDialog::current_value() {
         comparisons << qMakePair(this->comp1_[i]->currentText(), this->comp2_[i]->currentText());
     }
 
-    return { feature, normalize, use_gene_activity, show_p_value, group, type, comparisons };
+    return { feature, normalize, use_gene_activity, show_p_value, method, group, type, comparisons };
 };
 
 void ComparePlotDialog::s_factor_changed() {

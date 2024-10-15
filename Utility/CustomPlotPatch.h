@@ -3,8 +3,6 @@
 #include "Identifier.h"
 #include <qCustomPlot.h>
 
-#define _CpPatch ::custom_plot::patch::
-
 namespace custom_plot {
 
 	namespace patch {

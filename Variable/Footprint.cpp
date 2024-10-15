@@ -49,17 +49,17 @@ bool Footprint::draw(
 
 	QList<Eigen::ArrayXd> locations;
 	for (const auto& factor : levels) {
-		auto index = _Cs match(factors, factor);
+		auto index = custom::match(factors, factor);
 
 		Eigen::MatrixXd sub_matrix = normalized(index, Eigen::all);
 
 		Eigen::ArrayXd means = sub_matrix.colwise().mean();
 
-		locations << means - _Cs cast<Eigen::ArrayX>(this->expected_insertions_);
+		locations << means - custom::cast<Eigen::ArrayX>(this->expected_insertions_);
 
 	}
 
-	auto [draw_area, left_layout, legend_layout] = _Cp prepare_lg_lg(gs);
+	auto [draw_area, left_layout, legend_layout] = custom_plot::prepare_lg_lg(gs);
 
 	QCPAxisRect* observation_axisrect = new QCPAxisRect(draw_area), * expect_axisrect = new QCPAxisRect(draw_area);
 	left_layout->addElement(0, 0, observation_axisrect);
@@ -69,49 +69,49 @@ bool Footprint::draw(
 	int ncolor = levels.size();
 	auto colors = gs.palette(levels);
 
-	QVector<double> x_axis = _Cs cast<double>(this->insertion_matrix_.colnames_);
+	QVector<double> x_axis = custom::cast<double>(this->insertion_matrix_.colnames_);
 
 	for (int i = 0; i < ncolor; ++i) {
-		_CpPatch line(draw_area, observation_axisrect, x_axis, _Cs cast<QVector>(locations[i]), colors[i], 2);
+		custom_plot::patch::line(draw_area, observation_axisrect, x_axis, custom::cast<QVector>(locations[i]), colors[i], 2);
 	}
-	double min_ob = std::ranges::min(_Cs sapply(locations, [](auto&& arr) {return arr.minCoeff(); }));
-	double max_ob = std::ranges::max(_Cs sapply(locations, [](auto&& arr) {return arr.maxCoeff(); }));
+	double min_ob = std::ranges::min(custom::sapply(locations, [](auto&& arr) {return arr.minCoeff(); }));
+	double max_ob = std::ranges::max(custom::sapply(locations, [](auto&& arr) {return arr.maxCoeff(); }));
 
 	auto [min_x, max_x] = std::ranges::minmax(x_axis);
 
-	_CpPatch set_range(observation_axisrect, QCPRange(min_x, max_x), QCPRange(1.1 * min_ob - 0.1 * max_ob, 1.1 * max_ob - 0.1 * min_ob));
-	_Cp set_left_title(observation_axisrect, "Insertion Frequency", gs);
+	custom_plot::patch::set_range(observation_axisrect, QCPRange(min_x, max_x), QCPRange(1.1 * min_ob - 0.1 * max_ob, 1.1 * max_ob - 0.1 * min_ob));
+	custom_plot::set_left_title(observation_axisrect, "Insertion Frequency", gs);
 
 	QPen pen(Qt::black);
 	pen.setWidth(3);
 
-	_CpPatch remove_bottom_axis(observation_axisrect);
+	custom_plot::patch::remove_bottom_axis(observation_axisrect);
 
 	observation_axisrect->axis(QCPAxis::atLeft)->grid()->setVisible(false);
 	observation_axisrect->axis(QCPAxis::atLeft)->setSubTickPen(Qt::NoPen);
 	observation_axisrect->axis(QCPAxis::atLeft)->setBasePen(pen);
 
 	auto [min_expect, max_expect] = std::ranges::minmax(this->expected_insertions_);
-	_CpPatch set_range(expect_axisrect, QCPRange(min_x, max_x), QCPRange(1.1 * min_expect - 0.1 * max_expect, 1.1 * max_expect - 0.1 * min_expect));
-	_CpPatch line(draw_area, expect_axisrect, x_axis, this->expected_insertions_, Qt::black, 2);
+	custom_plot::patch::set_range(expect_axisrect, QCPRange(min_x, max_x), QCPRange(1.1 * min_expect - 0.1 * max_expect, 1.1 * max_expect - 0.1 * min_expect));
+	custom_plot::patch::line(draw_area, expect_axisrect, x_axis, this->expected_insertions_, Qt::black, 2);
 
 	QCPMarginGroup* edge_margin_group = new QCPMarginGroup(draw_area);
 	observation_axisrect->setMarginGroup(QCP::msLeft | QCP::msRight, edge_margin_group);
 	expect_axisrect->setMarginGroup(QCP::msLeft | QCP::msRight, edge_margin_group);
 
-	_CpPatch remove_grid(expect_axisrect);
+	custom_plot::patch::remove_grid(expect_axisrect);
 	expect_axisrect->axis(QCPAxis::atBottom)->setBasePen(pen);
 	expect_axisrect->axis(QCPAxis::atBottom)->setSubTickPen(Qt::NoPen);
 	expect_axisrect->axis(QCPAxis::atLeft)->setBasePen(pen);
 	expect_axisrect->axis(QCPAxis::atLeft)->setSubTickPen(Qt::NoPen);
 	expect_axisrect->axis(QCPAxis::atLeft)->ticker()->setTickCount(3);
 
-	_Cp set_left_title(expect_axisrect, "Expected", gs);
-	_Cp set_bottom_title(expect_axisrect, "Relative Position (bp)", gs, true);
+	custom_plot::set_left_title(expect_axisrect, "Expected", gs);
+	custom_plot::set_bottom_title(expect_axisrect, "Relative Position (bp)", gs, true);
 
-	_Cp add_round_legend(draw_area, legend_layout, levels, colors, factor_name, gs);
+	custom_plot::add_round_legend(draw_area, legend_layout, levels, colors, factor_name, gs);
 
-	_Cp add_title(draw_area, this->motif_.motif_name_ + " Footprint", gs);
+	custom_plot::add_title(draw_area, this->motif_.motif_name_ + " Footprint", gs);
 
 	bool success = draw_area->savePng(file_name, width, height);
 

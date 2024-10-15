@@ -60,7 +60,7 @@ void EnrichWorker::enrich_pathway() {
 
 void EnrichWorker::enrich_motif() {
 
-	auto index = _Cs valid_index_of(this->peak_names_, this->motif_position_->peak_names_);
+	auto index = custom::valid_index_of(this->peak_names_, this->motif_position_->peak_names_);
 
 	if (index.isEmpty()) {
 		G_TASK_WARN("No peaks detected in motif position");
@@ -76,7 +76,7 @@ void EnrichWorker::enrich_motif() {
 
 	Eigen::ArrayXd percent_observed = observed.cast<double>() / query.rows();
 	Eigen::ArrayXd percent_background = background.cast<double>() / frequency.rows();
-	Eigen::ArrayXd fold_enrichment = _Cs divide(percent_observed, percent_background);
+	Eigen::ArrayXd fold_enrichment = custom::divide(percent_observed, percent_background);
 
 	const int n_motif = frequency.cols(), n_peak = frequency.rows(), n_query = query.rows();
 	Eigen::ArrayXd p_value(n_motif);
@@ -84,18 +84,18 @@ void EnrichWorker::enrich_motif() {
 		p_value[i] = phyper(observed[i] - 1, background[i], n_peak - background[i], n_query);
 	}
 
-	Eigen::ArrayXd p_adjusted = _Cs adjust_p_value(p_value, this->p_adjust_method_);
+	Eigen::ArrayXd p_adjusted = custom::adjust_p_value(p_value, this->p_adjust_method_);
 
 	CustomMatrix ret(this->motif_position_->motif_names_);
 
-	ret.update(METADATA_ENRICHMENT_P_VALUE, _Cs cast<QVector>(p_value));
-	ret.update(METADATA_ENRICHMENT_ADJUSTED_P_VALUE, _Cs cast<QVector>(p_adjusted));
-	ret.update(METADATA_ENRICHMENT_OBSERVED_MOTIF_PERCENTAGE, _Cs cast<QVector>(percent_observed));
-	ret.update(METADATA_ENRICHMENT_BACKGROUND_MOTIF_PERCENTAGE, _Cs cast<QVector>(percent_background));
-	ret.update(METADATA_ENRICHMENT_OBSERVED_MOTIF_COUNT, _Cs cast<QVector>(observed));
-	ret.update(METADATA_ENRICHMENT_BACKGROUND_MOTIF_COUNT, _Cs cast<QVector>(background));
-	ret.update(METADATA_ENRICHMENT_FOLD_CHANGE, _Cs cast<QVector>(fold_enrichment));
-	ret.row_slice(_Cs less_than(p_adjusted, this->p_threshold_));
+	ret.update(METADATA_ENRICHMENT_P_VALUE, custom::cast<QVector>(p_value));
+	ret.update(METADATA_ENRICHMENT_ADJUSTED_P_VALUE, custom::cast<QVector>(p_adjusted));
+	ret.update(METADATA_ENRICHMENT_OBSERVED_MOTIF_PERCENTAGE, custom::cast<QVector>(percent_observed));
+	ret.update(METADATA_ENRICHMENT_BACKGROUND_MOTIF_PERCENTAGE, custom::cast<QVector>(percent_background));
+	ret.update(METADATA_ENRICHMENT_OBSERVED_MOTIF_COUNT, custom::cast<QVector>(observed));
+	ret.update(METADATA_ENRICHMENT_BACKGROUND_MOTIF_COUNT, custom::cast<QVector>(background));
+	ret.update(METADATA_ENRICHMENT_FOLD_CHANGE, custom::cast<QVector>(fold_enrichment));
+	ret.row_slice(custom::less_than(p_adjusted, this->p_threshold_));
 
 	if (ret.is_empty()) {
 		G_TASK_WARN("No Results meet requirements.");
