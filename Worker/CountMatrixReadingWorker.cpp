@@ -128,7 +128,7 @@ bool CountMatrixReadingWorker::read_file() {
 
 void CountMatrixReadingWorker::create_data() {
 
-	SingleCellRna* sc = new SingleCellRna();
+	std::unique_ptr<SingleCellRna> sc(new SingleCellRna());
 	SparseInt& counts = SUBMODULES(*sc, SparseInt)[VARIABLE_COUNTS];
 	counts.data_type_ = SparseInt::DataType::Counts;
 	counts.mat_.resize(this->nrow_, this->ncol_);
@@ -146,7 +146,6 @@ void CountMatrixReadingWorker::create_data() {
 	// gene number should be more than 1000
 	if (gene_detected.count() < 1000) {
 		G_TASK_WARN("Count Matrix Loading Failed.");
-		delete sc;
 		return;
 	}
 
@@ -226,7 +225,7 @@ void CountMatrixReadingWorker::create_data() {
 
 	sc->species_ = species;
 
-	emit x_data_create_soon(sc, soap::VariableType::SingleCellRna, "SingleCellRna");
+	emit x_data_create_soon(sc.release(), soap::VariableType::SingleCellRna, "SingleCellRna");
 }
 
 void CountMatrixReadingWorker::run() {

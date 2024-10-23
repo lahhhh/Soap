@@ -6,10 +6,11 @@
 
 bool Read10XRnaWorker::read_barcodes() {
 
-	QString barcodes_file_path = this->path_10X_ + "/" + BARCODES_FILE_NAME_10X;
-	auto file = barcodes_file_path.toUtf8();
+	auto file = this->barcodes_file_name_.toStdString();
 
-	char* buffer = new char[256];
+	std::unique_ptr<char[]> bu(new char[256]);
+
+	char* buffer = bu.get();
 
 	gzFile barcodes = gzopen(file.data(), "rb");
 
@@ -22,19 +23,19 @@ bool Read10XRnaWorker::read_barcodes() {
 	{
 		this->barcodes_ << QString::fromUtf8(buffer, custom::line_length(buffer));
 	}
-	gzclose(barcodes);
 
-	delete[] buffer;
+	gzclose(barcodes);
 
 	return true;
 };
 
 bool Read10XRnaWorker::read_features() {
 
-	QString features_file_path = this->path_10X_ + "/" + FEATURE_FILE_NAME_10X;
-	auto file = features_file_path.toUtf8();
+	auto file = this->features_file_name_.toStdString();
 
-	char* buffer = new char[1024];
+	std::unique_ptr<char[]> bu(new char[1024]);
+
+	char* buffer = bu.get();
 
 	gzFile features = gzopen(file.data(), "rb");
 
@@ -57,9 +58,8 @@ bool Read10XRnaWorker::read_features() {
 		}
 		this->gene_symbols_ << QString::fromUtf8(feature_start, c - feature_start);
 	}
-	gzclose(features);
 
-	delete[] buffer;
+	gzclose(features);
 
 	return true;
 };
@@ -78,10 +78,12 @@ void Read10XRnaWorker::determine_species() {
 };
 
 bool Read10XRnaWorker::read_matrix() {
-	QString matrix_file_path = this->path_10X_ + "/" + MATRIX_FILE_NAME_10X;
-	auto file = matrix_file_path.toUtf8();
 
-	char* buffer = new char[256];
+	auto file = this->matrix_file_name_.toStdString();
+
+	std::unique_ptr<char[]> bu(new char[256]);
+
+	char* buffer = bu.get();
 
 	gzFile matrix = gzopen(file.data(), "rb");
 
@@ -133,7 +135,6 @@ bool Read10XRnaWorker::read_matrix() {
 	counts.mat_ = trmat;
 	counts.rownames_ = custom::make_unique(this->gene_symbols_);
 	counts.colnames_ = custom::make_unique(this->barcodes_);
-	delete[] buffer;
 
 	return true;
 };
@@ -208,22 +209,19 @@ void Read10XRnaWorker::calculate_metadata() {
 
 void Read10XRnaWorker::run() {
 
-	this->single_cell_rna_ = new SingleCellRna();
+	this->single_cell_rna_.reset(new SingleCellRna());
 
 	if (!this->read_barcodes()) {
-		delete this->single_cell_rna_;
 		G_TASK_WARN("Barcodes loading failed.");
 		G_TASK_END;
 	}
 
 	if (!this->read_features()) {
-		delete this->single_cell_rna_;
 		G_TASK_WARN("Features loading failed.");
 		G_TASK_END;
 	}
 
 	if (!this->read_matrix()) {
-		delete this->single_cell_rna_;
 		G_TASK_WARN("Matrix loading failed.");
 		G_TASK_END;
 	}
@@ -231,6 +229,6 @@ void Read10XRnaWorker::run() {
 	this->determine_species();
 	this->calculate_metadata();
 
-	emit x_data_create_soon(this->single_cell_rna_, soap::VariableType::SingleCellRna, "Single Cell RNA Data");
+	emit x_data_create_soon(this->single_cell_rna_.release(), soap::VariableType::SingleCellRna, "Single Cell RNA Data");
 	G_TASK_END;
 }

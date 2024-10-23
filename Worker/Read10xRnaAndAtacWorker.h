@@ -9,11 +9,21 @@ class Read10XMultiomeWorker :
 {
     Q_OBJECT
 public:
-    Read10XMultiomeWorker(const QString& path_10X);
 
-    QString path_10X_;
+    Read10XMultiomeWorker(
+        const QString& barcodes_file_name,
+        const QString& features_file_name,
+        const QString& matrix_file_name) :
+        barcodes_file_name_(barcodes_file_name),
+        features_file_name_(features_file_name),
+        matrix_file_name_(matrix_file_name)
+    {}
 
-    SingleCellMultiome* single_cell_multiome_ = nullptr;
+    QString barcodes_file_name_;
+    QString features_file_name_;
+    QString matrix_file_name_;
+
+    std::unique_ptr<SingleCellMultiome> single_cell_multiome_;
 
     Eigen::SparseMatrix<int> counts_;
 

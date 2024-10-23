@@ -60,7 +60,7 @@ public:
 			return false;
 		}
 
-		sread(ifs, item);
+		sread(ifs, item, edition);
 
 		return true;
 	}
@@ -82,7 +82,7 @@ public:
 		swrite(ofs, edition);
 		swrite(ofs, item_name);
 		swrite(ofs, ItemType::g_identifier());
-		swrite(ofs, item);
+		swrite(ofs, item, edition);
 
 		return true;
 	}

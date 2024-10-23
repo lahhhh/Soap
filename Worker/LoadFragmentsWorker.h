@@ -26,7 +26,7 @@ public:
 
     int n_cell_;
 
-    Fragments* fragments_{ nullptr };
+    std::unique_ptr<Fragments> fragments_;
 
     void create_index();
 

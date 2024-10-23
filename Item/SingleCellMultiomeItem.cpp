@@ -8,6 +8,7 @@
 #include "CommonDialog.h"
 
 #include "ItemIOWorker.h"
+#include "CellchatWorker.h"
 #include "PcaWorker.h"
 #include "UmapWorker.h"
 #include "ScrubletWorker.h"
@@ -316,6 +317,10 @@ void SingleCellMultiomeItem::__set_menu() {
 	ADD_ACTION("InferCNV [No HMM]", "RNA | CNV Detection", s_infercnv);
 
 	ADD_MAIN_ACTION("Infer Gene Regulatory NetWork", s_pando);
+
+	// cell-cell interaction
+	ADD_MAIN_MENU("Cell-cell Interaction");
+	ADD_ACTION("Cell Chat", "Cell-cell Interaction", s_cellchat_default);
 
 	// landscape plot
 	ADD_MAIN_ACTION("ATAC Landscape Plot", s_show_atac_landscape);
@@ -3044,3 +3049,99 @@ void SingleCellMultiomeItem::s_receive_atac_landscape_plot(ATAC_LANDSCAPE_PLOT_E
 
 	this->draw_suite_->update(draw_area);
 };
+
+void SingleCellMultiomeItem::s_receive_cellchat(CellChat cellchat) {
+	QString title = "Cellchat by " + cellchat.identity_;
+	title = this->signal_emitter_->get_unique_name(title);
+
+	DATA_SUBMODULES(CellChat)[title] = std::move(cellchat);
+
+	CellChatItem* item = new CellChatItem(
+		title, this->index_tree_,
+		&DATA_SUBMODULES(CellChat)[title],
+		this->draw_suite_,
+		this->information_area_,
+		this->signal_emitter_
+	);
+
+	this->set_item(item);
+
+	G_LOG(title + " finished");
+};
+
+void SingleCellMultiomeItem::s_cellchat_default() {
+
+	auto rna_normalized = this->data()->rna_normalized();
+	if (rna_normalized == nullptr) {
+		G_WARN("RNA data has not been normalized.");
+		return;
+	}
+
+	if (this->data()->species_ != soap::Species::Human && this->data()->species_ != soap::Species::Mouse) {
+		G_WARN("No Database for this species.");
+		return;
+	}
+
+	G_GETLOCK;
+
+	QStringList features = this->data()->metadata()->mat_.get_factor_name(false);
+
+	if (features.isEmpty()) {
+		G_LOG("No suitable feature for GSEA");
+		G_UNLOCK;
+		return;
+	}
+	QStringList settings = CommonDialog::get_response(
+		this->signal_emitter_,
+		"Select Identity for CellChat Analysis",
+
+		{ "Metadata", "Min Expression Percent:0.1", "P Adjusted Method:FDR", "Random State:" + QString::number(this->data()->random_state_),
+		"Number of Permutation:100", "Min Cluster Size:10", "Annotation Type" },
+
+		{ soap::InputStyle::ComboBox, soap::InputStyle::NumericLineEdit, soap::InputStyle::ComboBox
+		, soap::InputStyle::IntegerLineEdit, soap::InputStyle::IntegerLineEdit, soap::InputStyle::IntegerLineEdit, soap::InputStyle::ComboBox },
+
+		{ features, { "FDR", "Bonferroni" }, { "Secreted Signaling", "ALL", "Cell-Cell Contact", "ECM-Receptor"}}
+	);
+	if (settings.isEmpty()) {
+		G_UNLOCK;
+		return;
+	}
+	QStringList metadata = this->data()->metadata()->mat_.get_qstring(settings[0]);
+	auto distribution = custom::table(metadata);
+	int second_cluster_size = custom::sorted(distribution.values(), true)[1];
+
+	double minimum_expression_percentage = settings[1].toDouble();
+	if (minimum_expression_percentage < 0 || minimum_expression_percentage >= 1) {
+		G_WARN("Invalid Expression Percentage. Reset to 0.1.");
+		minimum_expression_percentage = 0.1;
+	}
+
+	int n_permutation = settings[4].toInt();
+	if (n_permutation < 10 || n_permutation > 10000) {
+		G_WARN("Invalid number of permutation. Reset to 100.");
+		n_permutation = 100;
+	}
+
+	int minimum_cluster_size = settings[5].toInt();
+	if (minimum_cluster_size < 0 || minimum_cluster_size > second_cluster_size) {
+		G_WARN("Invalid min cluster size. Reset to 0.");
+		minimum_cluster_size = 0;
+	}
+	G_LOG("CellChat in " + settings[0] + " start...");
+
+	CellchatWorker* worker = new CellchatWorker(
+		settings[0],
+		rna_normalized,
+		this->data()->species_,
+		metadata,
+		minimum_expression_percentage,
+		settings[2],
+		settings[3].toInt(),
+		n_permutation,
+		minimum_cluster_size,
+		settings[6]
+	);
+
+	G_LINK_WORKER_THREAD(CellchatWorker, x_cellchat_ready, SingleCellMultiomeItem, s_receive_cellchat)
+}

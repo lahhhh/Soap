@@ -4,6 +4,8 @@
 
 #include "Serialization.h"
 
+const QStringList valid_editions = {"soap_1_0"};
+
 ItemIOWorker::ItemIOWorker(
 	const QString& file_path, 
 	soap::VariableType data_type, 
@@ -42,107 +44,107 @@ void ItemIOWorker::write() {
 
 	if (this->data_type_ == soap::VariableType::SingleCellRna) {
 		swrite(ofs, SingleCellRna::g_identifier());
-		swrite(ofs, *static_cast<SingleCellRna*>(this->data_));
+		swrite(ofs, *static_cast<SingleCellRna*>(this->data_), edition);
 	}
 	else if (this->data_type_ == soap::VariableType::SingleCellAtac) {
 		swrite(ofs, SingleCellAtac::g_identifier());
-		swrite(ofs, *static_cast<SingleCellAtac*>(this->data_));
+		swrite(ofs, *static_cast<SingleCellAtac*>(this->data_), edition);
 	}
 	else if (this->data_type_ == soap::VariableType::CellChat) {
 		swrite(ofs, CellChat::g_identifier());
-		swrite(ofs, *static_cast<CellChat*>(this->data_));
+		swrite(ofs, *static_cast<CellChat*>(this->data_), edition);
 	}
 	else if (this->data_type_ == soap::VariableType::CNV) {
 		swrite(ofs, CNV::g_identifier());
-		swrite(ofs, *static_cast<CNV*>(this->data_));
+		swrite(ofs, *static_cast<CNV*>(this->data_), edition);
 	}
 	else if (this->data_type_ == soap::VariableType::DataFrame) {
 		swrite(ofs, DataFrame::g_identifier());
-		swrite(ofs, *static_cast<DataFrame*>(this->data_));
+		swrite(ofs, *static_cast<DataFrame*>(this->data_), edition);
 	}
 	else if (this->data_type_ == soap::VariableType::DifferentialAnalysis) {
 		swrite(ofs, DifferentialAnalysis::g_identifier());
-		swrite(ofs, *static_cast<DifferentialAnalysis*>(this->data_));
+		swrite(ofs, *static_cast<DifferentialAnalysis*>(this->data_), edition);
 	}
 	else if (this->data_type_ == soap::VariableType::Pando) {
 		swrite(ofs, Pando::g_identifier());
-		swrite(ofs, *static_cast<Pando*>(this->data_));
+		swrite(ofs, *static_cast<Pando*>(this->data_), edition);
 	}
 	else if (this->data_type_ == soap::VariableType::DenseDouble) {
 		swrite(ofs, DenseDouble::g_identifier());
-		swrite(ofs, *static_cast<DenseDouble*>(this->data_));
+		swrite(ofs, *static_cast<DenseDouble*>(this->data_), edition);
 	}
 	else if (this->data_type_ == soap::VariableType::Embedding) {
 		swrite(ofs, Embedding::g_identifier());
-		swrite(ofs, *static_cast<Embedding*>(this->data_));
+		swrite(ofs, *static_cast<Embedding*>(this->data_), edition);
 	}
 	else if (this->data_type_ == soap::VariableType::Enrichment) {
 		swrite(ofs, Enrichment::g_identifier());
-		swrite(ofs, *static_cast<Enrichment*>(this->data_));
+		swrite(ofs, *static_cast<Enrichment*>(this->data_), edition);
 	}
 	else if (this->data_type_ == soap::VariableType::GSEA) {
 		swrite(ofs, GSEA::g_identifier());
-		swrite(ofs, *static_cast<GSEA*>(this->data_));
+		swrite(ofs, *static_cast<GSEA*>(this->data_), edition);
 	}
 	else if (this->data_type_ == soap::VariableType::Metadata) {
 		swrite(ofs, Metadata::g_identifier());
-		swrite(ofs, *static_cast<Metadata*>(this->data_));
+		swrite(ofs, *static_cast<Metadata*>(this->data_), edition);
 	}
 	else if (this->data_type_ == soap::VariableType::SparseDouble) {
 		swrite(ofs, SparseDouble::g_identifier());
-		swrite(ofs, *static_cast<SparseDouble*>(this->data_));
+		swrite(ofs, *static_cast<SparseDouble*>(this->data_), edition);
 	}
 	else if (this->data_type_ == soap::VariableType::SparseInt) {
 		swrite(ofs, SparseInt::g_identifier());
-		swrite(ofs, *static_cast<SparseInt*>(this->data_));
+		swrite(ofs, *static_cast<SparseInt*>(this->data_), edition);
 	}
 	else if (this->data_type_ == soap::VariableType::SingleCellMultiome) {
 		swrite(ofs, SingleCellMultiome::g_identifier());
-		swrite(ofs, *static_cast<SingleCellMultiome*>(this->data_));
+		swrite(ofs, *static_cast<SingleCellMultiome*>(this->data_), edition);
 	}
 	else if (this->data_type_ == soap::VariableType::GenomicRange) {
 		swrite(ofs, GenomicRange::g_identifier());
-		swrite(ofs, *static_cast<GenomicRange*>(this->data_));
+		swrite(ofs, *static_cast<GenomicRange*>(this->data_), edition);
 	}
 	else if (this->data_type_ == soap::VariableType::MotifPosition) {
 		swrite(ofs, MotifPosition::g_identifier());
-		swrite(ofs, *static_cast<MotifPosition*>(this->data_));
+		swrite(ofs, *static_cast<MotifPosition*>(this->data_), edition);
 	}
 	else if (this->data_type_ == soap::VariableType::CoverageTrack) {
 		swrite(ofs, CoverageTrack::g_identifier());
-		swrite(ofs, *static_cast<CoverageTrack*>(this->data_));
+		swrite(ofs, *static_cast<CoverageTrack*>(this->data_), edition);
 	}
 	else if (this->data_type_ == soap::VariableType::Footprint) {
 		swrite(ofs, Footprint::g_identifier());
-		swrite(ofs, *static_cast<Footprint*>(this->data_));
+		swrite(ofs, *static_cast<Footprint*>(this->data_), edition);
 	}
 	else if (this->data_type_ == soap::VariableType::StringVector) {
 		swrite(ofs, StringVector::g_identifier());
-		swrite(ofs, *static_cast<StringVector*>(this->data_));
+		swrite(ofs, *static_cast<StringVector*>(this->data_), edition);
 	}
 	else if (this->data_type_ == soap::VariableType::GeneName) {
 		swrite(ofs, GeneName::g_identifier());
-		swrite(ofs, *static_cast<GeneName*>(this->data_));
+		swrite(ofs, *static_cast<GeneName*>(this->data_), edition);
 	}
 	else if (this->data_type_ == soap::VariableType::NumericMatrix) {
 		swrite(ofs, NumericMatrix::g_identifier());
-		swrite(ofs, *static_cast<NumericMatrix*>(this->data_));
+		swrite(ofs, *static_cast<NumericMatrix*>(this->data_), edition);
 	}
 	else if (this->data_type_ == soap::VariableType::DenseInt) {
 		swrite(ofs, DenseInt::g_identifier());
-		swrite(ofs, *static_cast<DenseInt*>(this->data_));
+		swrite(ofs, *static_cast<DenseInt*>(this->data_), edition);
 	}
 	else if (this->data_type_ == soap::VariableType::DenseDouble) {
 		swrite(ofs, DenseDouble::g_identifier());
-		swrite(ofs, *static_cast<DenseDouble*>(this->data_));
+		swrite(ofs, *static_cast<DenseDouble*>(this->data_), edition);
 	}
 	else if (this->data_type_ == soap::VariableType::ChromVAR) {
 		swrite(ofs, ChromVAR::g_identifier());
-		swrite(ofs, *static_cast<ChromVAR*>(this->data_));
+		swrite(ofs, *static_cast<ChromVAR*>(this->data_), edition);
 	}
 	else if (this->data_type_ == soap::VariableType::BulkRna) {
 		swrite(ofs, BulkRna::g_identifier());
-		swrite(ofs, *static_cast<BulkRna*>(this->data_));
+		swrite(ofs, *static_cast<BulkRna*>(this->data_), edition);
 	}
 	else {
 		G_TASK_WARN("Unknown type");
@@ -172,8 +174,8 @@ void ItemIOWorker::read() {
 		return;
 	}
 
-	if (edition != SOAP_EDITION) {
-		G_TASK_WARN("Unmatched edition! Item Edition : [" + edition + "]; Software Edition :[" SOAP_EDITION "]");
+	if (!valid_editions.contains(edition)) {
+		G_TASK_WARN("Unrecognized edition! Item Edition : [" + edition + "]");
 		return;
 	}
 	
@@ -185,132 +187,132 @@ void ItemIOWorker::read() {
 
 	if (type == SingleCellRna::g_identifier()) {
 		SingleCellRna* data = new SingleCellRna();
-		sread(ifs, *data);
+		sread(ifs, *data, edition);
 		emit x_data_create_soon(data, soap::VariableType::SingleCellRna, this->item_name_);
 	}
 	else if (type == SingleCellAtac::g_identifier()) {
 		SingleCellAtac* data = new SingleCellAtac();
-		sread(ifs, *data);
+		sread(ifs, *data, edition);
 		emit x_data_create_soon(data, soap::VariableType::SingleCellAtac, this->item_name_);
 	}
 	else if (type == SingleCellMultiome::g_identifier()) {
 		SingleCellMultiome* data = new SingleCellMultiome();
-		sread(ifs, *data);
+		sread(ifs, *data, edition);
 		emit x_data_create_soon(data, soap::VariableType::SingleCellMultiome, this->item_name_);
 	}
 	else if (type == CellChat::g_identifier()) {
 		CellChat* data = new CellChat();
-		sread(ifs, *data);
+		sread(ifs, *data, edition);
 		emit x_data_create_soon(data, soap::VariableType::CellChat, this->item_name_);
 	}
 	else if (type == CNV::g_identifier()) {
 		CNV* data = new CNV();
-		sread(ifs, *data);
+		sread(ifs, *data, edition);
 		emit x_data_create_soon(data, soap::VariableType::CNV, this->item_name_);
 	}
 	else if (type == DataFrame::g_identifier()) {
 		DataFrame* data = new DataFrame();
-		sread(ifs, *data);
+		sread(ifs, *data, edition);
 		emit x_data_create_soon(data, soap::VariableType::DataFrame, this->item_name_);
 	}
 	else if (type == DifferentialAnalysis::g_identifier()) {
 		DifferentialAnalysis* data = new DifferentialAnalysis();
-		sread(ifs, *data);
+		sread(ifs, *data, edition);
 		emit x_data_create_soon(data, soap::VariableType::DifferentialAnalysis, this->item_name_);
 	}
 	else if (type == DenseDouble::g_identifier()) {
 		DenseDouble* data = new DenseDouble();
-		sread(ifs, *data);
+		sread(ifs, *data, edition);
 		emit x_data_create_soon(data, soap::VariableType::DenseDouble, this->item_name_);
 	}
 	else if (type == Embedding::g_identifier()) {
 		Embedding* data = new Embedding();
-		sread(ifs, *data);
+		sread(ifs, *data, edition);
 		emit x_data_create_soon(data, soap::VariableType::Embedding, this->item_name_);
 	}
 	else if (type == Enrichment::g_identifier()) {
 		Enrichment* data = new Enrichment();
-		sread(ifs, *data);
+		sread(ifs, *data, edition);
 		emit x_data_create_soon(data, soap::VariableType::Enrichment, this->item_name_);
 	}
 	else if (type == GSEA::g_identifier()) {
 		GSEA* data = new GSEA();
-		sread(ifs, *data);
+		sread(ifs, *data, edition);
 		emit x_data_create_soon(data, soap::VariableType::GSEA, this->item_name_);
 	}
 	else if (type == Metadata::g_identifier()) {
 		Metadata* data = new Metadata();
-		sread(ifs, *data);
+		sread(ifs, *data, edition);
 		emit x_data_create_soon(data, soap::VariableType::Metadata, this->item_name_);
 	}
 	else if (type == SparseDouble::g_identifier()) {
 		SparseDouble* data = new SparseDouble();
-		sread(ifs, *data);
+		sread(ifs, *data, edition);
 		emit x_data_create_soon(data, soap::VariableType::SparseDouble, this->item_name_);
 	}
 	else if (type == SparseInt::g_identifier()) {
 		SparseInt* data = new SparseInt();
-		sread(ifs, *data);
+		sread(ifs, *data, edition);
 		emit x_data_create_soon(data, soap::VariableType::SparseInt, this->item_name_);
 	}
 	else if (type == GenomicRange::g_identifier()) {
 		GenomicRange* data = new GenomicRange();
-		sread(ifs, *data);
+		sread(ifs, *data, edition);
 		emit x_data_create_soon(data, soap::VariableType::GenomicRange, this->item_name_);
 	}
 	else if (type == MotifPosition::g_identifier()) {
 		MotifPosition* data = new MotifPosition();
-		sread(ifs, *data);
+		sread(ifs, *data, edition);
 		emit x_data_create_soon(data, soap::VariableType::MotifPosition, this->item_name_);
 	}
 	else if (type == CoverageTrack::g_identifier()) {
 		CoverageTrack* data = new CoverageTrack();
-		sread(ifs, *data);
+		sread(ifs, *data, edition);
 		emit x_data_create_soon(data, soap::VariableType::CoverageTrack, this->item_name_);
 	}
 	else if (type == Footprint::g_identifier()) {
 		Footprint* data = new Footprint();
-		sread(ifs, *data);
+		sread(ifs, *data, edition);
 		emit x_data_create_soon(data, soap::VariableType::Footprint, this->item_name_);
 	}
 	else if (type == StringVector::g_identifier()) {
 		StringVector* data = new StringVector();
-		sread(ifs, *data);
+		sread(ifs, *data, edition);
 		emit x_data_create_soon(data, soap::VariableType::StringVector, this->item_name_);
 	}
 	else if (type == GeneName::g_identifier()) {
 		GeneName* data = new GeneName();
-		sread(ifs, *data);
+		sread(ifs, *data, edition);
 		emit x_data_create_soon(data, soap::VariableType::GeneName, this->item_name_);
 	}
 	else if (type == Pando::g_identifier()) {
 		Pando* data = new Pando();
-		sread(ifs, *data);
+		sread(ifs, *data, edition);
 		emit x_data_create_soon(data, soap::VariableType::Pando, this->item_name_);
 	}
 	else if (type == NumericMatrix::g_identifier()) {
 		NumericMatrix* data = new NumericMatrix();
-		sread(ifs, *data);
+		sread(ifs, *data, edition);
 		emit x_data_create_soon(data, soap::VariableType::NumericMatrix, this->item_name_);
 	}
 	else if (type == DenseInt::g_identifier()) {
 		DenseInt* data = new DenseInt();
-		sread(ifs, *data);
+		sread(ifs, *data, edition);
 		emit x_data_create_soon(data, soap::VariableType::DenseInt, this->item_name_);
 	}
 	else if (type == DenseDouble::g_identifier()) {
 		DenseDouble* data = new DenseDouble();
-		sread(ifs, *data);
+		sread(ifs, *data, edition);
 		emit x_data_create_soon(data, soap::VariableType::DenseDouble, this->item_name_);
 	}
 	else if (type == ChromVAR::g_identifier()) {
 		ChromVAR* data = new ChromVAR();
-		sread(ifs, *data);
+		sread(ifs, *data, edition);
 		emit x_data_create_soon(data, soap::VariableType::ChromVAR, this->item_name_);
 	}
 	else if (type == BulkRna::g_identifier()) {
 		BulkRna* data = new BulkRna();
-		sread(ifs, *data);
+		sread(ifs, *data, edition);
 		emit x_data_create_soon(data, soap::VariableType::BulkRna, this->item_name_);
 	}
 	else {

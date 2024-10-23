@@ -496,50 +496,29 @@ void MainWindow::s_scRNAseq_pipeline() {
 };
 
 void MainWindow::s_load_10X_scMultiome() {
-	QString directory_name = QFileDialog::getExistingDirectory(this, "Choose Directory");
 
-	if (!directory_name.isEmpty()) {
+	auto settings = CommonDialog::get_response(
+		this->signal_emitter_,
+		"Choose Files",
+		{ "Barcodes File", "Feature File", "Matrix File" },
+		{ soap::InputStyle::ChooseOpenFile, soap::InputStyle::ChooseOpenFile, soap::InputStyle::ChooseOpenFile }
+	);
 
-		G_LOG("Start loading 10X scMultiome...");
-
-		QString barcodes_file_path = directory_name + "/" + BARCODES_FILE_NAME_10X;
-		QString features_file_path = directory_name + "/" + FEATURE_FILE_NAME_10X;
-		QString matrix_file_path = directory_name + "/" + MATRIX_FILE_NAME_10X;
-
-		QFileInfo f1(barcodes_file_path);
-		if (!f1.isFile()) {
-			G_WARN("Barcodes File (barcodes.tsv.gz) did not exist. If it was renamed before, please rename it [barcodes.tsv.gz].")
-				return;
-		}
-		else if (!f1.isReadable()) {
-			G_WARN("Barcodes File is not readable.")
-				return;
-		}
-
-		QFileInfo f2(features_file_path);
-
-		if (!f2.isFile()) {
-			G_WARN("Features File (features.tsv.gz) did not exist. If it was renamed before, please rename it [features.tsv.gz].")
-				return;
-		}
-		else if (!f2.isReadable()) {
-			G_WARN("Features File is not readable.")
-				return;
-		}
-		QFileInfo f3(matrix_file_path);
-
-		if (!f3.isFile()) {
-			G_WARN("Matrix File (matrix.mtx.gz) did not exist. If it was renamed before, please rename it [matrix.mtx.gz].")
-				return;
-		}
-		else if (!f3.isReadable()) {
-			G_WARN("Matrix File is not readable.")
-				return;
-		}
-
-		Read10XMultiomeWorker* worker = new Read10XMultiomeWorker(directory_name);
-		G_LINK_WORKER_THREAD(Read10XMultiomeWorker, x_data_create_soon, MainWindow, s_create_data)
+	if (settings.isEmpty()) {
+		return;
 	}
+
+	QString barcodes_file_name = settings[0];
+	QString features_file_name = settings[1];
+	QString matrix_file_name = settings[2];
+
+	if (barcodes_file_name.isEmpty() || features_file_name.isEmpty() || matrix_file_name.isEmpty()) {
+		return;
+	}
+
+	Read10XMultiomeWorker* worker = new Read10XMultiomeWorker(barcodes_file_name, features_file_name, matrix_file_name);
+	G_LINK_WORKER_THREAD(Read10XMultiomeWorker, x_data_create_soon, MainWindow, s_create_data);
+
 };
 
 void MainWindow::s_load_fragments_scATAC() {
@@ -556,50 +535,28 @@ void MainWindow::s_load_fragments_scATAC() {
 
 void MainWindow::s_load_10X_scRNA()
 {
-	QString directory_name = QFileDialog::getExistingDirectory(this, "Choose Directory");
 
-	if (!directory_name.isEmpty()) {
-		G_LOG("Start loading 10X object...");
+	auto settings = CommonDialog::get_response(
+		this->signal_emitter_,
+		"Choose Files",
+		{ "Barcodes File", "Feature File", "Matrix File" },
+		{ soap::InputStyle::ChooseOpenFile, soap::InputStyle::ChooseOpenFile, soap::InputStyle::ChooseOpenFile }
+	);
 
-		QString barcodes_file_path = directory_name + "/" + BARCODES_FILE_NAME_10X;
-		QString features_file_path = directory_name + "/" + FEATURE_FILE_NAME_10X;
-		QString matrix_file_path = directory_name + "/" + MATRIX_FILE_NAME_10X;
-
-		QFileInfo f1(barcodes_file_path);
-		if (!f1.isFile()) {
-			G_WARN("Barcodes File (barcodes.tsv.gz) did not exist. If it was renamed before, please rename it [barcodes.tsv.gz].");
-				return;
-		}
-		else if (!f1.isReadable()) {
-			G_WARN("Barcodes File is not readable.");
-				return;
-		}
-
-		QFileInfo f2(features_file_path);
-
-		if (!f2.isFile()) {
-			G_WARN("Features File (features.tsv.gz) did not exist. If it was renamed before, please rename it [features.tsv.gz].");
-				return;
-		}
-		else if (!f2.isReadable()) {
-			G_WARN("Features File is not readable.");
-				return;
-		}
-		QFileInfo f3(matrix_file_path);
-
-		if (!f3.isFile()) {
-			G_WARN("Matrix File (matrix.mtx.gz) did not exist. If it was renamed before, please rename it [matrix.mtx.gz].");
-				return;
-		}
-		else if (!f3.isReadable()) {
-			G_WARN("Matrix File is not readable.");
-				return;
-		}
-
-		Read10XRnaWorker* worker = new Read10XRnaWorker(directory_name);
-		G_LINK_WORKER_THREAD(Read10XRnaWorker, x_data_create_soon, MainWindow, s_create_data);
+	if (settings.isEmpty()) {
+		return;
 	}
 
+	QString barcodes_file_name = settings[0];
+	QString features_file_name = settings[1];
+	QString matrix_file_name = settings[2];
+
+	if (barcodes_file_name.isEmpty() || features_file_name.isEmpty() || matrix_file_name.isEmpty()) {
+		return;
+	}
+
+	Read10XRnaWorker* worker = new Read10XRnaWorker(barcodes_file_name, features_file_name, matrix_file_name);
+	G_LINK_WORKER_THREAD(Read10XRnaWorker, x_data_create_soon, MainWindow, s_create_data);
 }
 
 void MainWindow::s_load_item() {

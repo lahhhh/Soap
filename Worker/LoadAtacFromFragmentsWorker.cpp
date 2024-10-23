@@ -7,14 +7,13 @@
 
 bool LoadAtacFromFragmentsWorker::read_fragments() {
 
-	this->single_cell_atac_ = new SingleCellAtac();
+	this->single_cell_atac_.reset(new SingleCellAtac());
 	auto fragments = &SUBMODULES(*this->single_cell_atac_, Fragments)[VARIABLE_FRAGMENTS];
 
 	gzFile file = gzopen(this->file_name_.toUtf8().data(), "rb");
 
 	if (file == NULL) {
 		G_TASK_WARN("File : " + this->file_name_ + " is broken.");
-		delete this->single_cell_atac_;
 		return false;
 	}
 
@@ -31,7 +30,6 @@ bool LoadAtacFromFragmentsWorker::read_fragments() {
 	if (!not_end_of_file) {
 		gzclose(file);
 		G_TASK_WARN("File : " + this->file_name_ + " is broken.");
-		delete this->single_cell_atac_;
 		return false;
 	}
 
@@ -49,7 +47,6 @@ bool LoadAtacFromFragmentsWorker::read_fragments() {
 
 		if (start >= end) {
 			G_TASK_WARN("Invalid Fragments File: " + QString::fromUtf8(buffer));
-			delete this->single_cell_atac_;
 			gzclose(file);
 			return false;
 		}
@@ -196,6 +193,6 @@ void LoadAtacFromFragmentsWorker::run() {
 
 	this->calculate_metadata();
 
-	emit x_data_create_soon(this->single_cell_atac_, soap::VariableType::SingleCellAtac, "Single Cell ATAC Data");
+	emit x_data_create_soon(this->single_cell_atac_.release(), soap::VariableType::SingleCellAtac, "Single Cell ATAC Data");
 
 };

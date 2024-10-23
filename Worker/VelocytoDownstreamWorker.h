@@ -33,7 +33,7 @@ public:
 
 	Eigen::ArrayXd emat_cs_;
 
-	VelocityEstimate* estimate_ = nullptr;
+	std::unique_ptr<VelocityEstimate> estimate_;
 
 	bool gene_relative_velocity_estimates();
 

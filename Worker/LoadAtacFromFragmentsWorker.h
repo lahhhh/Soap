@@ -14,7 +14,7 @@ public:
 
 	QString file_name_;
 
-	SingleCellAtac* single_cell_atac_{ nullptr };
+	std::unique_ptr<SingleCellAtac> single_cell_atac_;
 
 	std::unordered_map<QString, int> barcode_index_;
 

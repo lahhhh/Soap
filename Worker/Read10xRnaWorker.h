@@ -9,11 +9,20 @@ class Read10XRnaWorker : public QObject
     Q_OBJECT
 public:
 
-    explicit Read10XRnaWorker(const QString& path_10X) : path_10X_(path_10X) {}
+	Read10XRnaWorker(
+		const QString& barcodes_file_name,
+		const QString& features_file_name,
+		const QString& matrix_file_name) :
+		barcodes_file_name_(barcodes_file_name),
+		features_file_name_(features_file_name),
+		matrix_file_name_(matrix_file_name)
+	{}
 
-    QString path_10X_;
+	QString barcodes_file_name_;
+	QString features_file_name_;
+	QString matrix_file_name_;
 
-    SingleCellRna* single_cell_rna_{ nullptr };
+    std::unique_ptr<SingleCellRna> single_cell_rna_;
 
     QStringList barcodes_;
     QStringList gene_symbols_;

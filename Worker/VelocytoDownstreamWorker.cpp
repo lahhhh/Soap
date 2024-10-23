@@ -5,7 +5,8 @@
 void VelocytoDownstreamWorker::run() {
 
 	if (this->gene_relative_velocity_estimates()) {
-		emit x_estimate_ready(this->estimate_);
+
+		emit x_estimate_ready(this->estimate_.release());
 	}
 
 	G_TASK_END;
@@ -298,12 +299,11 @@ void VelocytoDownstreamWorker::calculate_extrapolated_cell_state() {
 
 bool VelocytoDownstreamWorker::gene_relative_velocity_estimates() {
 
-	this->estimate_ = new VelocityEstimate();
+	this->estimate_.reset(new VelocityEstimate());
 
 	this->get_conv_mat();
 
 	if (!this->fit_linear()) {
-		delete this->estimate_;
 		return false;
 	}
 	this->calculate_velocity_shift();

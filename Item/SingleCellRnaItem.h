@@ -143,4 +143,6 @@ private slots:
 	void s_harmony();
 	void s_receive_harmony(Eigen::MatrixXd);
 
+	void s_cellchat_default();
+	void s_receive_cellchat(CellChat cellchat);
 };

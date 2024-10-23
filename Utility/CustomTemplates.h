@@ -159,6 +159,40 @@ namespace custom {
 		return true;
 	}
 
+	template <typename... Args>
+		requires (std::is_same_v<Args, QStringList> && ...)
+	QStringList paste(const QString& concat, const Args&... args) {
+		// Store the parameter packs into a tuple of QStringLists
+		const std::tuple<const Args&...> lists(args...);
+
+		// Check if all QStringLists have the same size
+		const std::size_t size = std::get<0>(lists).size();
+		auto check_size = [&](const auto& list) {
+			return list.size() == size;
+		};
+		if (!(check_size(args) && ...)) {
+			return {};  // Return empty if sizes don't match
+		}
+
+		bool has_concat = !concat.isEmpty();
+		QStringList ret;
+		ret.reserve(size);
+
+		for (std::size_t i = 0; i < size; ++i) {
+			QString combined;
+			auto append_list = [&](const auto& list) {
+				if (!combined.isEmpty() && has_concat) {
+					combined += concat;
+				}
+				combined += list[i];
+			};
+			(append_list(args), ...);  // Apply the append_list lambda to each QStringList
+			ret.emplace_back(combined);
+		}
+
+		return ret;
+	}
+
 	template<typename Con, typename Ele = get_element_raw_type<Con>>
 	int find_most_frequent_element(const Con& con) {
 		std::unordered_map<Ele, int> count_map;

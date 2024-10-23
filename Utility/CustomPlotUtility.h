@@ -14,7 +14,7 @@ namespace custom_plot {
 			requires custom::is_specific_container<ContainerType, double>
 		QCPRange get_range(const ContainerType& vec, double margin_proportion = 0.1) {
 
-			auto [min_val, max_val] = ::std::ranges::minmax(vec);
+			auto [min_val, max_val] = std::ranges::minmax(vec);
 			double val_span = max_val - min_val;
 			double val_min_limit = min_val - margin_proportion * val_span, val_maval_limit = max_val + margin_proportion * val_span;
 
@@ -33,34 +33,55 @@ namespace custom_plot {
 		// return [1:-2]
 		Eigen::ArrayXd catmull(const Eigen::ArrayXd& x, int n_interpolation);
 
-		std::pair<Eigen::ArrayXd, Eigen::ArrayXd > violin_smooth(
+		// return length = n_segment + 1
+		std::pair<QVector<double>, QVector<double>> arc(
+			double x_center,
+			double y_center,
+			double radius,
+			double angle_a,
+			double angle_b,
+			int n_segment = 360
+		);
+
+		// modified from bezier curve, results contain ends
+		std::pair<QVector<double>, QVector<double>> circos_curve(
+			double x_center,
+			double y_center,
+			double x_start,
+			double y_start,
+			double x_end,
+			double y_end,
+			int n_segment = 360
+		);
+
+		std::pair<Eigen::ArrayXd, Eigen::ArrayXd> violin_smooth(
 			const Eigen::ArrayXd& x,
 			const Eigen::ArrayXd& y,
 			double center_x,
 			int n_interpolation = 32
 		);
 
-		std::pair<Eigen::ArrayXd, Eigen::ArrayXd > left_violin_smooth(
+		std::pair<Eigen::ArrayXd, Eigen::ArrayXd> left_violin_smooth(
 			const Eigen::ArrayXd& x,
 			const Eigen::ArrayXd& y,
 			double center_x,
 			int n_interpolation = 32
 		);
 
-		std::pair<Eigen::ArrayXd, Eigen::ArrayXd > right_violin_smooth(
+		std::pair<Eigen::ArrayXd, Eigen::ArrayXd> right_violin_smooth(
 			const Eigen::ArrayXd& x,
 			const Eigen::ArrayXd& y,
 			double center_x,
 			int n_interpolation = 32
 		);
 
-		std::pair<Eigen::ArrayXd, Eigen::ArrayXd > violin_curve(
+		std::pair<Eigen::ArrayXd, Eigen::ArrayXd> violin_curve(
 			const Eigen::ArrayXd& orig, double center = 0.0, int bins = 16, double zero_space = 0.01);
 
-		std::pair<Eigen::ArrayXd, Eigen::ArrayXd > left_violin_curve(
+		std::pair<Eigen::ArrayXd, Eigen::ArrayXd> left_violin_curve(
 			const Eigen::ArrayXd& orig, double center = 0.0, int bins = 16, double zero_space = 0.01);
 
-		std::pair<Eigen::ArrayXd, Eigen::ArrayXd > right_violin_curve(
+		std::pair<Eigen::ArrayXd, Eigen::ArrayXd> right_violin_curve(
 			const Eigen::ArrayXd& orig, double center = 0.0, int bins = 16, double zero_space = 0.01);
 
 		std::tuple<Eigen::ArrayXi, Eigen::ArrayXd, Eigen::ArrayXd> histogram(

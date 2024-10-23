@@ -18,7 +18,7 @@ void LoadFragmentsWorker::run() {
 		G_TASK_END;
 	}
 
-	emit x_fragments_ready(this->fragments_);
+	emit x_fragments_ready(this->fragments_.release());
 	G_TASK_LOG("Fragments loading finished.");
 	G_TASK_END;
 }
@@ -37,7 +37,7 @@ void LoadFragmentsWorker::create_index() {
 
 bool LoadFragmentsWorker::load_fragments() {
 
-	this->fragments_ = new Fragments();
+	this->fragments_.reset(new Fragments());
 
 	int buffer_length = 256;
 	char buffer[256];
@@ -49,7 +49,6 @@ bool LoadFragmentsWorker::load_fragments() {
 
 		if (fragments == NULL) {
 			G_TASK_WARN("File : " + fragments_file + " is broken.");
-			delete this->fragments_;
 			return false;
 		}
 
@@ -61,7 +60,6 @@ bool LoadFragmentsWorker::load_fragments() {
 		if (!not_end_of_file) {
 			gzclose(fragments);
 			G_TASK_WARN("File : " + fragments_file + " is broken.");
-			delete this->fragments_;
 			return false;
 		}
 		QString barcode;
@@ -77,7 +75,6 @@ bool LoadFragmentsWorker::load_fragments() {
 
 			if (start >= end) {
 				G_TASK_WARN("Invalid Fragments File: " + QString::fromUtf8(buffer));
-				delete this->fragments_;
 				gzclose(fragments);
 				return false;
 			}

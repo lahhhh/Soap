@@ -15,8 +15,8 @@ TextEditWindow::TextEditWindow(
 	from_(from),
 	signal_emitter_(signal_emitter)
 {
-	//connect(this->signal_emitter_, &SignalEmitter::x_data_delete_soon, this, &TextEditWindow::s_check_data);
-	//connect(this->signal_emitter_, &SignalEmitter::x_data_edit_soon, this, &TextEditWindow::s_check_data);	
+	connect(this->signal_emitter_, &SignalEmitter::x_data_delete_soon, this, &TextEditWindow::s_check_data);
+	connect(this->signal_emitter_, &SignalEmitter::x_data_edit_soon, this, &TextEditWindow::s_check_data);	
 
 	this->set_layout();
 
@@ -37,14 +37,12 @@ TextEditWindow::TextEditWindow(
 	from_(from),
 	signal_emitter_(signal_emitter)
 {
-	//connect(this->signal_emitter_, &SignalEmitter::x_data_delete_soon, this, &TextEditWindow::s_check_data);
-	//connect(this->signal_emitter_, &SignalEmitter::x_data_edit_soon, this, &TextEditWindow::s_check_data);
+	connect(this->signal_emitter_, &SignalEmitter::x_data_delete_soon, this, &TextEditWindow::s_check_data);
+	connect(this->signal_emitter_, &SignalEmitter::x_data_edit_soon, this, &TextEditWindow::s_check_data);
 
 	this->set_layout();
 
-	for (auto&& str : *string_vector_data) {
-		this->text_edit_->append(str);
-	}
+	this->text_edit_->setPlainText(string_vector_data_->join('\n'));
 
 	this->set_property();
 
@@ -74,10 +72,12 @@ void TextEditWindow::set_property() {
 };
 
 void TextEditWindow::s_edit() {
+
 	this->edited_ = true;
 };
 
 void TextEditWindow::s_check_data(void* data, soap::VariableType type, void* item) {
+
 	if (this->from_ == data) {
 
 		this->valid_ = false;

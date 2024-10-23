@@ -163,4 +163,7 @@ private slots:
 	void s_scent();
 	void s_receive_scent(Eigen::ArrayXd);
 
+	void s_cellchat_default();
+	void s_receive_cellchat(CellChat cellchat);
+
 };

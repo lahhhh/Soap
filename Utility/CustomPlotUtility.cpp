@@ -482,5 +482,57 @@ namespace custom_plot {
 			// Calculate text size in plot range units
 			return { w / rect_width * xrange, h / rect_height * yrange };
 		}
+
+		std::pair<QVector<double>, QVector<double>> circos_curve(
+			double x_center,
+			double y_center,
+			double x_start,
+			double y_start,
+			double x_end,
+			double y_end,
+			int n_segment
+		) {
+
+			double x_control = x_center;
+			double y_control = y_center;
+
+			QVector<double> xs, ys;
+
+			int n_point = n_segment + 1;
+			for (int i = 0; i < n_point; ++i) {
+
+				double t = static_cast<double>(i) / n_point;
+
+				double x = (1 - t) * (1 - t) * x_start + 2 * (1 - t) * t * x_control + t * t * x_end;
+				double y = (1 - t) * (1 - t) * y_start + 2 * (1 - t) * t * y_control + t * t * y_end;
+
+				xs << x;
+				ys << y;
+			}
+
+			return { xs, ys };
+		};
+
+		std::pair<QVector<double>, QVector<double>> arc(
+			double x_center,
+			double y_center,
+			double radius,
+			double angle_a,
+			double angle_b,
+			int n_segment
+		) {
+
+			auto angles = custom::linspaced(n_segment + 1, angle_a, angle_b);
+
+			auto xs = custom::sapply(angles, [x_center, radius](auto angle) {
+				return x_center + radius * std::cos(angle);
+			});
+
+			auto ys = custom::sapply(angles, [y_center, radius](auto angle) {
+				return y_center + radius * std::sin(angle);
+			});
+
+			return { xs, ys };
+		};
 	};
 };

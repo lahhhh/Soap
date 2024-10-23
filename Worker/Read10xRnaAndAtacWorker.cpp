@@ -3,45 +3,40 @@
 #include "Custom.h"
 #include "Identifier.h"
 
-Read10XMultiomeWorker::Read10XMultiomeWorker(const QString& path_10X) : 
-	path_10X_(path_10X) {
-
-};
-
 void Read10XMultiomeWorker::run() {
-	this->single_cell_multiome_ = new SingleCellMultiome();
+	this->single_cell_multiome_.reset(new SingleCellMultiome());
 
 	this->single_cell_multiome_->create_field("RNA", DataField::DataType::Rna);
 	this->single_cell_multiome_->create_field("ATAC", DataField::DataType::Atac);
 
 	if (!this->read_barcodes()) {
-		delete this->single_cell_multiome_;
 		G_TASK_WARN("Barcodes loading failed.");
 		G_TASK_END;
 	}
 
 	if (!this->read_features()) {
-		delete this->single_cell_multiome_;
 		G_TASK_WARN("Features loading failed.");
 		G_TASK_END;
 	}
 
 	if (!this->read_matrix()) {
-		delete this->single_cell_multiome_;
 		G_TASK_WARN("Matrix loading failed.");
 		G_TASK_END;
 	}
 	determine_species();
 	separate_counts();
 	calculate_metadata();
-	emit x_data_create_soon(this->single_cell_multiome_, soap::VariableType::SingleCellMultiome, "SingleCellMultiome");
+	emit x_data_create_soon(this->single_cell_multiome_.release(), soap::VariableType::SingleCellMultiome, "SingleCellMultiome");
 	G_TASK_END;
 };
 
 bool Read10XMultiomeWorker::read_barcodes() {
-	QString barcodes_file_path = this->path_10X_ + "/" + BARCODES_FILE_NAME_10X;
-	auto file = barcodes_file_path.toUtf8();
-	char* buffer = new char[1024];
+
+	auto file = this->barcodes_file_name_.toStdString();
+
+	std::unique_ptr<char[]> bu(new char[256]);
+
+	char* buffer = bu.get();
 
 	gzFile barcodes = gzopen(file.data(), "rb");
 
@@ -55,17 +50,16 @@ bool Read10XMultiomeWorker::read_barcodes() {
 	}
 	gzclose(barcodes);
 
-	delete[] buffer;
-
 	return true;
 };
 
 bool Read10XMultiomeWorker::read_features() {
 
-	QString features_file_path = this->path_10X_ + "/" + FEATURE_FILE_NAME_10X;
-	auto file = features_file_path.toUtf8();
+	auto file = this->features_file_name_.toStdString();
 
-	char* buffer = new char[1024];
+	std::unique_ptr<char[]> bu(new char[1024]);
+
+	char* buffer = bu.get();
 
 	gzFile features = gzopen(file.data(), "rb");
 
@@ -102,8 +96,6 @@ bool Read10XMultiomeWorker::read_features() {
 	}
 	gzclose(features);
 
-	delete[] buffer;
-
 	return true;
 };
 
@@ -121,10 +113,12 @@ void Read10XMultiomeWorker::determine_species() {
 };
 
 bool Read10XMultiomeWorker::read_matrix() {
-	QString matrixFilePath = this->path_10X_ + "/" + MATRIX_FILE_NAME_10X;
-	auto file = matrixFilePath.toUtf8();
 
-	char* buffer = new char[1024];
+	auto file = this->matrix_file_name_.toStdString();
+
+	std::unique_ptr<char[]> bu(new char[1024]);
+
+	char* buffer = bu.get();
 
 	gzFile matrix = gzopen(file.data(), "rb");
 
@@ -172,7 +166,6 @@ bool Read10XMultiomeWorker::read_matrix() {
 	trmat.collapseDuplicates(Eigen::internal::scalar_sum_op<int, int>());
 
 	this->counts_ = trmat;
-	delete[] buffer;
 
 	return true;
 };

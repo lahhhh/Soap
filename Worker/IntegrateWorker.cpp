@@ -501,7 +501,7 @@ bool IntegrateWorker::integrate_fragments_object(
 
 void IntegrateWorker::scatac_mode() {
 
-	SingleCellAtac* single_cell_atac = new SingleCellAtac();
+	std::unique_ptr<SingleCellAtac> single_cell_atac(new SingleCellAtac());
 	single_cell_atac->species_ = this->species_;
 	single_cell_atac->data_type_ = SingleCellAtac::DataType::Integrated;
 
@@ -519,8 +519,8 @@ void IntegrateWorker::scatac_mode() {
 	if (!this->integrate_fragments_object(
 		fragments,
 		col_map,
-		custom::sapply(this->scatac_data_, [](auto&& d) {return d->fragments(); }))) {
-		delete single_cell_atac;
+		custom::sapply(this->scatac_data_, [](auto&& d) {return d->fragments(); }))) 
+	{
 		G_TASK_WARN("Fragments integration failed due to incomplete fragments files.");
 		return;
 	}
@@ -549,12 +549,12 @@ void IntegrateWorker::scatac_mode() {
 
 	this->atac_quality_control(*single_cell_atac);
 
-	emit x_scatac_ready(single_cell_atac, this->scatac_data_);
+	emit x_scatac_ready(single_cell_atac.release(), this->scatac_data_);
 }
 
 void IntegrateWorker::scmultiome_mode() {
 
-	SingleCellMultiome* single_cell_multiome = new SingleCellMultiome();
+	std::unique_ptr<SingleCellMultiome> single_cell_multiome(new SingleCellMultiome());
 	single_cell_multiome->species_ = this->species_;
 	single_cell_multiome->data_type_ = SingleCellMultiome::DataType::Integrated;
 
@@ -594,8 +594,11 @@ void IntegrateWorker::scmultiome_mode() {
 	fragments.cell_names_ = rna_counts.colnames_;
 	fragments.adjust_length_by_cell_name_length();
 
-	if (!this->integrate_fragments_object(fragments, col_map, custom::sapply(this->scmultiome_data_, [](auto&& d) {return d->fragments(); }))) {
-		delete single_cell_multiome;
+	if (!this->integrate_fragments_object(
+		fragments, 
+		col_map,
+		custom::sapply(this->scmultiome_data_, [](auto&& d) {return d->fragments(); }))) 
+	{
 		G_TASK_WARN("Fragments integration failed due to incomplete fragments files.");
 		return;
 	}
@@ -623,7 +626,7 @@ void IntegrateWorker::scmultiome_mode() {
 
 	this->multiome_quality_control(*single_cell_multiome);
 
-	emit x_scmultiome_ready(single_cell_multiome, this->scmultiome_data_);
+	emit x_scmultiome_ready(single_cell_multiome.release(), this->scmultiome_data_);
 };
 
 
