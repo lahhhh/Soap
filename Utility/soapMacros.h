@@ -2,7 +2,9 @@
 
 #define SOAP_INLINE __forceinline
 
-#define SOAP_EDITION "soap_1_0"
+#define SOAP_EDITION_NOW "soap_1_0"
+
+#define SOAP_EDITION_1_0 "soap_1_0"
 
 #include "soapFileName.h"
 #include "soapMetadataName.h"
@@ -12,10 +14,6 @@
 
 #define ITEM_IDENTIFIER_1 1997
 #define ITEM_IDENTIFIER_2 1114
-
-#define BARCODES_FILE_NAME_10X "barcodes.tsv.gz"
-#define FEATURE_FILE_NAME_10X "features.tsv.gz"
-#define MATRIX_FILE_NAME_10X "matrix.mtx.gz"
 
 #define SOAP_DELIMITER "$%SOAP_DELIMITER%$"
 #define SOAP_DELIMITER2 "$%SOAP_DELIMITER2%$"

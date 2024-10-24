@@ -4,7 +4,7 @@
 
 #include "Serialization.h"
 
-const QStringList valid_editions = {"soap_1_0"};
+const QStringList valid_editions = {SOAP_EDITION_1_0};
 
 ItemIOWorker::ItemIOWorker(
 	const QString& file_path, 
@@ -35,7 +35,7 @@ void ItemIOWorker::write() {
 
 	int id1 = ITEM_IDENTIFIER_1;
 	int id2 = ITEM_IDENTIFIER_2;
-	QString edition = SOAP_EDITION;
+	QString edition = SOAP_EDITION_NOW;
 
 	swrite(ofs, id1);
 	swrite(ofs, id2);

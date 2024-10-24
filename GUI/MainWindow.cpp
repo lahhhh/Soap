@@ -183,15 +183,7 @@ void MainWindow::set_left_layout() {
 	this->left_layout_->setStretchFactor(this->information_area_, 5);
 };
 
-#include "StatisticalTest.h"
 void MainWindow::s_test() {
-
-	Eigen::ArrayXd a(10), b(10);
-
-	a << 20, 21, 22, 23, 24, 25, 22, 21, 20, 23;
-	b << 25, 26, 24, 23, 26, 25, 27, 28, 24, 26;
-
-	t_test(a, b);
 
 };
 
@@ -205,7 +197,7 @@ void MainWindow::set_utility_menu() {
 
 	menu_create_string_vector->addAction("From Input", this, &MainWindow::s_create_string_vector_from_input);
 
-	menu_utility->addAction("Test", this, &MainWindow::s_test);
+	//menu_utility->addAction("Test", this, &MainWindow::s_test);
 
 	//auto menu_developer = menu_utility->addMenu("Developer");
 	

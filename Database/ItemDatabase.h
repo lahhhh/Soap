@@ -34,7 +34,6 @@ public:
 
 		ifs.seekg(0, std::ios::beg);
 
-
 		int id1{ 0 };
 		int id2{ 0 };
 
@@ -48,11 +47,6 @@ public:
 		QString edition, name, type;
 
 		sread(ifs, edition);
-
-		if (edition != SOAP_EDITION) {
-			return false;
-		}
-
 		sread(ifs, name);
 		sread(ifs, type);
 
@@ -75,7 +69,7 @@ public:
 
 		int id1 = ITEM_IDENTIFIER_1;
 		int id2 = ITEM_IDENTIFIER_2;
-		QString edition = SOAP_EDITION;
+		QString edition = SOAP_EDITION_NOW;
 
 		swrite(ofs, id1);
 		swrite(ofs, id2);
