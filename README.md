@@ -25,13 +25,12 @@
 
 ## System Requirement
 - 1. Windows operating system.
-- 2. Intel CPU (because we use Intel Math Kernel Library), I dont know if it can run appropriately on AMD CPU (maybe need openblas).
+- 2. Intel CPU (because we use Intel Math Kernel Library), I don't know if it can run appropriately on AMD CPU (maybe need openblas).
 - 3. CPU should support AVX2 archive (CPU produced after 2012).
 - 4. enough memory (the more cells you analyze, the more memory you need).
 
-## Copyright
-We integrated many published well-known methods. If the original author does not wish for us to port their algorithm, please contact us so that we can remove it.
 
 If you meet bugs in using SOAP, please kindly report the issue.
+
 Contact the author: liuanhang1997@qq.com
 

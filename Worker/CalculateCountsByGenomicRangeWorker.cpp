@@ -2,7 +2,6 @@
 
 #include "Custom.h"
 #include "GenomeUtility.h"
-#include <zlib.h>
 
 CalculateCountsByGenomicRangeWorker::CalculateCountsByGenomicRangeWorker(
 	const Fragments* fragments,

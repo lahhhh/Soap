@@ -45,7 +45,7 @@ bool LoadFragmentsWorker::load_fragments() {
 	std::size_t process = 0;
 
 	for (const auto& fragments_file : this->fragments_files_) {
-		gzFile fragments = gzopen(fragments_file.toUtf8().data(), "rb");
+		gzFile fragments = gzopen_w((const wchar_t*)fragments_file.utf16(), "rb");
 
 		if (fragments == NULL) {
 			G_TASK_WARN("File : " + fragments_file + " is broken.");

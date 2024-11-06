@@ -1,6 +1,5 @@
 #include "TranscriptionalFactorFootprintingWorker.h"
 
-#include <zlib.h>
 #include <QtConcurrent>
 
 #include "GenomeUtility.h"

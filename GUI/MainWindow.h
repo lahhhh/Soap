@@ -166,8 +166,6 @@ private slots:
 
 	void s_create_string_vector_from_input();
 
-	void s_generate_wix();
-
 private:
 
 	void prepare();

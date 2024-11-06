@@ -177,7 +177,7 @@ void SingleCellAtacItem::__set_menu() {
 	ADD_MAIN_ACTION("Landscape Plot", s_show_atac_landscape);
 
 	// integrate
-	ADD_MAIN_ACTION("Integrate With...", s_integrate);
+	ADD_MAIN_ACTION("Integrate", s_integrate);
 
 	// duplicate
 	ADD_MAIN_ACTION("Duplicate", __s_duplicate);

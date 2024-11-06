@@ -1,7 +1,5 @@
 #include "IntegrateWorker.h"
 
-#include <zlib.h>
-
 #include "MacsCallPeakWorker.h"
 #include "CalculateCountsByGenomicRangeWorker.h"
 

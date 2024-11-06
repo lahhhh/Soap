@@ -53,24 +53,16 @@ void ChooseMultiFileLayout::add_file(const QString& file_name) {
 };
 
 void ChooseMultiFileLayout::s_add_file() {
-    QString file_path = QFileDialog::getOpenFileName(this, "Choose File", "", this->file_type_);
-    if (file_path.isEmpty())return;
 
-    QFileInfo fi(file_path);
-    if (!fi.exists() || !fi.isFile() || !fi.isReadable()) {
-        MessageDialog::get_response("File Not Available", file_path + " is not available.");
+    auto file_names = QFileDialog::getOpenFileNames(this, "Choose File", "", this->file_type_);
+    if (file_names.isEmpty()) {
         return;
-    }    
+    }
 
-    G_SET_NEW_LABEL_ADJUST_SIZE(label, file_path);
-    this->labels_ << label;
+    for (auto&& f : file_names) {
 
-    G_SET_NEW_BUTTON(button, "-", QSize(30, 25));
-    this->buttons_ << button;
-    connect(button, &QPushButton::clicked, this, &ChooseMultiFileLayout::s_delete_file);
-
-    G_ADD_NEW_DOUBLE_ITEM_ROWLAYOUT_NO_STRETCH(this->item_layout_, row_layout, label, button);
-    this->row_layouts_ << row_layout;
+        this->add_file(f);
+    }
 };
 
 void ChooseMultiFileLayout::s_delete_file() {

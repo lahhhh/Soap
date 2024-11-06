@@ -10,7 +10,7 @@ bool LoadAtacFromFragmentsWorker::read_fragments() {
 	this->single_cell_atac_.reset(new SingleCellAtac());
 	auto fragments = &SUBMODULES(*this->single_cell_atac_, Fragments)[VARIABLE_FRAGMENTS];
 
-	gzFile file = gzopen(this->file_name_.toUtf8().data(), "rb");
+	gzFile file = gzopen_w((const wchar_t*)this->file_name_.utf16(), "rb");
 
 	if (file == NULL) {
 		G_TASK_WARN("File : " + this->file_name_ + " is broken.");

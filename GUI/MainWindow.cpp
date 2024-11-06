@@ -183,8 +183,7 @@ void MainWindow::set_left_layout() {
 	this->left_layout_->setStretchFactor(this->information_area_, 5);
 };
 
-void MainWindow::s_test() {
-
+void MainWindow::s_test() {	
 };
 
 void MainWindow::set_utility_menu() {
@@ -198,10 +197,6 @@ void MainWindow::set_utility_menu() {
 	menu_create_string_vector->addAction("From Input", this, &MainWindow::s_create_string_vector_from_input);
 
 	//menu_utility->addAction("Test", this, &MainWindow::s_test);
-
-	//auto menu_developer = menu_utility->addMenu("Developer");
-	
-	//menu_developer->addAction("Generate Wix File", this, &MainWindow::s_generate_wix);
 };
 
 void MainWindow::s_create_string_vector_from_input() {
@@ -1211,46 +1206,3 @@ std::pair<QString, int> listFilesRecursively(const QString& currentDir, int tab_
 
 	return { res, compcount };
 }
-
-void MainWindow::s_generate_wix() {
-
-	auto dir = QFileDialog::getExistingDirectory(this);
-	if (dir.isEmpty()) {
-		return;
-	}
-
-	QString ori = "\t<Directory Id=\"ProgramFiles64Folder\" Name=\"package\">\n"
-		"\t\t<Directory Id=\'INSTALLDIR\'>\n"
-		"\t\t\t<Directory Id=\'SoapOmics\' Name=\'SoapOmics\'>\n";
-
-	auto [res, cnt] = listFilesRecursively(dir, 3);
-
-	QString res2 = "\t<Feature Id=\"Main\">\n";
-	for (int i = 0; i < cnt; ++i) {
-
-		QString compid = "Component_" + QString::number(i);
-
-		res2 += "\t\t<ComponentRef Id=\"" + compid + "\" />\n";
-	}
-	res2 += "\t</Feature>\n";
-
-	ori += res;
-
-	ori += "\t\t\t</Directory>\n"
-		"\t\t</Directory>\n"
-		"\t</Directory>\n";
-
-	auto f = QFileDialog::getSaveFileName(this);
-
-	QFile file(f);
-	if (!file.open(QIODevice::WriteOnly | QIODevice::Text)) {
-		G_WARN("Cannot open create file.");
-		return;
-	}
-
-	QTextStream stream(&file);
-
-	stream << ori << res2;
-
-	file.close();
-};

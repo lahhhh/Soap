@@ -85,13 +85,8 @@ GenomicRange MacsCallPeakWorker::call_peak(const QList<const Fragments*>& fragme
 	if (!worker.detect_tag_size()) {
 		return GenomicRange();
 	}
-	if (!worker.bed_file_names_.isEmpty()) {
-		if (!worker.parse_bed_file()) {
-			return GenomicRange();
-		}
-	}
 
-	worker.parse_fragments_object();
+	worker.parse_fragments();
 	worker.filter_duplicates();
 
 	try {
@@ -120,14 +115,7 @@ void MacsCallPeakWorker::run() {
 		G_TASK_END;
 	}
 
-	if (!this->bed_file_names_.isEmpty()) {
-		if (!parse_bed_file()) {
-			G_TASK_WARN("Fragments File is broken.");
-			G_TASK_END;
-		}
-	}
-
-	this->parse_fragments_object();
+	this->parse_fragments();
 
 	this->filter_duplicates();
 
@@ -618,16 +606,6 @@ void MacsCallPeakWorker::filter_duplicates() {
 };
 
 bool MacsCallPeakWorker::detect_tag_size() {
-	if (!this->bed_file_names_.isEmpty()) {
-		return this->detect_tag_size_in_file();
-	}
-	else if (!this->fragments_objects_.isEmpty()) {
-		return detect_tag_size_in_object();
-	}
-	return false;
-}
-
-bool MacsCallPeakWorker::detect_tag_size_in_object() {
 	const auto& fragments = *this->fragments_objects_[0];
 	for (const auto& [name, sequence] : fragments.data_) {
 		if (custom::sum(custom::sapply(sequence, [](const auto& pair) { return pair.first.size(); })) > 100) {
@@ -647,50 +625,7 @@ bool MacsCallPeakWorker::detect_tag_size_in_object() {
 	return false;
 }
 
-bool MacsCallPeakWorker::detect_tag_size_in_file() {
-	auto bed_file = this->bed_file_names_[0].toUtf8();
-
-	int buffer_length = 256;
-	char buffer[256];
-
-	gzFile fragments_file = gzopen(bed_file.data(), "rb");
-
-	if (fragments_file == NULL) {
-		return false;
-	}
-
-	bool end_of_file = false;
-	while (!(end_of_file = gzgets(fragments_file, buffer, buffer_length) == 0))
-	{
-		if (buffer[0] != '#')break;
-	}
-	if (end_of_file) {
-		gzclose(fragments_file);
-		return false;
-	}
-
-	int length = 0;
-	for (int i = 0; i < 100; ++i) {
-		end_of_file = gzgets(fragments_file, buffer, buffer_length) == 0;
-		if (end_of_file)break;
-		const char* c = buffer;
-		while (*c != '\t') {
-			++c;
-		}
-		int start = custom::atoi_specialized(&c);
-		int end = custom::atoi_specialized(&c);
-		length += end - start;
-	}
-	gzclose(fragments_file);
-	if (end_of_file) {
-		return false;
-	}
-	this->tag_size_ = length / 100;
-	G_TASK_LOG("Estimated tag size : " + QString::number(this->tag_size_));
-	return true;
-};
-
-void MacsCallPeakWorker::parse_fragments_object() {
+void MacsCallPeakWorker::parse_fragments() {
 
 	for (const auto& fragments : this->fragments_objects_) {
 
@@ -709,72 +644,4 @@ void MacsCallPeakWorker::parse_fragments_object() {
 			}
 		}
 	}
-};
-
-bool MacsCallPeakWorker::parse_bed_file() {
-	for (const auto& bed_file : this->bed_file_names_) {
-		gzFile fragments_file = gzopen(bed_file.toUtf8().data(), "rb");
-
-		if (fragments_file == NULL) {
-			return false;
-		}
-
-		int buffer_length = 256;
-		char buffer[256];
-
-		bool not_end_of_file = false;
-		while (not_end_of_file = gzgets(fragments_file, buffer, buffer_length) != 0)
-		{
-			if (buffer[0] != '#')break;
-		}
-		if (!not_end_of_file) {
-			gzclose(fragments_file);
-			return false;
-		}
-
-		const char* lead, * lag;
-		do {
-			lead = lag = buffer;
-			while (*lead != '\t') {
-				++lead;
-			}
-			QString chromosome_name = custom::standardize_chromosome_name(QString::fromUtf8(lag, lead - lag));
-			int start = custom::atoi_specialized(&lead);
-			++lead;
-			int count = 2;
-			while (count < 6) {
-
-				while (*lead != '\t' && *lead != '\n') {
-					++lead;
-				}
-				++count;
-
-				if (*lead == '\n') {
-					break;
-				}
-				++lead;
-			}
-			if (!this->locations_.contains(chromosome_name)) {
-				this->locations_[chromosome_name] = QVector<QVector<int>>(2);
-			}
-
-			if (count < 6) {
-				this->locations_[chromosome_name][0] << start;
-			}
-			else {
-				if (*lead != '\n') {
-					--lead;
-				}
-				--lead;
-				if (*lead == '-') {
-					this->locations_[chromosome_name][1] << start;
-				}
-				else {
-					this->locations_[chromosome_name][0] << start;
-				}
-			}
-		} while (gzgets(fragments_file, buffer, buffer_length) != 0);
-		gzclose(fragments_file);
-	}
-	return true;
 };

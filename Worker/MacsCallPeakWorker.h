@@ -71,8 +71,6 @@ signals:
 
 private:
 
-	QStringList bed_file_names_;
-
 	QList<const Fragments*> fragments_objects_;
 
 	long long genome_size_ = 2.7e9;
@@ -117,17 +115,11 @@ private:
 	QPair<QVector<int>, QVector<double>> calculate_distribution(const QString& chromosome, int d, double scaling_factor,
 		double baseline_value, bool directional, int end_shift = 0);
 
-	bool parse_bed_file();
-
-	void parse_fragments_object();
+	void parse_fragments();
 
 	void filter_duplicates();
 
 	bool detect_tag_size();
-
-	bool detect_tag_size_in_file();
-
-	bool detect_tag_size_in_object();
 
 	void detect_peaks();
 

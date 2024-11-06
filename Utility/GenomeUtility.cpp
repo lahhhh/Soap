@@ -432,7 +432,7 @@ namespace custom {
 		const char* data = sequence.data();
 
 		for (const auto& fragments_file : fragments_files) {
-			gzFile fragments = gzopen(fragments_file.toUtf8().data(), "rb");
+			gzFile fragments = gzopen_w((const wchar_t*)fragments_file.utf16(), "rb");
 
 			if (fragments == NULL) {
 				return std::make_tuple(false, std::vector<std::string>(), std::vector<std::size_t>());

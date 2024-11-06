@@ -1,7 +1,5 @@
 #include "CalculateGeneActivityWorker.h"
 
-#include <zlib.h>
-
 int CalculateGeneActivityWorker::create_index_human() {
 	QFile file(FILE_HUMAN_GENE_LOCATION);
 	file.open(QIODevice::ReadOnly | QIODevice::Text);

@@ -32,13 +32,11 @@ void Read10XMultiomeWorker::run() {
 
 bool Read10XMultiomeWorker::read_barcodes() {
 
-	auto file = this->barcodes_file_name_.toStdString();
-
 	std::unique_ptr<char[]> bu(new char[256]);
 
 	char* buffer = bu.get();
 
-	gzFile barcodes = gzopen(file.data(), "rb");
+	gzFile barcodes = gzopen_w((const wchar_t*)this->barcodes_file_name_.utf16(), "rb");
 
 	if (barcodes == NULL) {
 		return false;
@@ -55,13 +53,11 @@ bool Read10XMultiomeWorker::read_barcodes() {
 
 bool Read10XMultiomeWorker::read_features() {
 
-	auto file = this->features_file_name_.toStdString();
-
 	std::unique_ptr<char[]> bu(new char[1024]);
 
 	char* buffer = bu.get();
 
-	gzFile features = gzopen(file.data(), "rb");
+	gzFile features = gzopen_w((const wchar_t*)this->features_file_name_.utf16(), "rb");
 
 	if (features == NULL) {
 		return false;
@@ -120,7 +116,7 @@ bool Read10XMultiomeWorker::read_matrix() {
 
 	char* buffer = bu.get();
 
-	gzFile matrix = gzopen(file.data(), "rb");
+	gzFile matrix = gzopen_w((const wchar_t*)this->matrix_file_name_.utf16(), "rb");
 
 	if (matrix == NULL) {
 		return false;

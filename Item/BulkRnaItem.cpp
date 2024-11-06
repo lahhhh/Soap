@@ -92,7 +92,7 @@ void BulkRnaItem::__set_menu() {
 
 	ADD_ACTION("Find DEG", "Expression Analysis", s_find_deg);
 
-	ADD_MAIN_ACTION("Integrate with...", s_integrate);
+	ADD_MAIN_ACTION("Integrate", s_integrate);
 
 	ADD_MAIN_ACTION("Duplicate", __s_duplicate);
 

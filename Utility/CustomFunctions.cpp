@@ -3,7 +3,6 @@
 #include <sstream>
 #include <QDebug>
 #include <iostream>
-#include <zlib.h>
 #include <QRegularExpression>
 #include "mupdf/fitz.h"
 

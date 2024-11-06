@@ -1,6 +1,5 @@
 #include "FragmentsQualityViewWorker.h"
 
-#include <zlib.h>
 #include "ItemDatabase.h"
 #include "Custom.h"
 #include "GenomeUtility.h"

@@ -1,7 +1,5 @@
 #include "CoveragePlotWorker.h"
 
-#include <zlib.h>
-
 #include "Custom.h"
 #include "GenomeUtility.h"
 #include "ItemDatabase.h"
