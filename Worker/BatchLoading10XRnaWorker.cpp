@@ -1,20 +1,54 @@
-#include "CountMatrixBatchLoadingWorker.h"
+#include "BatchLoading10XRnaWorker.h"
 
-#include "CountMatrixReadingWorker.h"
+#include "Read10xRnaWorker.h"
 
-#include <QFile>
-#include <QtConcurrent>
+#include <QDir>
+#include <QDirIterator>
+#include <QFileInfo>
 
-void CountMatrixBatchLoadingWorker::run() {
+void BatchLoading10XRnaWorker::run() {
 
-	int n_object = this->file_paths_.size();
+	QDir dir(this->dir_);
+	if (!dir.exists()) {
+		G_TASK_WARN("Invalid Folder");
+		G_TASK_END;
+	}
 
-	this->objects_.resize(n_object);
+	this->objects_.reserve(1000);
 
-	for (int i = 0; i < n_object; ++i) {
-		if (!this->load_single_object(this->objects_[i], this->file_paths_[i])) {
-			G_TASK_WARN("Trouble in loading " + this->file_paths_[i]);
-			G_TASK_END;
+	QDirIterator dir_it(this->dir_, QDir::Dirs | QDir::NoDotAndDotDot, QDirIterator::Subdirectories);
+	while (dir_it.hasNext()) {
+		dir_it.next();
+		QDir current_dir(dir_it.filePath());
+
+		QString barcodes_file;
+		QString features_file;
+		QString matrix_file;
+
+		QDirIterator file_iterator(current_dir.absolutePath(), QDir::Files);
+		while (file_iterator.hasNext()) {
+			file_iterator.next();
+			QFileInfo file_info(file_iterator.fileInfo());
+			QString file_name = file_info.absoluteFilePath();
+
+			if (file_name.endsWith("barcodes.tsv.gz")) {
+				barcodes_file = file_name;
+			}
+			else if (file_name.endsWith("features.tsv.gz")) {
+				features_file = file_name;
+			}
+			else if (file_name.endsWith("matrix.mtx.gz")) {
+				matrix_file = file_name;
+			}
+		}
+
+		if (!barcodes_file.isEmpty() && !features_file.isEmpty() && !matrix_file.isEmpty()) {
+			this->objects_ << SingleCellRna();
+
+			if (!this->load_single_object(this->objects_.last(), file_iterator.path(), barcodes_file, features_file, matrix_file)) {
+				G_TASK_WARN("Trouble in loading file from " + file_iterator.path());
+				G_TASK_END;
+			}
 		}
 	}
 
@@ -23,8 +57,9 @@ void CountMatrixBatchLoadingWorker::run() {
 	G_TASK_END;
 };
 
+
 QList<std::pair<QVector<int>, QVector<int> > >
-CountMatrixBatchLoadingWorker::integrate_sparseint(
+BatchLoading10XRnaWorker::integrate_sparseint(
 	SparseInt& to,
 	QList<SparseInt const*> froms,
 	bool distinguish_barcode)
@@ -99,7 +134,7 @@ CountMatrixBatchLoadingWorker::integrate_sparseint(
 }
 
 
-void CountMatrixBatchLoadingWorker::integrate_objects() {
+void BatchLoading10XRnaWorker::integrate_objects() {
 
 	auto sp = custom::unique(custom::sapply(this->objects_, [](auto&& o) {return o.species_; }));
 
@@ -125,7 +160,7 @@ void CountMatrixBatchLoadingWorker::integrate_objects() {
 	emit x_data_create_soon(single_cell_rna, soap::VariableType::SingleCellRna, "SingleCellRna");
 };
 
-void CountMatrixBatchLoadingWorker::integrate_metadata(Metadata& to, QList<Metadata*> froms) {
+void BatchLoading10XRnaWorker::integrate_metadata(Metadata& to, QList<Metadata*> froms) {
 	QStringList metadata_names;
 	QMap<QString, CustomMatrix::DataType > final_data_type;
 	for (auto data : froms) {
@@ -218,9 +253,14 @@ void CountMatrixBatchLoadingWorker::integrate_metadata(Metadata& to, QList<Metad
 	}
 }
 
-bool CountMatrixBatchLoadingWorker::load_single_object(SingleCellRna& object, const QString& file_path) {
+bool BatchLoading10XRnaWorker::load_single_object(
+	SingleCellRna& object,
+	const QString& path,
+	const QString& barcodes_file_name,
+	const QString& features_file_name,
+	const QString& matrix_file_name) {
 
-	CountMatrixReadingWorker worker(file_path, this->delimiter_);
+	Read10XRnaWorker worker(barcodes_file_name, features_file_name, matrix_file_name);
 
 	if (!worker.load()) {
 		return false;
@@ -230,11 +270,10 @@ bool CountMatrixBatchLoadingWorker::load_single_object(SingleCellRna& object, co
 
 	int n_cell = ptr->counts()->mat_.cols();
 
-	ptr->metadata()->mat_.update("Source", QStringList(n_cell, file_path), CustomMatrix::DataType::QStringFactor);
+	ptr->metadata()->mat_.update("Source", QStringList(n_cell, path), CustomMatrix::DataType::QStringFactor);
 
 	object = std::move(*ptr);
 	delete ptr;
 
 	return true;
-
 };

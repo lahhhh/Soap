@@ -125,6 +125,7 @@ private slots:
 	void s_load_10X_scMultiome();
 
 	void s_load_10X_scRNA();
+	void s_batch_load_10X_scRNA();
 
 	void s_load_fragments_scATAC();
 

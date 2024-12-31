@@ -268,6 +268,8 @@ void BulkRnaItem::s_pca_default() {
 		item->__remove_this();
 	}
 
+	G_LOG("Default PCA started...");
+
 	auto* worker = new PcaWorker2(normalized->mat_);
 	G_LINK_WORKER_THREAD(PcaWorker2, x_pca_ready, BulkRnaItem, s_receive_pca);
 };
@@ -307,6 +309,8 @@ void BulkRnaItem::s_pca_custom() {
 	if (auto item = this->pca()) {
 		item->__remove_this();
 	}
+
+	G_LOG("PCA started...");
 
 	auto* worker = new PcaWorker2(normalized->mat_, use_variable_features, n_variable_features);
 	G_LINK_WORKER_THREAD(PcaWorker2, x_pca_ready, BulkRnaItem, s_receive_pca);

@@ -22,7 +22,7 @@ bool ScicnvWorker::sort_expression_by_chromosome() {
 		gene_location.reset(read_sv(FILE_CNV_GENE_LOCATION_MOUSE, '\t'));
 	}
 	else {
-		G_TASK_WARN("InferCNV now only support human and mouse data.");
+		G_TASK_WARN("SciCNV now only support human and mouse data.");
 		return false;
 	}
 

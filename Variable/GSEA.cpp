@@ -23,6 +23,7 @@ GSEA::GSEA(
 	point_x_(point_x), 
 	point_y_(point_y)
 {
+
 	int length = correlations.size();
 	int pos = ceil(correlations[0] * 10), neg = floor(correlations[length - 1] * 10);
 	int length2 = pos - neg + 1;
@@ -45,6 +46,7 @@ GSEA::GSEA(
 		QColor(69, 0, 173, 221) 
 	};
 
+
 	this->bar_points_ = QVector<double>(length2);
 	this->bar_points_[0] = 0;
 	this->bar_points_[length2 - 1] = length - 1;
@@ -57,6 +59,7 @@ GSEA::GSEA(
 			}
 		}
 	}
+
 	for (int i = 0; i < length2 - 1; ++i) {
 		double color_degree = nearbyint(this->correlations_[this->bar_points_[i]] * 10);
 		if (color_degree > 0) {
@@ -70,6 +73,9 @@ GSEA::GSEA(
 	this->mat_.set_rownames(this->pathways_);
 	QVector<double> enrichment_score, normalized_enrichment_score, p_value, family_wise_error_rate, false_discovery_rate;
 	QVector<int> pathway_size;
+
+	int cc = 0;
+
 	for (const auto& path : this->pathways_) {
 
 		enrichment_score << es[path];

@@ -8,7 +8,8 @@ void circos_plot(
 	QCPAxisRect* axis_rect,
 	const QStringList& levels,
 	const QList<QColor>& colors,
-	const Eigen::MatrixXd& data
+	const Eigen::MatrixXd& data,
+	bool color_by_source
 ) {
 	int n_level = levels.size();
 
@@ -32,9 +33,9 @@ void circos_plot(
 
 	double per_gap_degree = gap_degree / n_level;
 
-	QVector<double> source_degree(n_level), target_degree(n_level);
+	QVector<double> start_degree(n_level), source_degree(n_level), target_degree(n_level);
 
-	source_degree[0] = 0.0;
+	start_degree[0] = 0.0;
 
 
 	for (int i = 0; i < n_level; ++i) {
@@ -42,11 +43,13 @@ void circos_plot(
 		double d1 = data.row(i).sum() / all_len * degree_free;
 		double d2 = data.col(i).sum() / all_len * degree_free;
 
-		target_degree[i] = source_degree[i] + d1;
+		source_degree[i] = start_degree[i] + d1;
+		target_degree[i] = start_degree[i] + d1 + d2;
 
 		if (i < n_level - 1) {
-			source_degree[i + 1] = source_degree[i] + d1 + d2 + per_gap_degree;
+			start_degree[i + 1] = start_degree[i] + d1 + d2 + per_gap_degree;
 		}
+
 	}
 
 	for (int i = 0; i < n_level; ++i) {
@@ -59,14 +62,14 @@ void circos_plot(
 			continue;
 		}
 
-		double start_degree = source_degree[i];
-		double end_degree = start_degree + degree;
+		double start_d = start_degree[i];
+		double end_degree = start_d + degree;
 
 		auto [x1, y1] = custom_plot::utility::arc(
 			0.0,
 			0.0,
 			1.0,
-			start_degree,
+			start_d,
 			end_degree
 		);
 
@@ -75,7 +78,7 @@ void circos_plot(
 			0.0,
 			1.05,
 			end_degree,
-			start_degree
+			start_d
 		);
 
 		x1 << x2;
@@ -94,22 +97,28 @@ void circos_plot(
 	for (int i = 0; i < n_level; ++i) {
 
 		for (int j = 0; j < n_level; ++j) {
-			double d = data(i, j);
+
+			int k = i + j;
+			if (k >= n_level) {
+				k -= n_level;
+			}
+
+			double d = data(i, k);
 
 			if (d <= 0.0) {
 				continue;
 			}
 
 			QColor source_color = colors[i];
-			QColor target_color = colors[j];
+			QColor target_color = colors[k];
 
 			double degree = d / all_len * degree_free;
 
-			double source_start_degree = source_degree[i];
-			double source_end_degree = source_start_degree + degree;
+			double source_end_degree = source_degree[i];
+			double source_start_degree = source_end_degree - degree;
 
-			double target_start_degree = target_degree[j];
-			double target_end_degree = target_start_degree + degree;
+			double target_end_degree = target_degree[k];
+			double target_start_degree = target_end_degree - degree;
 
 			auto [x1, y1] = custom_plot::utility::arc(
 				0.0,
@@ -142,8 +151,8 @@ void circos_plot(
 				0.0,
 				0.0,
 				0.90,
-				source_end_degree,
-				source_start_degree
+				source_start_degree,
+				source_end_degree
 			);
 
 			auto [x4, y4] = custom_plot::utility::circos_curve(
@@ -167,17 +176,20 @@ void circos_plot(
 			x3 << x4 << 0.96 * std::cos((target_start_degree + target_end_degree) / 2) << x5;
 			y3 << y4 << 0.96 * std::sin((target_start_degree + target_end_degree) / 2) << y5;
 
-			source_color.setAlpha(64);
+			QColor c = color_by_source ? source_color : target_color;
+
+			c.setAlpha(64);
+
 			custom_plot::patch::shape_borderless(
 				draw_area,
 				axis_rect,
 				x3,
 				y3,
-				source_color
+				c
 			);
 
-			source_degree[i] += degree;
-			target_degree[j] += degree;
+			source_degree[i] -= degree;
+			target_degree[k] -= degree;
 		}
 	}
 

@@ -19,6 +19,8 @@ private slots:
 	void s_show_interaction_numbers();
 	void s_interaction_number_heatmap();
 	void s_interaction_number_circos();
+	void s_interaction_number_source();
+	void s_interaction_number_target();
 
 	void s_show_interaction_weights();
 	void s_interaction_weight_heatmap();

@@ -823,6 +823,8 @@ void SingleCellMultiomeItem::s_cicero() {
 		return;
 	}
 
+	G_LOG("Cicero start...");
+
 	QString embedding_name = settings[0];
 	Embedding* embedding = static_cast<Embedding*>(this->index_tree_->search(embedding_name)->data_);
 
@@ -952,6 +954,8 @@ void SingleCellMultiomeItem::s_call_peaks_by_macs() {
 		G_UNLOCK;
 		return;
 	}
+
+	G_LOG("MACS start...");
 
 	MacsCallPeakWorker* worker = new MacsCallPeakWorker({ fragments });
 	G_LINK_WORKER_THREAD(MacsCallPeakWorker, x_genomic_range_ready, SingleCellMultiomeItem, s_receive_macs_peaks);

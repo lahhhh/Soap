@@ -908,6 +908,9 @@ void SingleCellRnaItem::s_harmony() {
 		pca->data_.mat_.block(0, dim_start - 1, pca->data_.mat_.rows(), dim_end - dim_start + 1),
 		factor_list
 	);
+
+	G_LOG("Harmony start...");
+
 	G_LINK_WORKER_THREAD(HarmonyWorker, x_harmony_ready, SingleCellRnaItem, s_receive_harmony)
 };
 

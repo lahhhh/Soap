@@ -480,7 +480,9 @@ void GseaWorker::calculate_fwer() {
 	for (const auto& path : this->pathway_list_) {
 		auto& enrichment_scores = this->enrichment_scores_[path];
 		int size = enrichment_scores.size();
+
 		for (int i = 0; i < size; ++i) {
+
 			if (maximum_enrichment_score_positive[i] < enrichment_scores[i]) {
 				maximum_enrichment_score_positive[i] = enrichment_scores[i];
 			}
@@ -585,6 +587,7 @@ void GseaWorker::calculate_fdr() {
 }
 
 void GseaWorker::gsea_phenotype() {
+
 	this->calculate_enrichment_score();
 
 	for (int i = 0; i < this->n_permutation_; ++i) {

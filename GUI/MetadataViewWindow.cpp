@@ -468,6 +468,14 @@ void MetadataViewWindow::no_group_plot() {
 
 			auto [draw_area, axis_rect, legend_layout] = custom_plot::prepare(gs);
 			custom_plot::patch::pie(draw_area, axis_rect, distribution, levels, colors, 0, 0, 1);
+
+			int n_cell = feature_data.di.size();
+
+			for (auto&& level : levels) {
+				double percentage = double(distribution[level]) / n_cell * 100;
+				level += " (" + QString::number(percentage, 'f', 2) + "%)";
+			}
+
 			custom_plot::add_round_legend(draw_area, legend_layout, levels, colors, feature, gs);
 			custom_plot::patch::set_range(axis_rect, QCPRange(-1.2, 1.2), QCPRange(-1.2, 1.2));
 			custom_plot::add_title(draw_area, feature, gs);
@@ -522,6 +530,14 @@ void MetadataViewWindow::no_group_plot() {
 
 			auto [draw_area, axis_rect, legend_layout] = custom_plot::prepare(gs);
 			custom_plot::patch::pie(draw_area, axis_rect, distribution, levels, colors, 0, 0, 1);
+
+			int n_cell = feature_data.ds.size();
+
+			for (auto&& level : levels) {
+				double percentage = double(distribution[level]) / n_cell * 100;
+				level += " (" + QString::number(percentage, 'f', 2) + "%)";
+			}
+
 			custom_plot::add_round_legend(draw_area, legend_layout, levels, colors, feature, gs);
 			custom_plot::patch::set_range(axis_rect, QCPRange(-1.2, 1.2), QCPRange(-1.2, 1.2));
 			custom_plot::add_title(draw_area, feature, gs);

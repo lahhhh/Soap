@@ -9,5 +9,6 @@ void circos_plot(
 	QCPAxisRect* axis_rect,
 	const QStringList& levels,
 	const QList<QColor>& colors,
-	const Eigen::MatrixXd& data
+	const Eigen::MatrixXd& data,
+	bool color_by_source = true
 );

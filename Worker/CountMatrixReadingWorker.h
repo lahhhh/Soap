@@ -23,13 +23,17 @@ public:
 
 	QMap<int, QString> row_name_map_;
 
+	std::unique_ptr<SingleCellRna> single_cell_rna_{ nullptr };
+
 	bool read_file();
 
-	void create_data();
+	bool create_data();
 
 public slots:
 
 	void run();
+
+	bool load();
 
 signals:
 

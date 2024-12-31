@@ -8,6 +8,7 @@
 #include <QTextEdit>
 
 #include "Read10xRnaWorker.h"
+#include "BatchLoading10XRnaWorker.h"
 #include "Read10xRnaAndAtacWorker.h"
 #include "PlotWindow.h"
 #include "TableReadingWorker.h"
@@ -260,9 +261,15 @@ void MainWindow::set_file_menu() {
 
 	auto scrnaseq_menu = menu->addMenu("sc-RNA seq");
 
-	scrnaseq_menu->addAction("Load 10X", this, &MainWindow::s_load_10X_scRNA);
-	scrnaseq_menu->addAction("Load Count Matrix", this, &MainWindow::s_load_scRNAseq_count_matrix);
-	scrnaseq_menu->addAction("Batch Load Count Matrix", this, &MainWindow::s_batch_load_count_matrix);
+	auto rna_10X_menu = scrnaseq_menu->addMenu("Load 10X");
+
+	rna_10X_menu->addAction("Default", this, &MainWindow::s_load_10X_scRNA);
+	rna_10X_menu->addAction("Batch", this, &MainWindow::s_batch_load_10X_scRNA);
+
+	auto count_menu = scrnaseq_menu->addMenu("Load Count Matrix");
+
+	count_menu->addAction("Default", this, &MainWindow::s_load_scRNAseq_count_matrix);
+	count_menu->addAction("Batch", this, &MainWindow::s_batch_load_count_matrix);
 
 	auto scatac_menu = menu->addMenu("sc-ATAC seq");
 
@@ -405,11 +412,11 @@ void MainWindow::s_batch_load_count_matrix() {
 	if (settings.isEmpty())return;
 
 	QString delimiter;
-	if (settings[0] == "auto-detect") {
+	if (settings[1] == "auto-detect") {
 		delimiter = "auto-detect";
 	}
 	else {
-		delimiter = settings[0];
+		delimiter = settings[1];
 		if (delimiter == "tab(\'\\t\')") {
 			delimiter = "\t";
 		}
@@ -427,7 +434,6 @@ void MainWindow::s_batch_load_count_matrix() {
 		G_WARN("Invalid File Input Number.");
 		return;
 	}
-
 	CountMatrixBatchLoadingWorker* worker = new CountMatrixBatchLoadingWorker(
 		files,
 		delimiter
@@ -436,6 +442,7 @@ void MainWindow::s_batch_load_count_matrix() {
 };
 
 void MainWindow::s_load_scRNAseq_count_matrix() {
+
 	QString file_path = QFileDialog::getOpenFileName(this, tr("Choose Count Matrix File"));
 	if (file_path.isEmpty())return;
 
@@ -519,6 +526,19 @@ void MainWindow::s_load_fragments_scATAC() {
 	LoadAtacFromFragmentsWorker* worker = new LoadAtacFromFragmentsWorker(file_name);
 	G_LINK_WORKER_THREAD(LoadAtacFromFragmentsWorker, x_data_create_soon, MainWindow, s_create_data);
 }
+
+void MainWindow::s_batch_load_10X_scRNA() {
+
+	auto dir = QFileDialog::getExistingDirectory(nullptr, "Choose Root Directory");
+
+	if (dir.isEmpty()) {
+		return;
+	}
+
+	auto worker = new BatchLoading10XRnaWorker(dir);
+
+	G_LINK_WORKER_THREAD(BatchLoading10XRnaWorker, x_data_create_soon, MainWindow, s_create_data);
+};
 
 void MainWindow::s_load_10X_scRNA()
 {

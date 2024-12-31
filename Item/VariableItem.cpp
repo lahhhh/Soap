@@ -199,6 +199,8 @@ void VariableItem::__s_export_as_item() {
 		G_UNLOCK;
 		return;
 	}
+
+	G_LOG("Item Exportation start...");
 	
 	ItemIOWorker* worker = new ItemIOWorker(export_item_path, this->data_type_, this->data_, this->title_);
 	G_LINK_WORKER_THREAD_NO_RESPONSE(ItemIOWorker, VariableItem);

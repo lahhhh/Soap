@@ -24,6 +24,8 @@ void CellChatItem::__set_menu() {
 	ADD_MENU("Visualization | Number of interactions", "Number of interactions", "Visualization");
 	ADD_ACTION("Heatmap", "Visualization | Number of interactions", s_interaction_number_heatmap);
 	ADD_ACTION("Circos Plot", "Visualization | Number of interactions", s_interaction_number_circos);
+	ADD_ACTION("Source", "Visualization | Number of interactions", s_interaction_number_source);
+	ADD_ACTION("Target", "Visualization | Number of interactions", s_interaction_number_target);
 
 	ADD_MENU("Visualization | Weight of interactions", "Weight of interactions", "Visualization");
 	ADD_ACTION("Heatmap", "Visualization | Weight of interactions", s_interaction_weight_heatmap);
@@ -57,6 +59,113 @@ void CellChatItem::__set_menu() {
 
 	ADD_MAIN_ACTION("Delete", __s_delete_this);
 }
+
+void CellChatItem::s_interaction_number_source() {
+
+	QStringList valid_sources = this->data()->levels_;
+
+	auto settings = CommonDialog::get_response(
+		this->signal_emitter_,
+		"Choose Interaction Source",
+		{ "Source" },
+		{ soap::InputStyle::ComboBox },
+		{ valid_sources }
+	);
+
+	if (settings.isEmpty()) {
+		return;
+	}
+
+	QString level = settings[0];
+
+	int ind = this->data()->levels_.indexOf(level);
+	int n_level = valid_sources.size();
+	Eigen::MatrixXd data = Eigen::MatrixXd::Zero(n_level, n_level);
+	data.row(ind) = this->data()->counts_.row(ind).cast<double>();
+
+	auto&& gs = this->draw_suite_->graph_settings_;
+	auto [draw_area, axis_rect, legend_layout] = custom_plot::prepare(gs);
+
+	auto colors = gs.palette(this->data()->levels_);
+
+	circos_plot(
+		draw_area,
+		axis_rect,
+		this->data()->levels_,
+		colors,
+		data,
+		false
+	);
+
+	custom_plot::add_round_legend(
+		draw_area,
+		legend_layout,
+		this->data()->levels_,
+		colors,
+		this->data()->identity_,
+		gs);
+
+	custom_plot::add_title(
+		draw_area,
+		"Interaction Number of " + level,
+		gs
+	);
+
+	this->draw_suite_->update(draw_area);
+};
+
+void CellChatItem::s_interaction_number_target() {
+
+	QStringList valid_targets = this->data()->levels_;
+
+	auto settings = CommonDialog::get_response(
+		this->signal_emitter_,
+		"Choose Interaction Source",
+		{ "Source" },
+		{ soap::InputStyle::ComboBox },
+		{ valid_targets }
+	);
+
+	if (settings.isEmpty()) {
+		return;
+	}
+
+	QString level = settings[0];
+
+	int ind = this->data()->levels_.indexOf(level);
+	int n_level = valid_targets.size();
+	Eigen::MatrixXd data = Eigen::MatrixXd::Zero(n_level, n_level);
+	data.col(ind) = this->data()->counts_.col(ind).cast<double>();
+
+	auto&& gs = this->draw_suite_->graph_settings_;
+	auto [draw_area, axis_rect, legend_layout] = custom_plot::prepare(gs);
+
+	auto colors = gs.palette(this->data()->levels_);
+
+	circos_plot(
+		draw_area,
+		axis_rect,
+		this->data()->levels_,
+		colors,
+		data
+	);
+
+	custom_plot::add_round_legend(
+		draw_area,
+		legend_layout,
+		this->data()->levels_,
+		colors,
+		this->data()->identity_,
+		gs);
+
+	custom_plot::add_title(
+		draw_area,
+		"Interaction Number of " + level,
+		gs
+	);
+
+	this->draw_suite_->update(draw_area);
+};
 
 void CellChatItem::s_interaction_number_circos() {
 

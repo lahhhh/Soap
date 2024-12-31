@@ -9,30 +9,53 @@ void Read10XMultiomeWorker::run() {
 	this->single_cell_multiome_->create_field("RNA", DataField::DataType::Rna);
 	this->single_cell_multiome_->create_field("ATAC", DataField::DataType::Atac);
 
-	if (!this->read_barcodes()) {
+	try {
+		if (!this->read_barcodes()) {
+			G_TASK_WARN("Barcodes loading failed.");
+			G_TASK_END;
+		}
+	}
+	catch (...) {
 		G_TASK_WARN("Barcodes loading failed.");
 		G_TASK_END;
 	}
 
-	if (!this->read_features()) {
+	try {
+		if (!this->read_features()) {
+			G_TASK_WARN("Features loading failed.");
+			G_TASK_END;
+		}
+	}
+	catch (...) {
 		G_TASK_WARN("Features loading failed.");
 		G_TASK_END;
 	}
 
-	if (!this->read_matrix()) {
+	try {
+		if (!this->read_matrix()) {
+			G_TASK_WARN("Matrix loading failed.");
+			G_TASK_END;
+		}
+	}
+	catch (...) {
 		G_TASK_WARN("Matrix loading failed.");
 		G_TASK_END;
 	}
-	determine_species();
-	separate_counts();
-	calculate_metadata();
+
+	this->determine_species();
+
+	this->separate_counts();
+
+	this->calculate_metadata();
+
 	emit x_data_create_soon(this->single_cell_multiome_.release(), soap::VariableType::SingleCellMultiome, "SingleCellMultiome");
+	
 	G_TASK_END;
 };
 
 bool Read10XMultiomeWorker::read_barcodes() {
 
-	std::unique_ptr<char[]> bu(new char[256]);
+	std::unique_ptr<char[]> bu(new char[1024]);
 
 	char* buffer = bu.get();
 

@@ -6,7 +6,7 @@
 
 bool Read10XRnaWorker::read_barcodes() {
 
-	std::unique_ptr<char[]> bu(new char[256]);
+	std::unique_ptr<char[]> bu(new char[1024]);
 
 	char* buffer = bu.get();
 
@@ -17,7 +17,7 @@ bool Read10XRnaWorker::read_barcodes() {
 		return false;
 	}
 
-	while ((gzgets(barcodes, buffer, 256)) != 0)
+	while ((gzgets(barcodes, buffer, 1024)) != 0)
 	{
 		this->barcodes_ << QString::fromUtf8(buffer, custom::line_length(buffer));
 	}
@@ -44,15 +44,38 @@ bool Read10XRnaWorker::read_features() {
 	while ((gzgets(features, buffer, 1024)) != 0)
 	{
 		c = buffer;
-		while (*c != '\t') {
+		int tab_count{ 0 };
+		while (*c != '\0') {
+			if (*c == '\t') {
+				++tab_count;
+			}
 			++c;
 		}
-		++c;
-		char* feature_start = c;
-		while (*c != '\t') {
+
+		if (tab_count >= 2) {
+
+			c = buffer;
+			while (*c != '\t') {
+				++c;
+			}
 			++c;
+			char* feature_start = c;
+			while (*c != '\t') {
+				++c;
+			}
+			this->gene_symbols_ << QString::fromUtf8(feature_start, c - feature_start);
 		}
-		this->gene_symbols_ << QString::fromUtf8(feature_start, c - feature_start);
+		else { // someone edited the original feature file
+			c = buffer;
+			char* feature_start = c;
+			while (*c != '\t' && *c != '\0') {
+				++c;
+			}
+			if (c - feature_start < 2) {
+				return false;
+			}
+			this->gene_symbols_ << QString::fromUtf8(feature_start, c - feature_start - 1);
+		}
 	}
 
 	gzclose(features);
@@ -75,7 +98,7 @@ void Read10XRnaWorker::determine_species() {
 
 bool Read10XRnaWorker::read_matrix() {
 
-	std::unique_ptr<char[]> bu(new char[256]);
+	std::unique_ptr<char[]> bu(new char[1024]);
 
 	char* buffer = bu.get();
 
@@ -85,7 +108,7 @@ bool Read10XRnaWorker::read_matrix() {
 		return false;
 	}
 
-	while (gzgets(matrix, buffer, 256) != 0) {
+	while (gzgets(matrix, buffer, 1024) != 0) {
 		if (buffer[0] != '%') {
 			break;
 		}
@@ -201,28 +224,57 @@ void Read10XRnaWorker::calculate_metadata() {
 	metadata.mat_.update(METADATA_BARCODES, this->barcodes_);
 };
 
-void Read10XRnaWorker::run() {
+bool Read10XRnaWorker::load() {
 
 	this->single_cell_rna_.reset(new SingleCellRna());
 
-	if (!this->read_barcodes()) {
+	try {
+		if (!this->read_barcodes()) {
+			G_TASK_WARN("Barcodes loading failed.");
+			return false;
+		}
+	}
+	catch (...) {
 		G_TASK_WARN("Barcodes loading failed.");
-		G_TASK_END;
+		return false;
 	}
 
-	if (!this->read_features()) {
+	try {
+		if (!this->read_features()) {
+			G_TASK_WARN("Features loading failed.");
+			return false;
+		}
+	}
+	catch (...) {
 		G_TASK_WARN("Features loading failed.");
-		G_TASK_END;
+		return false;
 	}
 
-	if (!this->read_matrix()) {
+	try {
+		if (!this->read_matrix()) {
+			G_TASK_WARN("Matrix loading failed.");
+			return false;
+		}
+	}
+	catch (...) {
 		G_TASK_WARN("Matrix loading failed.");
-		G_TASK_END;
+		return false;
 	}
 
 	this->determine_species();
+
 	this->calculate_metadata();
 
+	return true;
+};
+
+void Read10XRnaWorker::run() {
+
+	if (!this->load()) {
+		G_TASK_END;
+	}
+
 	emit x_data_create_soon(this->single_cell_rna_.release(), soap::VariableType::SingleCellRna, "Single Cell RNA Data");
+	
 	G_TASK_END;
 }

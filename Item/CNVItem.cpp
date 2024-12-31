@@ -114,6 +114,11 @@ void CNVItem::draw_cnv(
 
 	heatmap->setGradient(gradient);
 	if (this->data()->data_type_ == CNV::DataType::InferCnv) {
+
+		if (span > 0.5) {
+			span = 0.5;
+		}
+
 		heatmap->setDataRange({ 1.0 - 0.5 * span, 1.0 + 0.5 * span });
 	}
 	else {

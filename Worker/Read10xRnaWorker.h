@@ -31,6 +31,8 @@ public slots:
 
     void run();
 
+    bool load();
+
 signals:
 
     void x_message(QString, int);

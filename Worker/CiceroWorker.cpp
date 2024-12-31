@@ -16,8 +16,14 @@ void CiceroWorker::run() {
 		G_TASK_END;
 	}
 
-	if (!this->generate_cicero_models()) {
-		G_TASK_WARN("Models generation failed.");
+	try {
+		if (!this->generate_cicero_models()) {
+			G_TASK_WARN("Models generation failed.");
+			G_TASK_END;
+		}
+	}
+	catch (...) {
+		G_TASK_WARN("Meeting problems in generating models");
 		G_TASK_END;
 	}
 
@@ -544,5 +550,6 @@ bool CiceroWorker::estimate_distance_parameter() {
 	if (this->distance_parameters_.isEmpty()) {
 		return false;
 	}
+
 	return true;
 };

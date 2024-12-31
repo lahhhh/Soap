@@ -460,6 +460,8 @@ void MotifPositionItem::s_batch_task() {
 		return;
 	}
 
+	G_LOG("Batch footprinting calculation start...");
+
 	QStringList factors = metadata->mat_.get_qstring(factor_name);
 
 	TranscriptionalFactorFootprintingWorker* worker = new TranscriptionalFactorFootprintingWorker(
@@ -556,6 +558,8 @@ void MotifPositionItem::s_show_transcriptional_factor_footprinting() {
 		G_UNLOCK;
 		return;
 	}
+
+	G_LOG("Footprinting calculation start...");
 
 	TranscriptionalFactorFootprintingWorker* worker = new TranscriptionalFactorFootprintingWorker(
 		metadata,

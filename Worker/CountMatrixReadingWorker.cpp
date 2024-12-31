@@ -42,9 +42,9 @@ bool CountMatrixReadingWorker::read_file() {
 
 	this->colnames_ = custom::digest(line, delimiter);
 	this->ncol_ = this->colnames_.size();
+	// common dataset should contains more than 10 cells
+	if (this->ncol_ < 10) {
 
-	// common dataset should contains more than 100 cells
-	if (this->ncol_ < 100) {
 		G_TASK_WARN("Count Matrix Parse Failed.");
 		
 		return false;
@@ -61,6 +61,7 @@ bool CountMatrixReadingWorker::read_file() {
 		this->colnames_ = this->colnames_.sliced(1, this->ncol_);
 	}
 	else if (first_row.size() != this->ncol_ + 1) {
+
 		G_TASK_WARN("File is not valid.");
 		
 		return false;
@@ -126,10 +127,11 @@ bool CountMatrixReadingWorker::read_file() {
 	return success;
 };
 
-void CountMatrixReadingWorker::create_data() {
+bool CountMatrixReadingWorker::create_data() {
 
-	std::unique_ptr<SingleCellRna> sc(new SingleCellRna());
-	SparseInt& counts = SUBMODULES(*sc, SparseInt)[VARIABLE_COUNTS];
+	this->single_cell_rna_.reset(new SingleCellRna());
+
+	SparseInt& counts = SUBMODULES(*this->single_cell_rna_, SparseInt)[VARIABLE_COUNTS];
 	counts.data_type_ = SparseInt::DataType::Counts;
 	counts.mat_.resize(this->nrow_, this->ncol_);
 	counts.mat_.reserve(this->triplets_.size());
@@ -146,7 +148,7 @@ void CountMatrixReadingWorker::create_data() {
 	// gene number should be more than 1000
 	if (gene_detected.count() < 1000) {
 		G_TASK_WARN("Count Matrix Loading Failed.");
-		return;
+		return false;
 	}
 
 	counts.mat_ = custom::row_sliced(counts.mat_, gene_detected);
@@ -216,24 +218,39 @@ void CountMatrixReadingWorker::create_data() {
 	this->colnames_ = custom::make_unique(this->colnames_);
 	counts.rownames_ = gene_symbols;
 	counts.colnames_ = this->colnames_;
-	Metadata& metadata = SUBMODULES(*sc, Metadata)[VARIABLE_METADATA];
+	Metadata& metadata = SUBMODULES(*this->single_cell_rna_, Metadata)[VARIABLE_METADATA];
 	metadata.mat_.set_rownames(this->colnames_);
 	metadata.mat_.update(METADATA_RNA_UMI_NUMBER, custom::cast<QVector>(col_count));
 	metadata.mat_.update(METADATA_RNA_UNIQUE_GENE_NUMBER, custom::cast<QVector>(col_gene));
 	metadata.mat_.update(METADATA_RNA_MITOCHONDRIAL_CONTENT, custom::cast<QVector>(mitochondrial_content));
 	metadata.mat_.update(METADATA_RNA_RIBOSOMAL_CONTENT, custom::cast<QVector>(ribosomal_content));
 
-	sc->species_ = species;
+	this->single_cell_rna_->species_ = species;
 
-	emit x_data_create_soon(sc.release(), soap::VariableType::SingleCellRna, "SingleCellRna");
+	return true;
 }
+
+bool CountMatrixReadingWorker::load() {
+
+	if (!this->read_file()) {
+
+		return false;
+	}
+
+	if (!this->create_data()) {
+		return false;
+	}
+
+	return true;
+};
 
 void CountMatrixReadingWorker::run() {
 
-	if (this->read_file()) {
-
-		this->create_data();
+	if (!this->load()) {
+		G_TASK_END;
 	}
+
+	emit x_data_create_soon(this->single_cell_rna_.release(), soap::VariableType::SingleCellRna, "Single Cell RNA Data");
 
 	G_TASK_END;
 }
