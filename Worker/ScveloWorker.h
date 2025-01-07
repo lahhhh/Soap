@@ -28,7 +28,6 @@ public:
 	QString metric_ = "Euclidean";
 
 	const VelocytoBase* velocyto_base_ = nullptr;
-	ScveloEstimate* scvelo_estimate_ = nullptr;
 
 	int n_neighbors_ = 30;
 
@@ -47,6 +46,8 @@ public:
 	//Eigen::MatrixXd residual2_; // variance velocity
 
 	Eigen::SparseMatrix<double> strengths_;
+
+	std::unique_ptr<ScveloEstimate> res_{ nullptr };
 
 	bool normalize_counts();
 
@@ -69,6 +70,10 @@ public:
 	void velocity_graph();
 
 	static Eigen::ArrayXd cosine_correlation(const Eigen::MatrixXd& mat, const Eigen::ArrayXd& arr);
+
+public:
+
+	bool work();
 
 public slots:
 

@@ -23,6 +23,14 @@ public:
 
     int n_variable_feature_{ 0 };
 
+    Eigen::MatrixXd res_;
+    Eigen::ArrayXd sdev_;
+    Eigen::ArrayXd variance_proportion_;
+
+public:
+
+    bool work();
+
 public slots:
 
     void run();

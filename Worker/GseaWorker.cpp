@@ -599,14 +599,14 @@ void GseaWorker::gsea_phenotype() {
 	}
 };
 
-void GseaWorker::run() {
+bool GseaWorker::work() {
 
 	this->random_engine_.seed(this->random_state_);
 
 	this->preprocess();
 
 	if (!this->load_database()) {
-		G_TASK_END;
+		return false;
 	}
 
 	this->get_order();
@@ -625,6 +625,15 @@ void GseaWorker::run() {
 	this->calculate_fdr();
 
 	this->calculate_fwer();
+
+	return true;
+};
+
+void GseaWorker::run() {
+
+	if (!this->work()) {
+		G_TASK_END;
+	}
 
 	emit x_gsea_ready(GSEA(
 		this->database_,

@@ -22,8 +22,6 @@ public:
         const QList<QStringList> & metadata_list
     );
 
-    void run();
-
     void setup(
         const arma::mat& __Z, 
         const arma::sp_mat& __Phi,
@@ -72,6 +70,14 @@ public:
 
     // flags
     bool ran_setup, ran_init, lambda_estimation, verbose; // do_merge_R;
+
+public:
+
+    bool work();
+
+public slots:
+
+    void run();
 
 signals:
 

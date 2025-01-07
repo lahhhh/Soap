@@ -33,6 +33,8 @@ public:
 
 	QString main_type_name_;
 	QString sub_type_name_;
+	QStringList main_type_;
+	QStringList sub_type_;
 
 	Eigen::MatrixXd query_expression_;
 	Eigen::MatrixXd celltype_expression_;
@@ -46,6 +48,10 @@ public:
 	bool filter_data();
 
 	void assign_type();
+
+public:
+
+	bool work();
 
 public slots:
 

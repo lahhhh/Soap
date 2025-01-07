@@ -84,50 +84,61 @@ void InferCnvWorker::finalize() {
 
 	chromosome_location.emplace_back(std::tuple{ now, loc, length });
 
-	CNV* cnv = new CNV(this->expr_, cell_location, chromosome_location, CNV::DataType::InferCnv);
+	this->res_.reset(new CNV(this->expr_, cell_location, chromosome_location, CNV::DataType::InferCnv));
 
-	emit x_cnv_ready(cnv);
+};
 
+bool InferCnvWorker::work() {
+
+
+	if (this->species_ != soap::Species::Human && this->species_ != soap::Species::Mouse) {
+		G_TASK_WARN("Unsupport Species.");
+		return false;
+	}
+
+	if (!this->prepare_0()) {
+		return false;
+	}
+	if (!this->remove_insufficiently_expressed_genes_1()) {
+		return false;
+	}
+	if (!this->normalization_by_sequencing_depth_2()) {
+		return false;
+	}
+	if (!this->log_transformation_3()) {
+		return false;
+	}
+	if (!this->subtract_average_reference_5_8()) {
+		return false;
+	}
+	if (!this->smooth_6()) {
+		return false;
+	}
+	if (!this->center_7()) {
+		return false;
+	}
+	if (!this->subtract_average_reference_5_8()) {
+		return false;
+	}
+	if (!this->invert_log_transform_10()) {
+		return false;
+	}
+	if (!this->compute_tumor_subcluster_11()) {
+		return false;
+	}
+	this->finalize();
+
+	return true;
 };
 
 void InferCnvWorker::run() {
 
-	if (this->species_ != soap::Species::Human && this->species_ != soap::Species::Mouse) {
-		G_TASK_WARN("Unsupport Species.");
+	if (!this->work()) {
 		G_TASK_END;
 	}
 
-	if (!this->prepare_0()) {
-		G_TASK_END;
-	}
-	if (!this->remove_insufficiently_expressed_genes_1()) {
-		G_TASK_END;
-	}
-	if (!this->normalization_by_sequencing_depth_2()) {
-		G_TASK_END;
-	}
-	if (!this->log_transformation_3()) {
-		G_TASK_END;
-	}
-	if (!this->subtract_average_reference_5_8()) {
-		G_TASK_END;
-	}
-	if (!this->smooth_6()) {
-		G_TASK_END;
-	}
-	if (!this->center_7()) {
-		G_TASK_END;
-	}
-	if (!this->subtract_average_reference_5_8()) {
-		G_TASK_END;
-	}
-	if (!this->invert_log_transform_10()) {
-		G_TASK_END;
-	}
-	if (!this->compute_tumor_subcluster_11()) {
-		G_TASK_END;
-	}
-	this->finalize();
+	emit x_cnv_ready(this->res_.release());
+
 	G_TASK_END;
 };
 

@@ -42,6 +42,10 @@ public:
 
 	void create_index();
 
+public:
+
+	bool work();
+
 public slots:
 
 	void run();

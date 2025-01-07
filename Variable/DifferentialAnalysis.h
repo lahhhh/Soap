@@ -13,8 +13,7 @@ public:
 
     G_CLASS_FUNCTION_DEFAULT(DifferentialAnalysis);
 
-    template<typename Mat> requires (!std::same_as<std::decay_t<Mat>, DifferentialAnalysis>)
-        DifferentialAnalysis(Mat&& df) : mat_(std::forward<Mat>(df)) {}
+    DifferentialAnalysis(const CustomMatrix& df) : mat_(df) {};
 
     DataType data_type_{ DataType::Plain };
 

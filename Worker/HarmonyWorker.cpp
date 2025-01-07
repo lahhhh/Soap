@@ -78,7 +78,7 @@ HarmonyWorker::HarmonyWorker(
     verbose(false)
 {}
 
-void HarmonyWorker::run() {
+bool HarmonyWorker::work() {
 
     try {
 
@@ -129,17 +129,27 @@ void HarmonyWorker::run() {
         );
         this->init_cluster_cpp();
         this->harmonize();
-        emit x_harmony_ready(arma2eigen(this->Z_corr.t()));
-        G_TASK_END;
+        return true;
     }
     catch (std::exception& e) {
         G_TASK_WARN(QString::fromUtf8(e.what()));
-        G_TASK_END;
+        return false;
     }
     catch (...) {
         G_TASK_WARN("Meeting Error in computation.");
+        return false;
+    }
+};
+
+void HarmonyWorker::run() {
+
+    if (!this->work()) {
         G_TASK_END;
     }
+
+    emit x_harmony_ready(arma2eigen(this->Z_corr.t()));
+    
+    G_TASK_END;
 };
 
 bool HarmonyWorker::harmonize() {

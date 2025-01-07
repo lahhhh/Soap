@@ -49,7 +49,7 @@ public:
 	igraph_t pr_graph_;
 	igraph_t cell_graph_;
 
-	void run();
+	std::unique_ptr<Monocle3> res_{ nullptr };
 
 	void learn_graph();
 
@@ -64,6 +64,14 @@ public:
 	void project_to_mst(
 		bool orthogonal_proj_tip,
 		const Eigen::MatrixXd& pr_node_embedding);
+
+public:
+
+	bool work();
+
+public slots:
+
+	void run();
 
 signals:
 

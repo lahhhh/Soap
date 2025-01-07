@@ -46,11 +46,16 @@ public:
 
 	Eigen::SparseMatrix<double> snn_;
 
+	QVector<int> res_;
+
 	// modified from seurat
 	void create_shared_nearest_neighbors_matrix();
 
 	void find_partition();
 
+public:
+
+	bool work();
 
 public slots:
 

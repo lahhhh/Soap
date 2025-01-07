@@ -1,10 +1,10 @@
 #include "MultiCommandWorker.h"
 
-void MultiCommandWorker::run() {
+bool MultiCommandWorker::work() {
 
     if (this->commands_.isEmpty()) {
         G_TASK_WARN("Empty Commands.");
-        G_TASK_END;
+        return false;
     }
 
     this->p_ = new QProcess();
@@ -21,10 +21,21 @@ void MultiCommandWorker::run() {
         this->p_->deleteLater();
 
         G_TASK_WARN("Empty Command.");
+        return false;
+    }
+
+    this->p_->start("cmd.exe", { "/C", cmd });
+
+    return true;
+};
+
+void MultiCommandWorker::run() {
+
+    if (!this->work()) {
         G_TASK_END;
     }
 
-    this->p_->start("cmd.exe", {"/C", cmd});
+    G_TASK_END;
 };
 
 void MultiCommandWorker::finished(int exit_code, QProcess::ExitStatus exit_status) {

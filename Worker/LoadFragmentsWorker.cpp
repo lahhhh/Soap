@@ -10,15 +10,26 @@ LoadFragmentsWorker::LoadFragmentsWorker(
 	fragments_files_(fragments_files)
 {};
 
-void LoadFragmentsWorker::run() {
+bool LoadFragmentsWorker::work() {
+
 	this->create_index();
 
 	if (!this->load_fragments()) {
 		G_TASK_WARN("Fragments Loading failed.");
+		return false;
+	}
+
+	return true;
+};
+
+void LoadFragmentsWorker::run() {
+
+	if (!this->work()) {
 		G_TASK_END;
 	}
 
 	emit x_fragments_ready(this->fragments_.release());
+
 	G_TASK_LOG("Fragments loading finished.");
 	G_TASK_END;
 }

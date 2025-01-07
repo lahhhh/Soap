@@ -137,9 +137,11 @@ public:
 
 	QString p_adjust_method_;
 
-	enum class WorkMode{BulkRna, SingleCellRna, SingleCellAtac, SingleCellMultiome, ChromVAR, Cicero};
+	enum class WorkMode { BulkRna, SingleCellRna, SingleCellAtac, SingleCellMultiome, ChromVAR, Cicero };
 
 	WorkMode mode_ = WorkMode::SingleCellRna;
+
+	DifferentialAnalysis res_;
 
 	void sparse(DifferentialAnalysis::DataType);
 	void dense(DifferentialAnalysis::DataType);
@@ -156,6 +158,9 @@ public:
 
 	void bulkrna_mode();
 
+public:
+
+	bool work();
 
 public slots:
 

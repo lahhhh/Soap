@@ -2,19 +2,19 @@
 
 #include "Custom.h"
 
-void TfidfWorker::run() {
+bool TfidfWorker::work() {
 
 	auto counts = this->counts_;
 
-	SparseDouble* normalized = new SparseDouble(
+	this->res_.reset(new SparseDouble(
 		SparseDouble::DataType::Normalized,
 		counts->mat_.cast<double>(),
 		counts->rownames_,
-		counts->colnames_);
+		counts->colnames_));
 
-	Eigen::SparseMatrix<double>& normalized_data = normalized->mat_;
+	Eigen::SparseMatrix<double>& normalized_data = this->res_->mat_;
 	Eigen::ArrayXd column_sum = custom::col_sum_mt(normalized_data), idf = custom::row_sum(normalized_data);
-	const int ncol = normalized->cols();
+	const int ncol = this->res_->cols();
 	std::ranges::for_each(idf, [ncol](auto&& d) {if (d != 0) { d = ncol / d; }});
 
 #pragma omp parallel for
@@ -27,7 +27,16 @@ void TfidfWorker::run() {
 		}
 	};
 
-	emit x_tfidf_ready(normalized);
+	return true;
+};
+
+void TfidfWorker::run() {
+
+	if (!this->work()) {
+		G_TASK_END;
+	}
+
+	emit x_tfidf_ready(this->res_.release());
 
 	G_TASK_END;
 }

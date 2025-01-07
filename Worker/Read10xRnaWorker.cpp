@@ -86,11 +86,11 @@ bool Read10XRnaWorker::read_features() {
 void Read10XRnaWorker::determine_species() {
 	for (auto&& i : this->gene_symbols_) {
 		if (i.startsWith("MT-")) {
-			this->single_cell_rna_->species_ = soap::Species::Human;
+			this->res_->species_ = soap::Species::Human;
 			break;
 		}
 		if (i.startsWith("mt-")) {
-			this->single_cell_rna_->species_ = soap::Species::Mouse;
+			this->res_->species_ = soap::Species::Mouse;
 			break;
 		}
 	}
@@ -124,7 +124,7 @@ bool Read10XRnaWorker::read_matrix() {
 		return false;
 	}
 
-	SparseInt& counts = SUBMODULES(*this->single_cell_rna_, SparseInt)[VARIABLE_COUNTS];
+	SparseInt& counts = SUBMODULES(*this->res_, SparseInt)[VARIABLE_COUNTS];
 	counts.data_type_ = SparseInt::DataType::Counts;
 
 	Eigen::SparseMatrix<int, Eigen::RowMajor> trmat(n_row, n_column);
@@ -157,7 +157,7 @@ bool Read10XRnaWorker::read_matrix() {
 };
 
 void Read10XRnaWorker::calculate_metadata() {
-	SparseInt& counts = SUBMODULES(*this->single_cell_rna_, SparseInt)[VARIABLE_COUNTS];
+	SparseInt& counts = SUBMODULES(*this->res_, SparseInt)[VARIABLE_COUNTS];
 	
 	Eigen::ArrayX<bool> gene_detected = custom::row_sum(counts.mat_) > 0;
 	counts.row_slice(gene_detected);
@@ -175,7 +175,7 @@ void Read10XRnaWorker::calculate_metadata() {
 	QList<int> mitochondrial_location, ribosomal_location;
 
 	auto& gene_symbols = counts.rownames_;
-	if (this->single_cell_rna_->species_ == soap::Species::Human) {
+	if (this->res_->species_ == soap::Species::Human) {
 		for (int i = 0; i < gene_symbols.length(); ++i) {
 			if (gene_symbols.at(i).startsWith("MT-")) {
 				mitochondrial_location << i;
@@ -186,7 +186,7 @@ void Read10XRnaWorker::calculate_metadata() {
 			}
 		}
 	}
-	else if (this->single_cell_rna_->species_ == soap::Species::Mouse) {
+	else if (this->res_->species_ == soap::Species::Mouse) {
 		for (int i = 0; i < gene_symbols.length(); ++i) {
 			if (gene_symbols.at(i).startsWith("mt-")) {
 				mitochondrial_location << i;
@@ -215,7 +215,7 @@ void Read10XRnaWorker::calculate_metadata() {
 	custom::remove_na(mitochondrial_content);
 	custom::remove_na(ribosomal_content);
 
-	Metadata& metadata = SUBMODULES(*this->single_cell_rna_, Metadata)[VARIABLE_METADATA];
+	Metadata& metadata = SUBMODULES(*this->res_, Metadata)[VARIABLE_METADATA];
 	metadata.mat_.set_rownames(counts.colnames_);
 	metadata.mat_.update(METADATA_RNA_UMI_NUMBER, QVector<int>(col_count.begin(), col_count.end()));
 	metadata.mat_.update(METADATA_RNA_UNIQUE_GENE_NUMBER, QVector<int>(col_gene.begin(), col_gene.end()));
@@ -224,9 +224,9 @@ void Read10XRnaWorker::calculate_metadata() {
 	metadata.mat_.update(METADATA_BARCODES, this->barcodes_);
 };
 
-bool Read10XRnaWorker::load() {
+bool Read10XRnaWorker::work() {
 
-	this->single_cell_rna_.reset(new SingleCellRna());
+	this->res_.reset(new SingleCellRna());
 
 	try {
 		if (!this->read_barcodes()) {
@@ -270,11 +270,11 @@ bool Read10XRnaWorker::load() {
 
 void Read10XRnaWorker::run() {
 
-	if (!this->load()) {
+	if (!this->work()) {
 		G_TASK_END;
 	}
 
-	emit x_data_create_soon(this->single_cell_rna_.release(), soap::VariableType::SingleCellRna, "Single Cell RNA Data");
+	emit x_data_create_soon(this->res_.release(), soap::VariableType::SingleCellRna, "Single Cell RNA Data");
 	
 	G_TASK_END;
 }

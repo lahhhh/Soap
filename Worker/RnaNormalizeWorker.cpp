@@ -2,17 +2,28 @@
 
 #include <QFile>
 
-void RnaNormalizeWorker::run() {
+bool RnaNormalizeWorker::work() {
 
 	if (this->method_ == "FPKM") {
-		this->fpkm();
+		return this->fpkm();
 	}
 	if (this->method_ == "TPM") {
-		this->tpm();
+		return this->tpm();
 	}
 	if (this->method_ == "Normalize1") {
-		this->normalize_1();
+		return this->normalize_1();
 	}
+
+	return false;
+};
+
+void RnaNormalizeWorker::run() {
+
+	if (!this->work()) {
+		G_TASK_END;
+	}
+
+	emit x_normalize_ready(this->res_);
 
 	G_TASK_END;
 };
@@ -63,7 +74,7 @@ bool RnaNormalizeWorker::normalize_1() {
 	normalized.mat_.array().rowwise() *= depth.transpose();
 	normalized.mat_ = (log1p(normalized.mat_.array())).eval();
 
-	emit x_normalize_ready(normalized);
+	this->res_ = normalized;
 
 	return true;
 };
@@ -93,7 +104,7 @@ bool RnaNormalizeWorker::fpkm() {
 	normalized.mat_.array().rowwise() /= total_reads.transpose();
 	normalized.mat_.array() *= 1e9;
 
-	emit x_normalize_ready(normalized);
+	this->res_ = normalized;
 
 	return true;
 };
@@ -123,7 +134,7 @@ bool RnaNormalizeWorker::tpm() {
 	normalized.mat_.array().rowwise() /= total_reads.transpose();
 	normalized.mat_.array() *= 1e6;
 
-	emit x_normalize_ready(normalized);
+	this->res_ = normalized;
 
 	return true;
 };

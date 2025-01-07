@@ -7,66 +7,75 @@
 #include "Custom.h"
 #include "glasso.h"
 
-void CiceroWorker::run() {
+bool CiceroWorker::work() {
 
 	this->aggregate();
 
 	if (!this->estimate_distance_parameter()) {
 		G_TASK_WARN("No distance parameters calculated.");
-		G_TASK_END;
+		return false;
 	}
 
 	try {
 		if (!this->generate_cicero_models()) {
 			G_TASK_WARN("Models generation failed.");
-			G_TASK_END;
+			return false;
 		}
 	}
 	catch (...) {
 		G_TASK_WARN("Meeting problems in generating models");
-		G_TASK_END;
+		return false;
 	}
 
 	if (!this->assemble_connections()) {
-		G_TASK_END;
+		return false;
 	}
 
 	if (!this->generate_ccans()) {
 		G_TASK_WARN("Found no ccan.");
-		G_TASK_END;
+		return false;
 	}
 
 	this->create_ccan_matrix();
 
-	Cicero* cicero = new Cicero();
+	this->res_.reset(new Cicero());
 
 	int n_group = this->regulation_group_counts_.rows();
 	int n_cell = this->atac_counts_->cols();
 
-	cicero->connections_ = this->connections_;
-	cicero->regulation_groups_ = this->regulation_groups_;
+	this->res_->connections_ = this->connections_;
+	this->res_->regulation_groups_ = this->regulation_groups_;
 
-	cicero->regulation_group_counts_.colnames_ = this->atac_counts_->colnames_;
-	cicero->regulation_group_counts_.mat_ = this->regulation_group_counts_;
-	cicero->regulation_group_counts_.rownames_ = custom::cast<QString>(custom::seq_n(1, n_group));
+	this->res_->regulation_group_counts_.colnames_ = this->atac_counts_->colnames_;
+	this->res_->regulation_group_counts_.mat_ = this->regulation_group_counts_;
+	this->res_->regulation_group_counts_.rownames_ = custom::cast<QString>(custom::seq_n(1, n_group));
 
-	cicero->regulation_group_normalized_.colnames_ = cicero->regulation_group_counts_.colnames_;
-	cicero->regulation_group_normalized_.rownames_ = cicero->regulation_group_counts_.rownames_;
-	cicero->regulation_group_normalized_.mat_ = cicero->regulation_group_counts_.mat_.cast<double>();
-	
-	double mean = cicero->regulation_group_normalized_.mat_.sum() / n_cell;
-	Eigen::ArrayXd depth = cicero->regulation_group_normalized_.mat_.colwise().sum();
+	this->res_->regulation_group_normalized_.colnames_ = this->res_->regulation_group_counts_.colnames_;
+	this->res_->regulation_group_normalized_.rownames_ = this->res_->regulation_group_counts_.rownames_;
+	this->res_->regulation_group_normalized_.mat_ = this->res_->regulation_group_counts_.mat_.cast<double>();
+
+	double mean = this->res_->regulation_group_normalized_.mat_.sum() / n_cell;
+	Eigen::ArrayXd depth = this->res_->regulation_group_normalized_.mat_.colwise().sum();
 	for (int i = 0; i < n_cell; ++i) {
 		if (depth[i] != 0.0) {
-			cicero->regulation_group_normalized_.mat_.col(i) *= mean / depth[i];
+			this->res_->regulation_group_normalized_.mat_.col(i) *= mean / depth[i];
 		}
 	}
 
-	cicero->regulation_group_normalized_.mat_ = log(cicero->regulation_group_normalized_.mat_.array() + 1.0).eval();
+	this->res_->regulation_group_normalized_.mat_ = log(this->res_->regulation_group_normalized_.mat_.array() + 1.0).eval();
 
-	cicero->peak_names_ = this->atac_counts_->rownames_;
+	this->res_->peak_names_ = this->atac_counts_->rownames_;
 
-	emit x_cicero_ready(cicero);
+	return true;
+};
+
+void CiceroWorker::run() {
+
+	if (!this->work()) {
+		G_TASK_END;
+	}
+
+	emit x_cicero_ready(this->res_.release());
 
 	G_TASK_END;
 };

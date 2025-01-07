@@ -76,6 +76,8 @@ public:
 	Eigen::ArrayXd reference_expression_;
 	Eigen::ArrayXd reference_moving_average_;
 
+	std::unique_ptr<CNV> res_{ nullptr };
+
 	bool sort_expression_by_chromosome();
 
 	bool filter_data();
@@ -99,6 +101,10 @@ public:
 	static Eigen::ArrayXd digitalize(const Eigen::ArrayXd& arr);
 
 	static Eigen::ArrayXd slope(const Eigen::ArrayXXd& arr);
+
+public:
+
+	bool work();
 
 public slots:
 

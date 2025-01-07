@@ -517,23 +517,28 @@ void IntegrateWorker::scatac_mode() {
 	if (!this->integrate_fragments_object(
 		fragments,
 		col_map,
-		custom::sapply(this->scatac_data_, [](auto&& d) {return d->fragments(); }))) 
+		custom::sapply(this->scatac_data_, [](auto&& d) {return d->fragments(); })))
 	{
 		G_TASK_WARN("Fragments integration failed due to incomplete fragments files.");
 		return;
 	}
 
-	GenomicRange new_peak = MacsCallPeakWorker::call_peak({ &fragments});
+	MacsCallPeakWorker worker1({ &fragments });
+
+	worker1.work();
+
+	GenomicRange new_peak = worker1.res_;
 
 	// ATAC Counts Integrate
 
-	auto* ptr = CalculateCountsByGenomicRangeWorker::calculate_counts(&fragments, new_peak);
+	CalculateCountsByGenomicRangeWorker worker2(&fragments, new_peak);
 
-	SUBMODULES(*single_cell_atac, SparseInt)[VARIABLE_COUNTS] = std::move(*ptr);
+	worker2.work();
+
+	SUBMODULES(*single_cell_atac, SparseInt)[VARIABLE_COUNTS] = std::move(*worker2.res_);
 	SUBMODULES(*single_cell_atac, SparseInt)[VARIABLE_COUNTS].data_type_ = SparseInt::DataType::Counts;
 
-	delete ptr;
-
+	worker2.res_.reset();
 	// metadata
 
 	Metadata& metadata = SUBMODULES(*single_cell_atac, Metadata)[VARIABLE_METADATA];
@@ -593,23 +598,29 @@ void IntegrateWorker::scmultiome_mode() {
 	fragments.adjust_length_by_cell_name_length();
 
 	if (!this->integrate_fragments_object(
-		fragments, 
+		fragments,
 		col_map,
-		custom::sapply(this->scmultiome_data_, [](auto&& d) {return d->fragments(); }))) 
+		custom::sapply(this->scmultiome_data_, [](auto&& d) {return d->fragments(); })))
 	{
 		G_TASK_WARN("Fragments integration failed due to incomplete fragments files.");
 		return;
 	}
 
-	GenomicRange new_peak = MacsCallPeakWorker::call_peak({ &fragments });
+	MacsCallPeakWorker worker1({ &fragments });
+
+	worker1.work();
+
+	GenomicRange new_peak = worker1.res_;
 
 	// ATAC Counts Integrate
 
-	auto* ptr = CalculateCountsByGenomicRangeWorker::calculate_counts(&fragments, new_peak);
+	CalculateCountsByGenomicRangeWorker worker2(&fragments, new_peak);
 
-	SUBMODULES(atac_field, SparseInt)[VARIABLE_ATAC_COUNTS] = std::move(*ptr);
+	worker2.work();
+
+	SUBMODULES(atac_field, SparseInt)[VARIABLE_ATAC_COUNTS] = std::move(*worker2.res_);
 	SUBMODULES(atac_field, SparseInt)[VARIABLE_ATAC_COUNTS].data_type_ = SparseInt::DataType::Counts;
-	delete ptr;
+	worker2.res_.reset();
 
 	// Metadata Integrate
 
@@ -628,7 +639,7 @@ void IntegrateWorker::scmultiome_mode() {
 };
 
 
-void IntegrateWorker::run() {
+bool IntegrateWorker::work() {
 
 	switch (this->mode_)
 	{
@@ -646,6 +657,15 @@ void IntegrateWorker::run() {
 		break;
 	default:
 		break;
+	}
+
+	return true;
+}
+
+void IntegrateWorker::run() {
+
+	if (!this->work()) {
+		G_TASK_END;
 	}
 
 	G_TASK_END;

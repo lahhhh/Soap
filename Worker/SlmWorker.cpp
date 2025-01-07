@@ -31,7 +31,7 @@ SlmWorker::SlmWorker(
     this->dre_.seed(random_seed);
 }
 
-void SlmWorker::run() {
+bool SlmWorker::work() {
 
     auto cluster = louvain_cluster(
         this->mat_,
@@ -46,9 +46,20 @@ void SlmWorker::run() {
         this->resolution_
     );
 
-    emit x_cluster_ready(cluster);
+    this->res_ = cluster;
 
-    G_TASK_LOG(QString::number(custom::unique_element_number(cluster)) + " clusters were found in partition.");
+    return true;
+};
+
+void SlmWorker::run() {
+
+    if (!this->work()) {
+        G_TASK_END;
+    }
+
+    emit x_cluster_ready(this->res_);
+
+    G_TASK_LOG(QString::number(custom::unique_element_number(this->res_)) + " clusters were found in partition.");
 
     G_TASK_END;
 }

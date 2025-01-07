@@ -135,16 +135,16 @@ Eigen::MatrixXd pca_infercnv(
 	return emb;
 };
 
-void PcaWorker::run() {
+bool PcaWorker::work() {
 
 	Eigen::SparseMatrix<double> mat = custom::normalize(*this->mat_, 10000.0);
 
 	int n_feature = this->feature_proportion_ <= 1.0 ? mat.rows() * this->feature_proportion_ : this->feature_proportion_;
-	
+
 	auto vars = find_variable_features(mat, n_feature);
 	if (vars.size() == 0) {
 		G_TASK_WARN("No enough variable features meeting requirement.");
-		G_TASK_END;
+		return false;
 	}
 
 	mat = custom::row_sliced(mat, vars);
@@ -155,8 +155,19 @@ void PcaWorker::run() {
 	Eigen::ArrayXd sdev = S.array() / sqrt(scaled_matrix.rows() - 1.);
 	scaled_matrix.resize(0, 0);
 
-	Eigen::MatrixXd emb = U * S.asDiagonal();
+	this->res_ = U * S.asDiagonal();
+	this->sdev_ = custom::cast<QVector>(sdev);
 
-	emit x_pca_ready(emb, custom::cast<QVector>(sdev));
+	return true;
+};
+
+void PcaWorker::run() {
+
+	if (!this->work()) {
+		G_TASK_END;
+	}
+
+	emit x_pca_ready(this->res_, this->sdev_);
+
 	G_TASK_END;
 }

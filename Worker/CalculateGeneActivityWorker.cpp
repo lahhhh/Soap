@@ -91,7 +91,7 @@ bool CalculateGeneActivityWorker::calculate_counts() {
 	return true;
 }
 
-void CalculateGeneActivityWorker::run() {
+bool CalculateGeneActivityWorker::work() {
 
 	G_TASK_LOG("Creating index...");
 
@@ -100,15 +100,24 @@ void CalculateGeneActivityWorker::run() {
 	G_TASK_LOG("Mapping fragments...");
 
 	if (!this->calculate_counts()) {
-		G_TASK_END;
+		return false;
 	}
-
 
 	G_TASK_LOG("Building counts matrix...");
 
 	this->build_matrix();
 
-	emit x_gene_activity_ready(this->counts_);
+	return true;
+};
+
+void CalculateGeneActivityWorker::run() {
+
+	
+	if (!this->work()) {
+		G_TASK_END;
+	}
+
+	emit x_gene_activity_ready(this->counts_.release());
 
 	G_TASK_LOG("Gene Activity calculation finished.");
 
@@ -117,7 +126,7 @@ void CalculateGeneActivityWorker::run() {
 
 void CalculateGeneActivityWorker::build_matrix() {
 
-	this->counts_ = new SparseInt();
+	this->counts_.reset(new SparseInt());
 
 	this->counts_->rownames_ = this->gene_names_;
 

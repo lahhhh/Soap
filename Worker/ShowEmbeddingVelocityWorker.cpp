@@ -7,11 +7,15 @@
 
 void ShowEmbeddingVelocityWorker::run() {
 
-	this->show_velocity();
+	if (!this->work()) {
+		G_TASK_END;
+	}
+
+	G_TASK_END;
 };
 
 
-void ShowEmbeddingVelocityWorker::show_velocity() {
+bool ShowEmbeddingVelocityWorker::work() {
 
 	const Eigen::MatrixXd& em = this->estimate_->current_;
 	const Eigen::MatrixXd& nd = this->estimate_->deltaE_;
@@ -149,8 +153,8 @@ void ShowEmbeddingVelocityWorker::show_velocity() {
 		res.graph_settings = this->graph_settings_;
 		emit x_stream_graph_ready(res);
 	}
-	G_TASK_END;
 
+	return true;
 };
 
 Eigen::MatrixXd ShowEmbeddingVelocityWorker::emb_arrows(

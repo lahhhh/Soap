@@ -33,7 +33,7 @@ UmapWorker::UmapWorker(
 	n_trees_(n_trees)
 {}
 
-void UmapWorker::run() {
+bool UmapWorker::work() {
 
 	UMAP umap(
 		&this->mat_,
@@ -52,7 +52,18 @@ void UmapWorker::run() {
 
 	umap.fit();
 
-	emit x_umap_ready(umap.embedding_);
+	this->res_ = umap.embedding_;
+
+	return true;
+};
+
+void UmapWorker::run() {
+
+	if (!this->work()) {
+		G_TASK_END;
+	}
+
+	emit x_umap_ready(this->res_);
 
 	G_TASK_END;
 }

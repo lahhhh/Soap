@@ -124,6 +124,10 @@ private:
 	std::default_random_engine random_engine_;
 	std::uniform_int_distribution<unsigned> unsigned_distribution_;
 
+public:
+
+	bool work();
+
 public slots:
 
 	void run();

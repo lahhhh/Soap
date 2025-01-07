@@ -8,7 +8,7 @@
 #include "SingleCellAtac.h"
 #include "SingleCellMultiome.h"
 
-class IntegrateWorker 
+class IntegrateWorker
 	: public QObject
 {
 	Q_OBJECT
@@ -115,6 +115,9 @@ private:
 		const QStringList& rownames,
 		const QStringList& colnames);
 
+public:
+
+	bool work();
 
 public slots:
 

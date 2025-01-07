@@ -22,16 +22,18 @@ public:
 	QString features_file_name_;
 	QString matrix_file_name_;
 
-    std::unique_ptr<SingleCellRna> single_cell_rna_;
-
     QStringList barcodes_;
     QStringList gene_symbols_;
+
+    std::unique_ptr<SingleCellRna> res_;
+
+public:
+
+    bool work();
 
 public slots:
 
     void run();
-
-    bool load();
 
 signals:
 

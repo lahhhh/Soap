@@ -32,6 +32,10 @@ public:
 
     bool load_fragments();
 
+public:
+
+    bool work();
+
 public slots:
 
     void run();

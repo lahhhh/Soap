@@ -52,7 +52,10 @@ void EnrichWorker::enrich_pathway() {
 
 	}
 	else {
-		emit x_enrichment_ready(enrichment, this->database_ + " " + this->enrich_type_ + " " + this->ontology_);
+
+		this->res_ = enrichment;
+
+		this->res_name_ = this->database_ + " " + this->enrich_type_ + " " + this->ontology_;
 	}
 };
 
@@ -101,11 +104,14 @@ void EnrichWorker::enrich_motif() {
 		G_TASK_WARN("No Results meet requirements.");
 	}
 	else {
-		emit x_enrichment_ready(ret, "Motif " + this->enrich_type_);
+
+		this->res_ = ret;
+
+		this->res_name_ =  "Motif " + this->enrich_type_;
 	}
 };
 
-void EnrichWorker::run() {
+bool EnrichWorker::work() {
 
 	if (this->mode_ == WorkMode::EnrichPathway) {
 		this->enrich_pathway();
@@ -113,6 +119,17 @@ void EnrichWorker::run() {
 	else {
 		this->enrich_motif();
 	}
+
+	return true;
+};
+
+void EnrichWorker::run() {
+
+	if (!this->work()) {
+		G_TASK_END;
+	}
+
+	emit x_enrichment_ready(this->res_, this->res_name_);
 
 	G_TASK_END;
 };

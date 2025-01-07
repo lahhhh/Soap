@@ -2,16 +2,26 @@
 
 #include "Custom.h"
 
-void AtacLandscapePlotWorker::run() {
+bool AtacLandscapePlotWorker::work() {
 
 	if (!this->create_index1()) {
-		G_TASK_END;
+		return false;
 	}
+
 	if (!this->create_index2()) {
-		G_TASK_END;
+		return false;
 	}
 
 	if (!this->calculate_matrix()) {
+		return false;
+	}
+
+	return true;
+};
+
+void AtacLandscapePlotWorker::run() {
+
+	if (!this->work()) {
 		G_TASK_END;
 	}
 

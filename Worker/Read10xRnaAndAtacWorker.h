@@ -23,17 +23,19 @@ public:
     QString features_file_name_;
     QString matrix_file_name_;
 
-    std::unique_ptr<SingleCellMultiome> single_cell_multiome_;
-
     Eigen::SparseMatrix<int> counts_;
 
     QStringList barcodes_, gene_symbols_, peak_names_, feature_names_;
 
+    std::unique_ptr<SingleCellMultiome> res_;
+
+public:
+
+    bool work();
 
 public slots:
 
     void run();
-
 
 signals:
 

@@ -36,6 +36,12 @@ public:
 	double eta_;
 	double exaggeration_factor_;
 
+    Eigen::MatrixXd res_;
+
+public:
+
+    bool work();
+
 public slots:
 
     void run();

@@ -10,15 +10,24 @@
 #define SMOOTH_K_TOLERANCE 1e-5
 #define MIN_K_DIST_SCALE 1e-3
 
-void ScveloWorker::run() {
+bool ScveloWorker::work() {
 
 	if (!this->get_velocity()) {
-		G_TASK_END;
+		return false;
 	}
 
 	this->velocity_graph();
 
-	emit x_scvelo_ready(this->scvelo_estimate_);
+	return true;
+};
+
+void ScveloWorker::run() {
+
+	if (!this->work()) {
+		G_TASK_END;
+	}
+
+	emit x_scvelo_ready(this->res_.release());
 
 	G_TASK_END;
 }
@@ -489,16 +498,16 @@ void ScveloWorker::velocity_graph() {
 		}
 	}
 
-	this->scvelo_estimate_ = new ScveloEstimate();
+	this->res_.reset(new ScveloEstimate());
 
-	this->scvelo_estimate_->graph_.resize(n_cell, n_cell);
-	this->scvelo_estimate_->graph_neg_.resize(n_cell, n_cell);
-	this->scvelo_estimate_->graph_.setFromTriplets(graph_triplets.cbegin(), graph_triplets.cend());
-	this->scvelo_estimate_->graph_neg_.setFromTriplets(graph_neg_triplets.cbegin(), graph_neg_triplets.cend());
+	this->res_->graph_.resize(n_cell, n_cell);
+	this->res_->graph_neg_.resize(n_cell, n_cell);
+	this->res_->graph_.setFromTriplets(graph_triplets.cbegin(), graph_triplets.cend());
+	this->res_->graph_neg_.setFromTriplets(graph_neg_triplets.cbegin(), graph_neg_triplets.cend());
 
-	Eigen::ArrayXd confidence = custom::row_max(this->scvelo_estimate_->graph_);
+	Eigen::ArrayXd confidence = custom::row_max(this->res_->graph_);
 
-	this->scvelo_estimate_->self_probability_ = (custom::linear_percentile(confidence, 98) - confidence).cwiseMin(1.0).cwiseMax(0.0);
+	this->res_->self_probability_ = (custom::linear_percentile(confidence, 98) - confidence).cwiseMin(1.0).cwiseMax(0.0);
 };
 
 Eigen::ArrayXd ScveloWorker::cosine_correlation(const Eigen::MatrixXd& mat, const Eigen::ArrayXd& arr) {

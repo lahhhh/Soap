@@ -21,6 +21,12 @@ public:
 		const RunLengthEncoding<char>& strand
 	);
 
+	void set(
+		const RunLengthEncoding<QString>& sequence_names,
+		const IRange& ranges,
+		const RunLengthEncoding<char>& strand
+	);
+
 	DataType data_type_{ DataType::Plain };
 
 	RunLengthEncoding<QString> sequence_names_;

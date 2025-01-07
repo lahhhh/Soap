@@ -36,7 +36,14 @@ public:
     double stdev_doublet_ratio_;
     double synthetic_doublet_umi_downsampling_;
 
+    Eigen::ArrayXd res1_, res2_;
+
+public:
+
+    bool work();
+
 public slots:
+
     void run();
 
 public:

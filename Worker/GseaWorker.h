@@ -104,7 +104,12 @@ public:
 
 	void calculate_fwer();
 
+public:
+
+	bool work();
+
 public slots:
+
 	void run();
 
 signals:

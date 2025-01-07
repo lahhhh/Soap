@@ -55,14 +55,14 @@ static Eigen::ArrayX<bool> find_variable_features(
 	return res;
 }
 
-void PcaWorker2::run() {
+bool PcaWorker2::work() {
 
 	if (this->use_variable_features_) {
 
 		auto features = find_variable_features(this->mat_, this->n_variable_feature_);
 		if (features.size() == 0) {
 			G_TASK_WARN("No enough variable features meeting requirement.");
-			G_TASK_END;
+			return false;
 		}
 
 		this->mat_ = custom::row_sliced(this->mat_, features);
@@ -72,19 +72,29 @@ void PcaWorker2::run() {
 
 	custom::scale_in_place(this->mat_);
 
-    auto vars = custom::col_var_mt(this->mat_);
-    double total_var = vars.sum();
+	auto vars = custom::col_var_mt(this->mat_);
+	double total_var = vars.sum();
 
-    Eigen::JacobiSVD<Eigen::MatrixXd> svd(this->mat_, Eigen::ComputeThinU | Eigen::ComputeThinV);
-    Eigen::VectorXd singular_values = svd.singularValues();
-    Eigen::MatrixXd V = svd.matrixV();
-	Eigen::MatrixXd emb = this->mat_ * V;
+	Eigen::JacobiSVD<Eigen::MatrixXd> svd(this->mat_, Eigen::ComputeThinU | Eigen::ComputeThinV);
+	Eigen::VectorXd singular_values = svd.singularValues();
+	Eigen::MatrixXd V = svd.matrixV();
 
-    Eigen::ArrayXd sdev = singular_values.array() / sqrt(this->mat_.rows() - 1.0);
+	this->res_ = this->mat_ * V;
 
-    Eigen::ArrayXd variance_proportion = sdev.square() / total_var;
+	this->sdev_ = singular_values.array() / sqrt(this->mat_.rows() - 1.0);
 
-    emit x_pca_ready(emb, custom::cast<QVector>(sdev), custom::cast<QVector>(variance_proportion));
+	this->variance_proportion_ = this->sdev_.square() / total_var;
+
+	return true;
+};
+
+void PcaWorker2::run() {
+
+	if (!this->work()) {
+		G_TASK_END;
+	}
+
+    emit x_pca_ready(this->res_, custom::cast<QVector>(this->sdev_), custom::cast<QVector>(this->variance_proportion_));
 
     G_TASK_END;
 };

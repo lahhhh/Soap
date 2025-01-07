@@ -2,16 +2,27 @@
 
 #include "FileIO.h"
 
-void TableReadingWorker::run() {
-	CustomMatrix* res = read_table(this->file_name_, fast_);
+bool TableReadingWorker::work() {
 
-	if (res == nullptr) {
+	this->res_.reset(read_table(this->file_name_, fast_));
+
+	if (this->res_ == nullptr) {
 		G_TASK_WARN("File reading failed.");
+		return false;
 	}
-	else {
-		res->adjust_type();
-		emit x_data_frame_ready(res);
+
+	this->res_->adjust_type();
+
+	return true;
+};
+
+void TableReadingWorker::run() {
+
+	if (!this->work()) {
+		G_TASK_END;
 	}
+
+	emit x_data_frame_ready(this->res_.release());
 
 	G_TASK_END;
 };

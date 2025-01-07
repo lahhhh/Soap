@@ -49,6 +49,12 @@ public:
 	Clustering clustering_;
 
 	std::default_random_engine dre_;
+
+	std::vector<int> res_;
+
+public:
+
+	bool work();
 	
 public slots:
 

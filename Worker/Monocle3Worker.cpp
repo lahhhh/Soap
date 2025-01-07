@@ -553,6 +553,9 @@ igraph_t connect_tips(
 	igraph_weighted_adjacency(&tmp_g, &adj_mat, IGRAPH_ADJ_UNDIRECTED, &weights, IGRAPH_NO_LOOPS);
 	igraph_minimum_spanning_tree_prim(&tmp_g, &mst, &weights);
 
+	igraph_destroy(&tmp_g);
+	igraph_destroy(&mst);
+
 	igraph_matrix_destroy(&adj_mat);
 
 	int n_edge = igraph_vector_size(&weights);
@@ -816,19 +819,29 @@ std::tuple<Eigen::MatrixXd, Eigen::MatrixXd, Eigen::MatrixXd, QVector<double> > 
 	return std::make_tuple(c, W, P, objs);
 }
 
-void Monocle3Worker::run() {
+bool Monocle3Worker::work() {
 
 	int n_cell = this->cell_choosed_.count();
 
 	if (n_cell < 10) {
 		G_TASK_WARN("Two few cells for Monocle3.");
-		G_TASK_END;
+		return false;
 	}
-
 
 	igraph_set_attribute_table(&igraph_cattribute_table);
 
 	this->learn_graph();
+
+	return true;
+};
+
+void Monocle3Worker::run() {
+
+	if (!this->work()) {
+		G_TASK_END;
+	}
+
+	emit x_monocle3_ready(this->res_.release());
 
 	G_TASK_END;
 };
@@ -912,7 +925,6 @@ void Monocle3Worker::learn_graph() {
 	//medioids = medioids(Eigen::all, remain_id).eval();
 
 	this->project_to_mst(false, pr_node_embedding);
-
 };
 
 static Eigen::ArrayXd proj_point_to_line_segment(const Eigen::ArrayXd& p, const Eigen::ArrayXd& from, const Eigen::ArrayXd& to) {
@@ -1128,14 +1140,15 @@ void Monocle3Worker::project_to_mst(
 
 	igraph_add_edges(&this->cell_graph_, &all_edges, NULL);
 
-	Monocle3* m = new Monocle3();
-	igraph_vector_init_copy(&m->cell_graph_weights_, &all_weights);
-	m->original_embedding_ = this->original_embedding_;
-	m->cell_embedding_ = this->embedding_;
-	m->pr_embedding_ = pr_node_embedding;
-	m->cell_included_ = this->cell_choosed_;
-	igraph_copy(&m->cell_graph_, &this->cell_graph_);
-	igraph_copy(&m->pr_graph_, &this->pr_graph_);
+	this->res_.reset(new Monocle3());
+	igraph_vector_init_copy(&this->res_->cell_graph_weights_, &all_weights);
+	this->res_->original_embedding_ = this->original_embedding_;
+	this->res_->cell_embedding_ = this->embedding_;
+	this->res_->pr_embedding_ = pr_node_embedding;
+	this->res_->cell_included_ = this->cell_choosed_;
+	igraph_copy(&this->res_->cell_graph_, &this->cell_graph_);
+	igraph_copy(&this->res_->pr_graph_, &this->pr_graph_);
 
-	emit x_monocle3_ready(m);
+	igraph_destroy(&this->cell_graph_);
+	igraph_destroy(&this->pr_graph_);
 };

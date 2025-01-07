@@ -21,15 +21,15 @@ FileWritingWorker::FileWritingWorker(
 	settings_(settings)
 {}
 
-void FileWritingWorker::run() {
+bool FileWritingWorker::work() {
 
 	QFile file(this->file_name_);
-	
+
 	if (!file.open(QIODevice::WriteOnly | QIODevice::Text)) {
 		G_TASK_WARN("Can not create file " + this->file_name_ + " .");
-		G_TASK_END;
+		return false;
 	}
-	
+
 	QTextStream out(&file);
 
 	if (this->data_type_ == soap::VariableType::Metadata) {
@@ -108,6 +108,15 @@ void FileWritingWorker::run() {
 	}
 	else {
 		G_TASK_WARN("Unsupported File Type.");
+		return false;
+	}
+
+	return true;
+};
+
+void FileWritingWorker::run() {
+
+	if (!this->work()) {
 		G_TASK_END;
 	}
 

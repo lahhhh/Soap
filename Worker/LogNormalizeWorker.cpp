@@ -2,16 +2,16 @@
 
 #include "Custom.h"
 
-void LogNormalizeWorker::run() {
+bool LogNormalizeWorker::work() {
 
-	this->normalized_ = new SparseDouble();
+	this->res_.reset(new SparseDouble());
 
-	this->normalized_->rownames_ = this->data_->rownames_;
-	this->normalized_->colnames_ = this->data_->colnames_;
-	this->normalized_->mat_ = this->data_->mat_.cast<double>();
-	this->normalized_->data_type_ = SparseDouble::DataType::Normalized;
+	this->res_->rownames_ = this->data_->rownames_;
+	this->res_->colnames_ = this->data_->colnames_;
+	this->res_->mat_ = this->data_->mat_.cast<double>();
+	this->res_->data_type_ = SparseDouble::DataType::Normalized;
 
-	auto&& normalized_data = this->normalized_->mat_;
+	auto&& normalized_data = this->res_->mat_;
 
 	Eigen::ArrayXd column_sum = custom::col_sum_mt(normalized_data);
 	int ncol = normalized_data.cols();
@@ -27,7 +27,16 @@ void LogNormalizeWorker::run() {
 		}
 	}
 
-	emit x_log_normalize_ready(this->normalized_);
+	return true;
+};
+
+void LogNormalizeWorker::run() {
+
+	if (!this->work()) {
+		G_TASK_END;
+	}
+
+	emit x_log_normalize_ready(this->res_.release());
 
 	G_TASK_END;
 }

@@ -39,6 +39,13 @@ public:
     double tol_;
     int maximum_iteration_;
 
+    Eigen::MatrixXd res_;
+    QVector<double> sdev_;
+
+public:
+
+    bool work();
+
 public slots:
 
     void run();

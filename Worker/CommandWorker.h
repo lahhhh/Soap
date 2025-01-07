@@ -20,6 +20,10 @@ public slots:
 
 	void run();
 
+public:
+
+	bool work();
+
 	void output();
 
 	void error();

@@ -2,12 +2,18 @@
 
 #include "lm.h"
 
+bool VelocytoDownstreamWorker::work() {
+
+	return this->gene_relative_velocity_estimates();
+};
+
 void VelocytoDownstreamWorker::run() {
 
-	if (this->gene_relative_velocity_estimates()) {
-
-		emit x_estimate_ready(this->estimate_.release());
+	if (!this->work()) {
+		G_TASK_END;
 	}
+
+	emit x_estimate_ready(this->res_.release());
 
 	G_TASK_END;
 }
@@ -216,9 +222,9 @@ void VelocytoDownstreamWorker::calculate_velocity_shift() {
 
 		Eigen::ArrayXd egt = ( - ko.col(1).array()).exp();
 		Eigen::MatrixXd y = (conv_nmat_norm_1(this->ko_index_, Eigen::all).array().colwise() - this->ko_.col(0).array()).cwiseMax(0.0);
-		this->estimate_->deltaE_ = conv_emat_norm_1(this->ko_index_, Eigen::all).array().colwise() * egt + (y.array().colwise() * (1 - egt)).colwise() / this->ko_.col(1).array() - conv_emat_norm_1(this->ko_index_, Eigen::all).array();
+		this->res_->deltaE_ = conv_emat_norm_1(this->ko_index_, Eigen::all).array().colwise() * egt + (y.array().colwise() * (1 - egt)).colwise() / this->ko_.col(1).array() - conv_emat_norm_1(this->ko_index_, Eigen::all).array();
 		this->gamma_index_ = this->ko_index_;
-		this->estimate_->gene_names_ = custom::reordered(this->velocyto_base_->get_spliced()->rownames_, this->gamma_index_);
+		this->res_->gene_names_ = custom::reordered(this->velocyto_base_->get_spliced()->rownames_, this->gamma_index_);
 		return;
 	}
 		
@@ -259,7 +265,7 @@ void VelocytoDownstreamWorker::calculate_velocity_shift() {
 
 	auto gene_index2 = custom::sliced(this->ko_index_, gamma_filter);
 	this->gamma_index_ = gene_index2;
-	this->estimate_->gene_names_ = custom::reordered(this->velocyto_base_->get_spliced()->rownames_, this->gamma_index_);
+	this->res_->gene_names_ = custom::reordered(this->velocyto_base_->get_spliced()->rownames_, this->gamma_index_);
 	auto gene_index3 = custom::which(gamma_filter);
 
 	Eigen::ArrayXd row_sum_fm = fm.array().rowwise().sum();
@@ -275,31 +281,31 @@ void VelocytoDownstreamWorker::calculate_velocity_shift() {
 	conv_emat_norm.resize(0, 0);
 	conv_nmat_norm.resize(0, 0);
 
-	this->estimate_->deltaE_ = deltaE;
+	this->res_->deltaE_ = deltaE;
 };
 
 void VelocytoDownstreamWorker::calculate_extrapolated_cell_state() {
 
-	this->estimate_->current_ = this->velocyto_base_->get_spliced()->mat_.toDense().cast<double>();
+	this->res_->current_ = this->velocyto_base_->get_spliced()->mat_.toDense().cast<double>();
 
-	this->estimate_->current_ = this->estimate_->current_(this->gamma_index_, Eigen::all).eval();
+	this->res_->current_ = this->res_->current_(this->gamma_index_, Eigen::all).eval();
 
-	auto& emat = this->estimate_->current_;
+	auto& emat = this->res_->current_;
 
 	double delta = 1.0;
-	this->estimate_->projected_ = emat.array() + this->estimate_->deltaE_.array().rowwise() * this->emat_cs_.transpose() * delta;
-	this->estimate_->projected_ = this->estimate_->projected_.array().cwiseMax(0.0);
+	this->res_->projected_ = emat.array() + this->res_->deltaE_.array().rowwise() * this->emat_cs_.transpose() * delta;
+	this->res_->projected_ = this->res_->projected_.array().cwiseMax(0.0);
 
 
-	Eigen::ArrayXd new_cell_size = this->emat_cs_ + (this->estimate_->projected_.array() - emat.array()).colwise().sum() / this->scale_factor_;
-	this->estimate_->projected_.array().rowwise() / new_cell_size.transpose();
+	Eigen::ArrayXd new_cell_size = this->emat_cs_ + (this->res_->projected_.array() - emat.array()).colwise().sum() / this->scale_factor_;
+	this->res_->projected_.array().rowwise() / new_cell_size.transpose();
 
-	this->estimate_->current_.array().rowwise() /= this->emat_cs_.transpose();
+	this->res_->current_.array().rowwise() /= this->emat_cs_.transpose();
 };
 
 bool VelocytoDownstreamWorker::gene_relative_velocity_estimates() {
 
-	this->estimate_.reset(new VelocityEstimate());
+	this->res_.reset(new VelocityEstimate());
 
 	this->get_conv_mat();
 

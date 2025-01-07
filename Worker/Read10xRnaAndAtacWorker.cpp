@@ -3,43 +3,44 @@
 #include "Custom.h"
 #include "Identifier.h"
 
-void Read10XMultiomeWorker::run() {
-	this->single_cell_multiome_.reset(new SingleCellMultiome());
+bool Read10XMultiomeWorker::work() {
 
-	this->single_cell_multiome_->create_field("RNA", DataField::DataType::Rna);
-	this->single_cell_multiome_->create_field("ATAC", DataField::DataType::Atac);
+	this->res_.reset(new SingleCellMultiome());
+
+	this->res_->create_field("RNA", DataField::DataType::Rna);
+	this->res_->create_field("ATAC", DataField::DataType::Atac);
 
 	try {
 		if (!this->read_barcodes()) {
 			G_TASK_WARN("Barcodes loading failed.");
-			G_TASK_END;
+			return false;
 		}
 	}
 	catch (...) {
 		G_TASK_WARN("Barcodes loading failed.");
-		G_TASK_END;
+		return false;
 	}
 
 	try {
 		if (!this->read_features()) {
 			G_TASK_WARN("Features loading failed.");
-			G_TASK_END;
+			return false;
 		}
 	}
 	catch (...) {
 		G_TASK_WARN("Features loading failed.");
-		G_TASK_END;
+		return false;
 	}
 
 	try {
 		if (!this->read_matrix()) {
 			G_TASK_WARN("Matrix loading failed.");
-			G_TASK_END;
+			return false;
 		}
 	}
 	catch (...) {
 		G_TASK_WARN("Matrix loading failed.");
-		G_TASK_END;
+		return false;
 	}
 
 	this->determine_species();
@@ -48,7 +49,16 @@ void Read10XMultiomeWorker::run() {
 
 	this->calculate_metadata();
 
-	emit x_data_create_soon(this->single_cell_multiome_.release(), soap::VariableType::SingleCellMultiome, "SingleCellMultiome");
+	return true;
+};
+
+void Read10XMultiomeWorker::run() {
+
+	if (!this->work()) {
+		G_TASK_END;
+	}
+
+	emit x_data_create_soon(this->res_.release(), soap::VariableType::SingleCellMultiome, "SingleCellMultiome");
 	
 	G_TASK_END;
 };
@@ -121,11 +131,11 @@ bool Read10XMultiomeWorker::read_features() {
 void Read10XMultiomeWorker::determine_species() {
 	for (QString& i : this->gene_symbols_) {
 		if (i.startsWith("MT-")) {
-			this->single_cell_multiome_->species_ = soap::Species::Human;
+			this->res_->species_ = soap::Species::Human;
 			break;
 		}
 		if (i.startsWith("mt-")) {
-			this->single_cell_multiome_->species_ = soap::Species::Mouse;
+			this->res_->species_ = soap::Species::Mouse;
 			break;
 		}
 	}
@@ -191,10 +201,10 @@ bool Read10XMultiomeWorker::read_matrix() {
 
 void Read10XMultiomeWorker::separate_counts() {
 
-	SparseInt& rna_counts = SUBMODULES(*this->single_cell_multiome_->rna_field(), SparseInt)[VARIABLE_RNA_COUNTS];
+	SparseInt& rna_counts = SUBMODULES(*this->res_->rna_field(), SparseInt)[VARIABLE_RNA_COUNTS];
 	rna_counts.data_type_ = SparseInt::DataType::Counts;
 
-	SparseInt& atac_counts = SUBMODULES(*this->single_cell_multiome_->atac_field(), SparseInt)[VARIABLE_ATAC_COUNTS];
+	SparseInt& atac_counts = SUBMODULES(*this->res_->atac_field(), SparseInt)[VARIABLE_ATAC_COUNTS];
 	atac_counts.data_type_ = SparseInt::DataType::Counts;
 
 	QStringList barcodes = custom::make_unique(this->barcodes_);
@@ -210,11 +220,11 @@ void Read10XMultiomeWorker::separate_counts() {
 
 void Read10XMultiomeWorker::calculate_metadata() {
 
-	SparseInt& rna_counts = SUBMODULES(*this->single_cell_multiome_->rna_field(), SparseInt)[VARIABLE_RNA_COUNTS];
+	SparseInt& rna_counts = SUBMODULES(*this->res_->rna_field(), SparseInt)[VARIABLE_RNA_COUNTS];
 	Eigen::ArrayX<bool> gene_detected = custom::row_sum(rna_counts.mat_) > 0;
 	rna_counts.row_slice(gene_detected);
 
-	SparseInt& atac_counts = SUBMODULES(*this->single_cell_multiome_->atac_field(), SparseInt)[VARIABLE_ATAC_COUNTS];
+	SparseInt& atac_counts = SUBMODULES(*this->res_->atac_field(), SparseInt)[VARIABLE_ATAC_COUNTS];
 	Eigen::ArrayX<bool> peak_detected = custom::row_sum(atac_counts.mat_) > 0;
 	atac_counts.row_slice(peak_detected);
 
@@ -231,7 +241,7 @@ void Read10XMultiomeWorker::calculate_metadata() {
 	QVector<int> mitochondrial_location, ribosomal_location;
 
 	auto& gene_symbols = rna_counts.rownames_;
-	if (this->single_cell_multiome_->species_ == soap::Species::Human) {
+	if (this->res_->species_ == soap::Species::Human) {
 		for (int i = 0; i < gene_symbols.length(); ++i) {
 			if (gene_symbols.at(i).startsWith("MT-")) {
 				mitochondrial_location << i;
@@ -242,7 +252,7 @@ void Read10XMultiomeWorker::calculate_metadata() {
 			}
 		}
 	}
-	else if (this->single_cell_multiome_->species_ == soap::Species::Mouse) {
+	else if (this->res_->species_ == soap::Species::Mouse) {
 		for (int i = 0; i < gene_symbols.length(); ++i) {
 			if (gene_symbols.at(i).startsWith("mt-")) {
 				mitochondrial_location << i;
@@ -271,7 +281,7 @@ void Read10XMultiomeWorker::calculate_metadata() {
 	custom::remove_na(mitochondrial_content);
 	custom::remove_na(ribosomal_content);
 
-	Metadata& metadata = SUBMODULES(*this->single_cell_multiome_, Metadata)[VARIABLE_METADATA];
+	Metadata& metadata = SUBMODULES(*this->res_, Metadata)[VARIABLE_METADATA];
 	metadata.mat_.set_rownames(rna_counts.colnames_);
 	metadata.mat_.update(METADATA_RNA_UMI_NUMBER, QVector<int>(rna_count.begin(), rna_count.end()));
 	metadata.mat_.update(METADATA_RNA_UNIQUE_GENE_NUMBER, QVector<int>(rna_gene.begin(), rna_gene.end()));

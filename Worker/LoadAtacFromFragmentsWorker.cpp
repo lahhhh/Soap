@@ -7,8 +7,8 @@
 
 bool LoadAtacFromFragmentsWorker::read_fragments() {
 
-	this->single_cell_atac_.reset(new SingleCellAtac());
-	auto fragments = &SUBMODULES(*this->single_cell_atac_, Fragments)[VARIABLE_FRAGMENTS];
+	this->res_.reset(new SingleCellAtac());
+	auto fragments = &SUBMODULES(*this->res_, Fragments)[VARIABLE_FRAGMENTS];
 
 	gzFile file = gzopen_w((const wchar_t*)this->file_name_.utf16(), "rb");
 
@@ -123,38 +123,43 @@ bool LoadAtacFromFragmentsWorker::read_fragments() {
 
 bool LoadAtacFromFragmentsWorker::call_peak() {
 
-	this->peaks_ = MacsCallPeakWorker::call_peak({this->single_cell_atac_->fragments()});
+	MacsCallPeakWorker worker({ this->res_->fragments() });
 
-	return !this->peaks_.is_empty();
+	if (!worker.work()) {
+		return false;
+	}
+
+	this->peaks_ = worker.res_;
+
+	return true;
 };
 
 bool LoadAtacFromFragmentsWorker::calculate_matrix() {
 
-	auto counts = CalculateCountsByGenomicRangeWorker::calculate_counts(this->single_cell_atac_->fragments(), this->peaks_);
+	CalculateCountsByGenomicRangeWorker worker(this->res_->fragments(), this->peaks_);
 
-	if (counts == nullptr) {
+	if (!worker.work()) {
 		return false;
 	}
 
-	SUBMODULES(*this->single_cell_atac_, SparseInt)[VARIABLE_COUNTS] = std::move(*counts);
-	delete counts;
+	SUBMODULES(*this->res_, SparseInt)[VARIABLE_COUNTS] = std::move(*worker.res_);
 
 	return true;
 };
 
 void LoadAtacFromFragmentsWorker::determine_species() {
 
-	if (this->single_cell_atac_->fragments()->data_.contains("20")) {
-		this->single_cell_atac_->species_ = soap::Species::Human;
+	if (this->res_->fragments()->data_.contains("20")) {
+		this->res_->species_ = soap::Species::Human;
 	}
 	else {
-		this->single_cell_atac_->species_ = soap::Species::Mouse;
+		this->res_->species_ = soap::Species::Mouse;
 	}
 };
 
 void LoadAtacFromFragmentsWorker::calculate_metadata() {
 
-	SparseInt& counts = *this->single_cell_atac_->counts();
+	SparseInt& counts = *this->res_->counts();
 
 	counts.data_type_ = SparseInt::DataType::Counts;
 
@@ -166,33 +171,45 @@ void LoadAtacFromFragmentsWorker::calculate_metadata() {
 		col_peak[i] = counts.mat_.outerIndexPtr()[i + 1] - counts.mat_.outerIndexPtr()[i];
 	}
 
-	Metadata& metadata = SUBMODULES(*this->single_cell_atac_, Metadata)[VARIABLE_METADATA];
+	Metadata& metadata = SUBMODULES(*this->res_, Metadata)[VARIABLE_METADATA];
 	metadata.mat_.set_rownames(counts.colnames_);
 	metadata.mat_.update(METADATA_ATAC_UMI_NUMBER, QVector<int>(col_count.begin(), col_count.end()));
 	metadata.mat_.update(METADATA_ATAC_UNIQUE_PEAK_NUMBER, QVector<int>(col_peak.begin(), col_peak.end()));
-	metadata.mat_.update(METADATA_BARCODES, this->single_cell_atac_->fragments()->cell_names_);
+	metadata.mat_.update(METADATA_BARCODES, this->res_->fragments()->cell_names_);
 };
 
-void LoadAtacFromFragmentsWorker::run() {
+bool LoadAtacFromFragmentsWorker::work() {
 
 	if (!this->read_fragments()) {
-		G_TASK_END;
+		return false;
 	}
 
 	if (!this->call_peak()) {
 		G_TASK_WARN("Peak Calling Failed.");
-		G_TASK_END;
+		return false;
 	}
 
 	if (!this->calculate_matrix()) {
 		G_TASK_WARN("Counts Calculation Failed.");
-		G_TASK_END;
+		return false;
 	}
 
 	this->determine_species();
 
 	this->calculate_metadata();
 
-	emit x_data_create_soon(this->single_cell_atac_.release(), soap::VariableType::SingleCellAtac, "Single Cell ATAC Data");
+	return true;
+
+};
+
+void LoadAtacFromFragmentsWorker::run() {
+
+	if (!this->work()) {
+		G_TASK_END;
+	}
+
+	emit x_data_create_soon(this->res_.release(), soap::VariableType::SingleCellAtac, "Single Cell ATAC Data");
+
+	G_TASK_END;
 
 };

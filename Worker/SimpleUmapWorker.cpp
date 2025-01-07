@@ -3,7 +3,7 @@
 #include "TruncatedSvd.h"
 #include "Umap.h"
 
-void SimpleUmapWorker::run() {
+bool SimpleUmapWorker::work() {
 
 	auto [U, S, V] = tsvd(&this->mat_, 50, 1997, 0.00001, 1000);
 
@@ -17,7 +17,18 @@ void SimpleUmapWorker::run() {
 
 	umap.fit();
 
-	emit x_umap_ready(umap.embedding_);
+	this->res_ = umap.embedding_;
+
+	return true;
+};
+
+void SimpleUmapWorker::run() {
+
+	if (!this->work()) {
+		G_TASK_END;
+	}
+
+	emit x_umap_ready(this->res_);
 
 	G_TASK_END;
 };

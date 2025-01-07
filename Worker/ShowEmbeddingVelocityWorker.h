@@ -39,8 +39,6 @@ public:
 
 	int n_cell_neighbor_{ 100 };
 
-	void show_velocity();
-
 	Eigen::MatrixXd col_delta_cor_log10(
 		const Eigen::MatrixXd& e,
 		const Eigen::MatrixXd& d,
@@ -52,6 +50,10 @@ public:
 		const Eigen::SparseMatrix<double>& tp,
 		double arrow_scale = 1.0
 	);
+
+public:
+
+	bool work();
 
 public slots:
 
@@ -66,7 +68,6 @@ signals:
 	void x_grid_graph_ready(VELO_GRID_PLOT_ELEMENTS);
 
 	void x_stream_graph_ready(STREAM_PLOT_ELEMENTS);
-
 	
 };
 

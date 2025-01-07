@@ -20,9 +20,13 @@ public:
 	{};
 
 	const SparseInt* data_{ nullptr };
-	SparseDouble* normalized_{ nullptr };
+	std::unique_ptr<SparseDouble> res_{ nullptr };
 
 	double scale_factor_{ 10000.0 };
+
+public:
+
+	bool work();
 
 public slots:
 

@@ -33,7 +33,7 @@ public:
 
 	Eigen::ArrayXd emat_cs_;
 
-	std::unique_ptr<VelocityEstimate> estimate_;
+	std::unique_ptr<VelocityEstimate> res_{nullptr};
 
 	bool gene_relative_velocity_estimates();
 
@@ -45,6 +45,10 @@ public:
 	void calculate_velocity_shift();
 
 	void calculate_extrapolated_cell_state();
+
+public:
+
+	bool work();
 
 public slots:
 

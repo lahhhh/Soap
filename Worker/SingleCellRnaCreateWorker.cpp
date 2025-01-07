@@ -2,39 +2,50 @@
 
 void SingleCellRnaCreateWorker::run() {
 
+	if (!this->work()) {
+		G_TASK_END;
+	}
+
+	emit x_single_cell_rna_created(this->res_.release());
+
+	G_TASK_END;
+};
+
+bool SingleCellRnaCreateWorker::work() {
+
 	switch (this->mode_)
 	{
 	case WorkMode::FromSparseInt:
-		this->create_from_sparseint();
+		return this->create_from_sparseint();
 		break;
 	default:
 		break;
 	}
 
-	G_TASK_END;
+	return false;
 };
 
-void SingleCellRnaCreateWorker::create_from_sparseint() {
+bool SingleCellRnaCreateWorker::create_from_sparseint() {
 
 	if (this->si_->rows() < 100 || this->si_->cols() < 100 || this->si_->mat_.nonZeros() < 100) {
 		G_TASK_WARN("Too Small Object for SingleCellRna");
-		return;
+		return false;
 	}
 
-	SingleCellRna* single_cell_rna = new SingleCellRna();
+	this->res_.reset(new SingleCellRna());
 
-	SparseInt& counts = SUBMODULES(*single_cell_rna, SparseInt)[VARIABLE_COUNTS];
+	SparseInt& counts = SUBMODULES(*this->res_, SparseInt)[VARIABLE_COUNTS];
 
 	counts = *this->si_;
 	counts.data_type_ = SparseInt::DataType::Counts;
 
 	for (auto&& i : counts.rownames_) {
 		if (i.startsWith("MT-")) {
-			single_cell_rna->species_ = soap::Species::Human;
+			this->res_->species_ = soap::Species::Human;
 			break;
 		}
 		if (i.startsWith("mt-")) {
-			single_cell_rna->species_ = soap::Species::Mouse;
+			this->res_->species_ = soap::Species::Mouse;
 			break;
 		}
 	}
@@ -55,7 +66,7 @@ void SingleCellRnaCreateWorker::create_from_sparseint() {
 	QList<int> mitochondrial_location, ribosomal_location;
 
 	auto& gene_symbols = counts.rownames_;
-	if (single_cell_rna->species_ == soap::Species::Human) {
+	if (this->res_->species_ == soap::Species::Human) {
 		for (int i = 0; i < gene_symbols.length(); ++i) {
 			if (gene_symbols.at(i).startsWith("MT-")) {
 				mitochondrial_location << i;
@@ -66,7 +77,7 @@ void SingleCellRnaCreateWorker::create_from_sparseint() {
 			}
 		}
 	}
-	else if (single_cell_rna->species_ == soap::Species::Mouse) {
+	else if (this->res_->species_ == soap::Species::Mouse) {
 		for (int i = 0; i < gene_symbols.length(); ++i) {
 			if (gene_symbols.at(i).startsWith("mt-")) {
 				mitochondrial_location << i;
@@ -95,11 +106,12 @@ void SingleCellRnaCreateWorker::create_from_sparseint() {
 	custom::remove_na(mitochondrial_content);
 	custom::remove_na(ribosomal_content);
 
-	Metadata& metadata = SUBMODULES(*single_cell_rna, Metadata)[VARIABLE_METADATA];
+	Metadata& metadata = SUBMODULES(*this->res_, Metadata)[VARIABLE_METADATA];
 	metadata.mat_.set_rownames(counts.colnames_);
 	metadata.mat_.update(METADATA_RNA_UMI_NUMBER, QVector<int>(col_count.begin(), col_count.end()));
 	metadata.mat_.update(METADATA_RNA_UNIQUE_GENE_NUMBER, QVector<int>(col_gene.begin(), col_gene.end()));
 	metadata.mat_.update(METADATA_RNA_MITOCHONDRIAL_CONTENT, custom::cast<QVector>(mitochondrial_content));
 	metadata.mat_.update(METADATA_RNA_RIBOSOMAL_CONTENT, custom::cast<QVector>(ribosomal_content));
-	emit x_single_cell_rna_created(single_cell_rna);
+	
+	return true;
 };

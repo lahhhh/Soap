@@ -48,17 +48,13 @@ void FragmentsQualityViewWorker::get_results() {
 	custom::assign(flank_mean, custom::mean(flank_mean), custom::equal(this->flank_counts_, 0));
 	auto center_norm = custom::divide(this->center_counts_, flank_mean);
 
-	QMap<QString, QList<double>> res;
-	res[METADATA_TSS_ENRICHMENT] = center_norm;
-	res[METADATA_TSS_PERCENTILE] = custom::empirical_cumulative_distribution(center_norm);
-	res[METADATA_NUCLEOSOME_SIGNAL] = custom::partial_divide<double>(this->mono_nucleosome_count_, this->nucleosome_free_count_);
-	res[METADATA_BLACKLIST_RATIO] = custom::partial_divide<double>(this->blacklist_counts_, this->not_blacklist_counts_);
-	res[METADATA_FRIP_SCORE] = custom::partial_divide<double>(this->fragments_in_peak_, custom::add(this->fragments_in_peak_, this->fragments_not_in_peak_));
-	res[VECTOR_FRAGMENTS_LENGTH_DISTRIBUTION] =	custom::partial_divide<double>(this->length_distribution_, std::ranges::max(this->length_distribution_));
+	this->res_[METADATA_TSS_ENRICHMENT] = center_norm;
+	this->res_[METADATA_TSS_PERCENTILE] = custom::empirical_cumulative_distribution(center_norm);
+	this->res_[METADATA_NUCLEOSOME_SIGNAL] = custom::partial_divide<double>(this->mono_nucleosome_count_, this->nucleosome_free_count_);
+	this->res_[METADATA_BLACKLIST_RATIO] = custom::partial_divide<double>(this->blacklist_counts_, this->not_blacklist_counts_);
+	this->res_[METADATA_FRIP_SCORE] = custom::partial_divide<double>(this->fragments_in_peak_, custom::add(this->fragments_in_peak_, this->fragments_not_in_peak_));
+	this->res_[VECTOR_FRAGMENTS_LENGTH_DISTRIBUTION] =	custom::partial_divide<double>(this->length_distribution_, std::ranges::max(this->length_distribution_));
 
-	emit x_qc_ready(res);
-
-	G_TASK_LOG("Fragments Quality Check Finished.");
 };
 
 bool FragmentsQualityViewWorker::create_blacklist_index(const QString& bed_file) {
@@ -89,7 +85,7 @@ bool FragmentsQualityViewWorker::create_blacklist_index(const QString& bed_file)
 	return true;
 };
 
-void FragmentsQualityViewWorker::run() {
+bool FragmentsQualityViewWorker::work() {
 
 	if (this->species_ == soap::Species::Human) {
 
@@ -97,12 +93,12 @@ void FragmentsQualityViewWorker::run() {
 
 		if (this->genome_.is_empty()) {
 			G_TASK_WARN("Loading failed.");
-			G_TASK_END;
+			return false;
 		}
 	}
 	else {
 		G_TASK_WARN("Now only human genome is supported.");
-		G_TASK_END;
+		return false;
 	}
 
 	this->get_tss_position();
@@ -130,6 +126,19 @@ void FragmentsQualityViewWorker::run() {
 	this->calculate_metric();
 
 	this->get_results();
+
+	return true;
+};
+
+void FragmentsQualityViewWorker::run() {
+
+	if (!this->work()) {
+		G_TASK_END;
+	}
+
+	emit x_qc_ready(this->res_);
+
+	G_TASK_LOG("Fragments Quality Check Finished.");
 
 	G_TASK_END;
 }

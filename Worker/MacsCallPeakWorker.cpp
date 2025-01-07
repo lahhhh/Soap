@@ -77,42 +77,14 @@ struct PeakContent {
 		return this->above_cutoff_end_.last();
 	}
 };
+
 static PeakContent peak_content;
 
-GenomicRange MacsCallPeakWorker::call_peak(const QList<const Fragments*>& fragments_objects) {
-	MacsCallPeakWorker worker(fragments_objects);
+bool MacsCallPeakWorker::work() {
 
-	if (!worker.detect_tag_size()) {
-		return GenomicRange();
-	}
-
-	worker.parse_fragments();
-	worker.filter_duplicates();
-
-	try {
-		worker.detect_peaks();
-	}
-	catch (...) {
-		return GenomicRange();
-	}
-
-	GenomicRange genomic_range(worker.seqnames_, worker.ranges_, worker.strand_);
-	genomic_range.metadata_.update(METADATA_GENOMIC_RANGE_RANGE_NAME, worker.name_);
-	genomic_range.metadata_.update(METADATA_GENOMIC_RANGE_MACS_SCORE, worker.score_);
-	genomic_range.metadata_.update(METADATA_GENOMIC_RANGE_MACS_FOLD_CHANGE, worker.fold_change_);
-	genomic_range.metadata_.update(METADATA_GENOMIC_RANGE_MACS_P_VALUE, worker.p_value_);
-	genomic_range.metadata_.update(METADATA_GENOMIC_RANGE_MACS_Q_VALUE, worker.q_value_);
-	genomic_range.metadata_.update(METADATA_GENOMIC_RANGE_MACS_SUMMIT_POSITION, worker.summit_position_);
-
-	genomic_range.finalize();
-
-	return genomic_range;
-};
-
-void MacsCallPeakWorker::run() {
 	if (!detect_tag_size()) {
 		G_TASK_WARN("Fragments File is broken.");
-		G_TASK_END;
+		return false;
 	}
 
 	this->parse_fragments();
@@ -125,25 +97,34 @@ void MacsCallPeakWorker::run() {
 	catch (std::exception& e) {
 		G_TASK_WARN(QString::fromUtf8(e.what()));
 		G_TASK_WARN("Problem Meeted. Please Save Your Data.");
-		G_TASK_END;
+		return false;
 	}
 	catch (...) {
 		G_TASK_WARN("Problem Meeted. Please Save Your Data.");
+		return false;
+	}
+
+	this->res_.set(this->seqnames_, this->ranges_, this->strand_);
+
+	this->res_.metadata_.update(METADATA_GENOMIC_RANGE_RANGE_NAME, this->name_);
+	this->res_.metadata_.update(METADATA_GENOMIC_RANGE_MACS_SCORE, this->score_);
+	this->res_.metadata_.update(METADATA_GENOMIC_RANGE_MACS_FOLD_CHANGE, this->fold_change_);
+	this->res_.metadata_.update(METADATA_GENOMIC_RANGE_MACS_P_VALUE, this->p_value_);
+	this->res_.metadata_.update(METADATA_GENOMIC_RANGE_MACS_Q_VALUE, this->q_value_);
+	this->res_.metadata_.update(METADATA_GENOMIC_RANGE_MACS_SUMMIT_POSITION, this->summit_position_);
+
+	this->res_.finalize();
+
+};
+
+void MacsCallPeakWorker::run() {
+
+	if (!this->work()) {
 		G_TASK_END;
 	}
 
-	GenomicRange genomic_range(this->seqnames_, this->ranges_, this->strand_);
+	emit x_genomic_range_ready(this->res_);
 
-	genomic_range.metadata_.update(METADATA_GENOMIC_RANGE_RANGE_NAME, this->name_);
-	genomic_range.metadata_.update(METADATA_GENOMIC_RANGE_MACS_SCORE, this->score_);
-	genomic_range.metadata_.update(METADATA_GENOMIC_RANGE_MACS_FOLD_CHANGE, this->fold_change_);
-	genomic_range.metadata_.update(METADATA_GENOMIC_RANGE_MACS_P_VALUE, this->p_value_);
-	genomic_range.metadata_.update(METADATA_GENOMIC_RANGE_MACS_Q_VALUE, this->q_value_);
-	genomic_range.metadata_.update(METADATA_GENOMIC_RANGE_MACS_SUMMIT_POSITION, this->summit_position_);
-
-	genomic_range.finalize();
-
-	emit x_genomic_range_ready(genomic_range);
 	G_TASK_END;
 
 }
@@ -317,7 +298,7 @@ void MacsCallPeakWorker::call_peak_without_control() {
 	G_TASK_LOG("[MACS] Calling peaks...");
 
 	for (auto iter = this->locations_.cbegin(); iter != this->locations_.cend(); ++iter) {
-		
+
 		QString chromosome = iter->first;
 
 		this->chromosome_call_peak(chromosome);
@@ -525,10 +506,10 @@ void MacsCallPeakWorker::calculate_p_q_map() {
 };
 
 std::tuple<QVector<int>, QVector<double>, QVector<double>>& MacsCallPeakWorker::make_pair(
-	const QString& chromosome, 
+	const QString& chromosome,
 	const QVector<int>& treat_position,
-	const QVector<double>& treat_value, 
-	const QVector<int>& control_position, 
+	const QVector<double>& treat_value,
+	const QVector<int>& control_position,
 	const QVector<double>& control_value
 ) {
 	qsizetype length_treat = treat_position.size(), length_control = control_position.size();

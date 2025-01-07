@@ -46,9 +46,17 @@ public:
 
 	double p_threshold_;
 
+	CustomMatrix res_;
+
+	QString res_name_;
+
 	void enrich_pathway();
 
 	void enrich_motif();
+
+public:
+
+	bool work();
 
 public slots:
 

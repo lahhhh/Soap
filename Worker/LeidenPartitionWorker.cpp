@@ -119,11 +119,24 @@ LeidenPartitionWorker::LeidenPartitionWorker(
 	resolution_(resolution)
 {};
 
-void LeidenPartitionWorker::run() {
+bool LeidenPartitionWorker::work() {
 
 	this->create_shared_nearest_neighbors_matrix();
 
 	this->find_partition();
+
+	return true;
+};
+
+void LeidenPartitionWorker::run() {
+
+	if (!this->work()) {
+		G_TASK_END;
+	}
+
+	G_TASK_LOG(QString::number(custom::unique_element_number(this->res_)) + " clusters were found in Leiden Partition.");
+
+	emit x_leiden_ready(this->res_);
 
 	G_TASK_END;
 };
@@ -162,10 +175,6 @@ void LeidenPartitionWorker::find_partition() {
 	igraph_destroy(g);
 	delete g;
 
-	QVector<int> classification = custom::sapply(partition->membership(), [](std::size_t val) { return static_cast<int>(val); });
-
-	G_TASK_LOG(QString::number(custom::unique_element_number(classification)) + " clusters were found in Leiden Partition.");
-
-	emit x_leiden_ready(classification);
+	this->res_ = custom::sapply(partition->membership(), [](std::size_t val) { return static_cast<int>(val); });
 
 };

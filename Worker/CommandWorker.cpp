@@ -2,11 +2,11 @@
 
 #include <QRegularExpression>
 
-void CommandWorker::run() {
+bool CommandWorker::work() {
 
     if (this->command_.isEmpty()) {
         G_TASK_WARN("Illegal Command.");
-        G_TASK_END;
+        return false;
     }
 
     this->p_ = new QProcess();
@@ -16,7 +16,18 @@ void CommandWorker::run() {
     connect(this->p_, QOverload<int, QProcess::ExitStatus>::of(&QProcess::finished),
         this, &CommandWorker::finished);
 
-    this->p_->start("cmd.exe", QStringList{"/C", this->command_});
+    this->p_->start("cmd.exe", QStringList{ "/C", this->command_ });
+
+    return true;
+};
+
+void CommandWorker::run() {
+
+    if (!this->work()) {
+        G_TASK_END;
+    }
+
+    G_TASK_END;
 };
 
 void CommandWorker::finished(int exit_code, QProcess::ExitStatus exit_status) {

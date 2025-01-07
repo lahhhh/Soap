@@ -71,6 +71,11 @@ public:
 
 	bool calculate_matrix();
 
+
+public:
+
+	bool work();
+
 public slots:
 
 	void run();

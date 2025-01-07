@@ -28,6 +28,8 @@ public:
     double max_sr_{ 0.0 };
     bool local_{ false };
 
+    Eigen::ArrayXd res_;
+
     bool read_ppi_database();
 
     bool do_integ_ppi();
@@ -35,6 +37,10 @@ public:
     bool calculate_max_sr();
 
     bool calculate_sr();
+
+public:
+
+    bool work();
 
 public slots:
 

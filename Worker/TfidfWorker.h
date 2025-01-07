@@ -21,6 +21,12 @@ public:
 
     double scale_factor_{ 10000.0 };
 
+    std::unique_ptr<SparseDouble> res_{ nullptr };
+
+public:
+
+    bool work();
+
 public slots:
 
     void run();

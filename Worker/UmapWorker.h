@@ -38,6 +38,12 @@ public:
 	int random_state_{ 1997 };
 	int n_trees_{ 50 };
 
+	Eigen::MatrixXd res_;
+
+public:
+
+	bool work();
+
 public slots:
 
 	void run();

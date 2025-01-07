@@ -92,6 +92,7 @@ void ShowEmbeddingScveloWorker::compute_velocity_on_grid() {
 		res.direction = v_grid;
 		res.embedding_names = this->embedding_names_;
 		res.graph_settings = this->graph_settings_;
+
 		emit x_grid_graph_ready(res);
 	}
 	else /* if(this->graph_mode == 2) */ {
@@ -134,11 +135,9 @@ void ShowEmbeddingScveloWorker::compute_velocity_on_grid() {
 		res.mask = mask;
 		res.embedding_names = this->embedding_names_;
 		res.graph_settings = this->graph_settings_;
+
 		emit x_stream_graph_ready(res);
 	}
-
-	
-	G_TASK_END;
 };
 
 Eigen::SparseMatrix<double> ShowEmbeddingScveloWorker::transition_matrix() {
@@ -158,10 +157,20 @@ Eigen::SparseMatrix<double> ShowEmbeddingScveloWorker::transition_matrix() {
 
 };
 
-void ShowEmbeddingScveloWorker::run() {
+bool ShowEmbeddingScveloWorker::work() {
 
 	this->velocity_embedding();
 
 	this->compute_velocity_on_grid();
 
+	return true;
+};
+
+void ShowEmbeddingScveloWorker::run() {
+
+	if (!this->work()) {
+		G_TASK_END;
+	}
+
+	G_TASK_END;
 }

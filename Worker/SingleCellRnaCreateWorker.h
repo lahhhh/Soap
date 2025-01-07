@@ -17,7 +17,13 @@ public:
 
     const SparseInt* si_{ nullptr };
 
-    void create_from_sparseint();
+    std::unique_ptr<SingleCellRna> res_{ nullptr };
+
+    bool create_from_sparseint();
+
+public:
+
+    bool work();
 
 public slots:
 

@@ -41,9 +41,11 @@ bool SvdWorker::find_variable_features() {
 	return true;
 };
 
-void SvdWorker::run() {
+bool SvdWorker::work() {
 
-	this->find_variable_features();
+	if (!this->find_variable_features()) {
+		return false;
+	}
 
 	Eigen::ArrayX<bool> filter = custom::col_sum(this->mat_) > 0;
 	if (filter.count() != this->mat_.cols()) {
@@ -52,11 +54,21 @@ void SvdWorker::run() {
 
 	auto [U, S, V] = tsvd(&this->mat_, this->n_mat_u_, this->random_state_, this->tol_, this->maximum_iteration_);
 
-	Eigen::ArrayXd sdev = S.array() / sqrt(this->mat_.rows() - 1.);
+	this->sdev_ = S.array() / sqrt(this->mat_.rows() - 1.);
 	this->mat_.resize(0, 0);
 
-	Eigen::MatrixXd emb = U * S.asDiagonal();
+	this->res_ = U * S.asDiagonal();
 
-	emit x_svd_ready(emb, custom::cast<QVector>(sdev));
+	return true;
+};
+
+void SvdWorker::run() {
+
+	if (!this->work()) {
+		G_TASK_END;
+	}
+
+	emit x_svd_ready(this->res_, custom::cast<QVector>(this->sdev_));
+
 	G_TASK_END;
 };

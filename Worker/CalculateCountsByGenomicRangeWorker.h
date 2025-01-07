@@ -21,19 +21,21 @@ public:
 
 	Eigen::MatrixXi dense_counts_;
 
-	SparseInt* counts_ = nullptr;
-
-	static SparseInt* calculate_counts(const Fragments* fragments, const GenomicRange& genomic_range);
+	std::unique_ptr<SparseInt> res_{ nullptr };
 
 private:
 
 	void create_index();
 
-	bool calculate_counts();
+	void calculate_counts();
 
 	void build_matrix();
 
 	void find_row(const QString& seq_name, int cell_loc, int start, int end);
+
+public:
+
+	bool work();
 
 public slots:
 

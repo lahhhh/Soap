@@ -11,19 +11,19 @@ TssPlotWorker::TssPlotWorker(soap::Species species, const Fragments* fragments) 
 	species_(species)
 {};
 
-void TssPlotWorker::run() {
+bool TssPlotWorker::work() {
 
 	if (this->species_ == soap::Species::Human) {
 		bool success = ItemDatabase::read_item(FILE_HUMAN_GENOME_GENOMIC_RANGE_SIF, this->genome_);
 
 		if (!success) {
 			G_TASK_WARN("Loading faied.");
-			G_TASK_END;
+			return false;
 		}
 	}
 	else {
 		G_TASK_WARN("Now only human genome is supported.");
-		G_TASK_END;
+		return false;
 	}
 
 	this->get_tss_position();
@@ -34,7 +34,17 @@ void TssPlotWorker::run() {
 
 	this->get_results();
 
+	return true;
+};
+
+void TssPlotWorker::run() {
+
+	if (!this->work()) {
+		G_TASK_END;
+	}
+
 	emit x_tss_ready(this->tss_matrix_, this->tss_vector_);
+
 	G_TASK_END;
 }
 

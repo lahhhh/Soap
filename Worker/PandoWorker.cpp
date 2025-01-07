@@ -7,27 +7,38 @@
 
 #include "glm.h"
 
-void PandoWorker::run() {
+bool PandoWorker::work() {
 
 	if (this->single_cell_multiome_->species_ != soap::Species::Human) {
 		G_TASK_WARN("Now only human is supported.");
-		G_TASK_END;
+		return false;
 	}
 
 	bool success = ItemDatabase::read_item(FILE_HUMAN_GENOME_GENOMIC_RANGE_SIF, this->annotation_);
 
 	if (!success) {
 		G_TASK_WARN("Loading failed.");
-		G_TASK_END;
+		return false;
 	}
 
 	if (!this->initiate_grn()) {
-		G_TASK_END;
+		return false;
 	}
 
 	if (!this->infer_grn()) {
+		return false;
+	}
+
+	return true;
+};
+
+void PandoWorker::run() {
+
+	if (!this->work()) {
 		G_TASK_END;
 	}
+
+	emit x_pando_ready(this->res_);
 
 	G_TASK_END;
 };
@@ -61,16 +72,12 @@ bool PandoWorker::initiate_grn() {
 
 	MotifLocateWorker worker(this->peaks_.get_range_names(), this->motif_database_, soap::Species::Human);
 
-	worker.peak_ = this->peaks_;
-
-	if (!worker.get_peak_sequence()) {
+	if (!worker.work()) {
 		G_TASK_WARN("Motif location Failed.");
 		return false;
 	}
-	
-	worker.get_base_background();
-	worker.get_result();
-	this->motif_position_ = worker.mp_;
+
+	this->motif_position_ = worker.res_;
 
 	this->peak_index_.set(this->peaks_);
 
@@ -378,18 +385,15 @@ bool PandoWorker::infer_grn() {
 		return false;
 	}
 
-	Pando res;
-	res.mat_.update(METADATA_PANDO_GENE_NAME, gene_name_res);
-	res.mat_.update(METADATA_PANDO_PEAK_NAME, peak_name_res);
-	res.mat_.update(METADATA_PANDO_TF_NAME, tf_name_res);
-	res.mat_.update(METADATA_PANDO_R_SQUARED_NAME, rsq_res);
-	res.mat_.update(METADATA_PANDO_ESTIMATE_NAME, estimate_res);
-	res.mat_.update(METADATA_PANDO_STD_ERR_NAME, std_error_res);
-	res.mat_.update(METADATA_PANDO_T_VAL_NAME, t_val_res);
-	res.mat_.update(METADATA_PANDO_P_VAL_NAME, p_val_res);
-	res.mat_.update(METADATA_PANDO_N_VARIABLE_NAME, n_variable_res);
-
-	emit x_pando_ready(res);
+	this->res_.mat_.update(METADATA_PANDO_GENE_NAME, gene_name_res);
+	this->res_.mat_.update(METADATA_PANDO_PEAK_NAME, peak_name_res);
+	this->res_.mat_.update(METADATA_PANDO_TF_NAME, tf_name_res);
+	this->res_.mat_.update(METADATA_PANDO_R_SQUARED_NAME, rsq_res);
+	this->res_.mat_.update(METADATA_PANDO_ESTIMATE_NAME, estimate_res);
+	this->res_.mat_.update(METADATA_PANDO_STD_ERR_NAME, std_error_res);
+	this->res_.mat_.update(METADATA_PANDO_T_VAL_NAME, t_val_res);
+	this->res_.mat_.update(METADATA_PANDO_P_VAL_NAME, p_val_res);
+	this->res_.mat_.update(METADATA_PANDO_N_VARIABLE_NAME, n_variable_res);
 
 	return true;	
 };

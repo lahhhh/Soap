@@ -2,7 +2,8 @@
 
 #include "Identifier.h"
 
-class FileWritingWorker : public QObject
+class FileWritingWorker : 
+	public QObject
 {
 	Q_OBJECT
 public:
@@ -23,6 +24,10 @@ public:
 	soap::FileType file_type_;
 
 	QStringList settings_;
+
+public:
+
+	bool work();
 
 public slots:
 

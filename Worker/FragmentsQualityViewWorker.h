@@ -56,11 +56,17 @@ public:
 	GenomeIndex<IndexMode::Position> peak_index_;
 	GenomeIndex<IndexMode::Position> center_index_;
 
+	QMap<QString, QList<double>> res_;
+
 	bool calculate_metric();
 
 	void get_results();
 
 	bool create_blacklist_index(const QString& bed_file);
+
+public:
+
+	bool work();
 
 public slots:
 

@@ -41,6 +41,8 @@ public:
 
 	Eigen::MatrixXi background_peaks_;
 
+	std::unique_ptr<ChromVAR> res_{ nullptr };
+
 	bool validate_input();
 
 	bool add_gc_bias();
@@ -48,6 +50,10 @@ public:
 	bool get_background_peaks();
 
 	bool compute_deviations();
+
+public:
+
+	bool work();
 
 public slots:
 

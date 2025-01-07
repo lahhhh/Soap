@@ -4,22 +4,34 @@
 #include "GenomeUtility.h"
 #include "ItemDatabase.h"
 
-void CreateCoverageTrackWorker::run() {
+bool CreateCoverageTrackWorker::work() {
+
 	this->build_index();
 
 	if (!this->calculate_fragments_size()) {
-		G_TASK_END;
+		return false;
 	}
 
 	if (!this->calculate_matrix()) {
-		G_TASK_END;
+		return false;
 	}
+	
 	this->create_track();
+
 	if (!this->load_annotation()) {
+		return false;
+	}
+
+	return true;
+};
+
+void CreateCoverageTrackWorker::run() {
+
+	if (!this->work()) {
 		G_TASK_END;
 	}
 
-	emit x_coverage_track_ready(this->coverage_track_);
+	emit x_coverage_track_ready(this->res_.release());
 
 	G_TASK_END;
 }
@@ -48,7 +60,7 @@ void CreateCoverageTrackWorker::build_index() {
 
 bool CreateCoverageTrackWorker::load_annotation() {
 
-	bool success = ItemDatabase::read_item(FILE_HUMAN_GENOME_GENOMIC_RANGE_SIF, this->coverage_track_->annotation_);
+	bool success = ItemDatabase::read_item(FILE_HUMAN_GENOME_GENOMIC_RANGE_SIF, this->res_->annotation_);
 
 	if (!success) {
 		G_TASK_WARN("Loading faied.");
@@ -60,16 +72,16 @@ bool CreateCoverageTrackWorker::load_annotation() {
 
 void CreateCoverageTrackWorker::create_track() {
 
-	this->coverage_track_ = new CoverageTrack();
-	this->coverage_track_->level_name_ = this->group_name_;
-	this->coverage_track_->levels_ = this->group_factors_;
+	this->res_.reset(new CoverageTrack());
+	this->res_->level_name_ = this->group_name_;
+	this->res_->levels_ = this->group_factors_;
 
 	QStringList sequence_names = this->temp_data_.keys();
 
 	const int n_level = this->group_factors_.size();
 
 	for (const auto& sequence : sequence_names) {
-		auto& insertion_matrix = this->coverage_track_->insertion_matrix_[sequence];
+		auto& insertion_matrix = this->res_->insertion_matrix_[sequence];
 		const auto& temp = this->temp_data_[sequence];
 		insertion_matrix.resize(n_level);
 		for (int i = 0; i < n_level; ++i) {

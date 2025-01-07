@@ -322,13 +322,22 @@ void ItemIOWorker::read() {
 	G_TASK_LOG("Item Reading finished.");
 };
 
-void ItemIOWorker::run() {
+bool ItemIOWorker::work() {
 
 	if (this->mode_ == WorkMode::Read) {
 		this->read();
 	}
 	else {
 		this->write();
+	}
+
+	return true;
+};
+
+void ItemIOWorker::run() {
+
+	if (!this->work()) {
+		G_TASK_END;
 	}
 
 	G_TASK_END;

@@ -36,7 +36,7 @@ public:
 
 	std::map<QString, PatternWeightMatrix> pattern_database_;
 
-	MotifPosition mp_;
+	MotifPosition res_;
 
 	void get_peak();
 
@@ -45,6 +45,10 @@ public:
 	void get_base_background();
 
 	void get_result();
+
+public:
+
+	bool work();
 
 
 public slots:

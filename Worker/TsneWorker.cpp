@@ -28,7 +28,7 @@ TsneWorker::TsneWorker(
     exaggeration_factor_(exaggeration_factor)
 {};
 
-void TsneWorker::run() {
+bool TsneWorker::work() {
 
     this->mat_.transposeInPlace();
 
@@ -49,12 +49,24 @@ void TsneWorker::run() {
     Eigen::MatrixXd embedding(2, n_cell);
 
     bool success = tsne.run(&this->mat_, embedding);
-    if (success) {
-        emit x_tsne_ready(embedding.transpose());
-    }
-    else {
+
+    if (!success) {
         G_TASK_WARN("tSNE failed.");
+        return false;
     }
+
+    this->res_ = embedding.transpose();
+
+    return true;
+};
+
+void TsneWorker::run() {
+
+    if (!this->work()) {
+        G_TASK_END;
+    }
+
+    emit x_tsne_ready(this->res_);
 
     G_TASK_END;
 }

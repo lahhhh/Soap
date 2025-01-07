@@ -14,13 +14,13 @@ public:
 
 	QString file_name_;
 
-	std::unique_ptr<SingleCellAtac> single_cell_atac_;
-
 	std::unordered_map<QString, int> barcode_index_;
 
 	int n_barcode_{ 0 };
 
 	GenomicRange peaks_;
+
+	std::unique_ptr<SingleCellAtac> res_;
 
 	bool read_fragments();
 
@@ -32,6 +32,9 @@ public:
 
 	void calculate_metadata();
 
+public:
+
+	bool work();
 
 public slots:
 

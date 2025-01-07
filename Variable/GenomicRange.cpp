@@ -16,6 +16,17 @@ GenomicRange::GenomicRange(
 	metadata_(sequence_names.size())
 {};
 
+void GenomicRange::set(
+	const RunLengthEncoding<QString>& sequence_names,
+	const IRange& ranges,
+	const RunLengthEncoding<char>& strand
+) {
+	this->sequence_names_ = sequence_names;
+	this->ranges_ = ranges;
+	this->strand_ = strand;
+	this->metadata_.set_nrow(sequence_names.size());
+};
+
 void GenomicRange::clear() {
 	this->sequence_names_.clear();
 	this->ranges_.clear();

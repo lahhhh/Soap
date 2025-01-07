@@ -79,11 +79,11 @@ public:
 
 	Eigen::MatrixXi unspliced_counts_;
 
-	VelocytoBase* velocyto_base_ = nullptr;
-
 	char barcode_tag_[2];
 
 	char umi_tag_[2];
+
+	std::unique_ptr<VelocytoBase> res_{ nullptr };
 
 	void create_index();
 
@@ -111,6 +111,9 @@ public:
 
 	void generate_count_matrix();
 
+public:
+
+	bool work();
 
 public slots:
 

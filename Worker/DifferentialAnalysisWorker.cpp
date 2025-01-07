@@ -50,18 +50,19 @@ void DifferentialAnalysisWorker::dense(DifferentialAnalysis::DataType dtype) {
 		percentage_of_val_in_group_1 = custom::sliced(percentage_of_val_in_group_1, computed);
 		percentage_of_val_in_group_2 = custom::sliced(percentage_of_val_in_group_2, computed);
 		p_adjusted = custom::adjust_p_value(p_adjusted, this->p_adjust_method_);
-		DifferentialAnalysis da;
-		da.data_type_ = dtype;
-		da.mat_.set_rownames(this->feature_names_);
-		da.mat_.update(METADATA_DE_FEATURE_NAME, this->feature_names_);
-		da.mat_.update(METADATA_DE_LOG2_FOLD_CHANGE, custom::cast<QVector>(log2_fold_change));
-		da.mat_.update(METADATA_DE_ADJUSTED_P_VALUE, custom::cast<QVector>(p_adjusted));
-		da.mat_.update(METADATA_DE_PERCENTAGE_1, custom::cast<QVector>(percentage_of_val_in_group_1));
-		da.mat_.update(METADATA_DE_PERCENTAGE_2, custom::cast<QVector>(percentage_of_val_in_group_2));
-		da.mat_.update(METADATA_DE_COMPARISON_1, QStringList(feature_number, this->comparison_[1]), CustomMatrix::DataType::QStringFactor);
-		da.mat_.update(METADATA_DE_COMPARISON_2, QStringList(feature_number, this->comparison_[2]), CustomMatrix::DataType::QStringFactor);
-		da.mat_.update(METADATA_DE_METADATA_NAME, QStringList(feature_number, this->metadata_name_), CustomMatrix::DataType::QStringFactor);
-		emit x_differential_analysis_ready(da, this->comparison_[1] + " vs. " + this->comparison_[2]);
+
+
+		this->res_.data_type_ = dtype;
+		this->res_.mat_.set_rownames(this->feature_names_);
+		this->res_.mat_.update(METADATA_DE_FEATURE_NAME, this->feature_names_);
+		this->res_.mat_.update(METADATA_DE_LOG2_FOLD_CHANGE, custom::cast<QVector>(log2_fold_change));
+		this->res_.mat_.update(METADATA_DE_ADJUSTED_P_VALUE, custom::cast<QVector>(p_adjusted));
+		this->res_.mat_.update(METADATA_DE_PERCENTAGE_1, custom::cast<QVector>(percentage_of_val_in_group_1));
+		this->res_.mat_.update(METADATA_DE_PERCENTAGE_2, custom::cast<QVector>(percentage_of_val_in_group_2));
+		this->res_.mat_.update(METADATA_DE_COMPARISON_1, QStringList(feature_number, this->comparison_[1]), CustomMatrix::DataType::QStringFactor);
+		this->res_.mat_.update(METADATA_DE_COMPARISON_2, QStringList(feature_number, this->comparison_[2]), CustomMatrix::DataType::QStringFactor);
+		this->res_.mat_.update(METADATA_DE_METADATA_NAME, QStringList(feature_number, this->metadata_name_), CustomMatrix::DataType::QStringFactor);
+		
 	}
 	else {
 
@@ -118,18 +119,19 @@ void DifferentialAnalysisWorker::dense(DifferentialAnalysis::DataType dtype) {
 			comparison1.append(QStringList(feature_names.size(), factor));
 			comparison2.append(QStringList(feature_names.size(), this->comparison_[2]));
 		}
-		DifferentialAnalysis da;
-		da.data_type_ = dtype;
-		da.mat_.set_nrow(all_feature_names.size());
-		da.mat_.update(METADATA_DE_FEATURE_NAME, all_feature_names);
-		da.mat_.update(METADATA_DE_LOG2_FOLD_CHANGE, all_log2_fold_change);
-		da.mat_.update(METADATA_DE_ADJUSTED_P_VALUE, all_p_adjusted);
-		da.mat_.update(METADATA_DE_PERCENTAGE_1, all_percentage_1);
-		da.mat_.update(METADATA_DE_PERCENTAGE_2, all_percentage_2);
-		da.mat_.update(METADATA_DE_COMPARISON_1, comparison1, CustomMatrix::DataType::QStringFactor);
-		da.mat_.update(METADATA_DE_COMPARISON_2, comparison2, CustomMatrix::DataType::QStringFactor);
-		da.mat_.update(METADATA_DE_METADATA_NAME, QStringList(all_feature_names.size(), this->metadata_name_), CustomMatrix::DataType::QStringFactor);
-		emit x_differential_analysis_ready(da, this->comparison_[1] + " vs. " + this->comparison_[2]);
+
+
+		this->res_.data_type_ = dtype;
+		this->res_.mat_.set_nrow(all_feature_names.size());
+		this->res_.mat_.update(METADATA_DE_FEATURE_NAME, all_feature_names);
+		this->res_.mat_.update(METADATA_DE_LOG2_FOLD_CHANGE, all_log2_fold_change);
+		this->res_.mat_.update(METADATA_DE_ADJUSTED_P_VALUE, all_p_adjusted);
+		this->res_.mat_.update(METADATA_DE_PERCENTAGE_1, all_percentage_1);
+		this->res_.mat_.update(METADATA_DE_PERCENTAGE_2, all_percentage_2);
+		this->res_.mat_.update(METADATA_DE_COMPARISON_1, comparison1, CustomMatrix::DataType::QStringFactor);
+		this->res_.mat_.update(METADATA_DE_COMPARISON_2, comparison2, CustomMatrix::DataType::QStringFactor);
+		this->res_.mat_.update(METADATA_DE_METADATA_NAME, QStringList(all_feature_names.size(), this->metadata_name_), CustomMatrix::DataType::QStringFactor);
+		
 	}
 };
 
@@ -179,18 +181,19 @@ void DifferentialAnalysisWorker::sparse(DifferentialAnalysis::DataType dtype) {
 		percentage_of_val_in_group_1 = custom::sliced(percentage_of_val_in_group_1, computed);
 		percentage_of_val_in_group_2 = custom::sliced(percentage_of_val_in_group_2, computed);
 		p_adjusted = custom::adjust_p_value(p_adjusted, this->p_adjust_method_);
-		DifferentialAnalysis da;
-		da.data_type_ = dtype;
-		da.mat_.set_rownames(this->feature_names_);
-		da.mat_.update(METADATA_DE_FEATURE_NAME, this->feature_names_);
-		da.mat_.update(METADATA_DE_LOG2_FOLD_CHANGE, custom::cast<QVector>(log2_fold_change));
-		da.mat_.update(METADATA_DE_ADJUSTED_P_VALUE, custom::cast<QVector>(p_adjusted));
-		da.mat_.update(METADATA_DE_PERCENTAGE_1, custom::cast<QVector>(percentage_of_val_in_group_1));
-		da.mat_.update(METADATA_DE_PERCENTAGE_2, custom::cast<QVector>(percentage_of_val_in_group_2));
-		da.mat_.update(METADATA_DE_COMPARISON_1, QStringList(feature_number, this->comparison_[1]), CustomMatrix::DataType::QStringFactor);
-		da.mat_.update(METADATA_DE_COMPARISON_2, QStringList(feature_number, this->comparison_[2]), CustomMatrix::DataType::QStringFactor);
-		da.mat_.update(METADATA_DE_METADATA_NAME, QStringList(feature_number, this->metadata_name_), CustomMatrix::DataType::QStringFactor);
-		emit x_differential_analysis_ready(da, this->comparison_[1] + " vs. " + this->comparison_[2]);
+
+
+		this->res_.data_type_ = dtype;
+		this->res_.mat_.set_rownames(this->feature_names_);
+		this->res_.mat_.update(METADATA_DE_FEATURE_NAME, this->feature_names_);
+		this->res_.mat_.update(METADATA_DE_LOG2_FOLD_CHANGE, custom::cast<QVector>(log2_fold_change));
+		this->res_.mat_.update(METADATA_DE_ADJUSTED_P_VALUE, custom::cast<QVector>(p_adjusted));
+		this->res_.mat_.update(METADATA_DE_PERCENTAGE_1, custom::cast<QVector>(percentage_of_val_in_group_1));
+		this->res_.mat_.update(METADATA_DE_PERCENTAGE_2, custom::cast<QVector>(percentage_of_val_in_group_2));
+		this->res_.mat_.update(METADATA_DE_COMPARISON_1, QStringList(feature_number, this->comparison_[1]), CustomMatrix::DataType::QStringFactor);
+		this->res_.mat_.update(METADATA_DE_COMPARISON_2, QStringList(feature_number, this->comparison_[2]), CustomMatrix::DataType::QStringFactor);
+		this->res_.mat_.update(METADATA_DE_METADATA_NAME, QStringList(feature_number, this->metadata_name_), CustomMatrix::DataType::QStringFactor);
+		
 	}
 	else {
 		QStringList factors = custom::unique(this->metadata_);
@@ -246,18 +249,19 @@ void DifferentialAnalysisWorker::sparse(DifferentialAnalysis::DataType dtype) {
 			comparison1.append(QStringList(feature_names.size(), factor));
 			comparison2.append(QStringList(feature_names.size(), this->comparison_[2]));
 		}
-		DifferentialAnalysis da;
-		da.data_type_ = dtype;
-		da.mat_.set_nrow(all_feature_names.size());
-		da.mat_.update(METADATA_DE_FEATURE_NAME, all_feature_names);
-		da.mat_.update(METADATA_DE_LOG2_FOLD_CHANGE, all_log2_fold_change);
-		da.mat_.update(METADATA_DE_ADJUSTED_P_VALUE, all_p_adjusted);
-		da.mat_.update(METADATA_DE_PERCENTAGE_1, all_percentage_1);
-		da.mat_.update(METADATA_DE_PERCENTAGE_2, all_percentage_2);
-		da.mat_.update(METADATA_DE_COMPARISON_1, comparison1, CustomMatrix::DataType::QStringFactor);
-		da.mat_.update(METADATA_DE_COMPARISON_2, comparison2, CustomMatrix::DataType::QStringFactor);
-		da.mat_.update(METADATA_DE_METADATA_NAME, QStringList(all_feature_names.size(), this->metadata_name_), CustomMatrix::DataType::QStringFactor);
-		emit x_differential_analysis_ready(da, this->comparison_[1] + " vs. " + this->comparison_[2]);
+
+
+		this->res_.data_type_ = dtype;
+		this->res_.mat_.set_nrow(all_feature_names.size());
+		this->res_.mat_.update(METADATA_DE_FEATURE_NAME, all_feature_names);
+		this->res_.mat_.update(METADATA_DE_LOG2_FOLD_CHANGE, all_log2_fold_change);
+		this->res_.mat_.update(METADATA_DE_ADJUSTED_P_VALUE, all_p_adjusted);
+		this->res_.mat_.update(METADATA_DE_PERCENTAGE_1, all_percentage_1);
+		this->res_.mat_.update(METADATA_DE_PERCENTAGE_2, all_percentage_2);
+		this->res_.mat_.update(METADATA_DE_COMPARISON_1, comparison1, CustomMatrix::DataType::QStringFactor);
+		this->res_.mat_.update(METADATA_DE_COMPARISON_2, comparison2, CustomMatrix::DataType::QStringFactor);
+		this->res_.mat_.update(METADATA_DE_METADATA_NAME, QStringList(all_feature_names.size(), this->metadata_name_), CustomMatrix::DataType::QStringFactor);
+		
 	}
 };
 
@@ -300,16 +304,16 @@ void DifferentialAnalysisWorker::chromvar_mode() {
 		}
 
 		p_adjusted = custom::adjust_p_value(p_adjusted, this->p_adjust_method_);
-		DifferentialAnalysis da;
-		da.data_type_ = DifferentialAnalysis::DataType::ChromVAR;
-		da.mat_.set_rownames(this->feature_names_);
-		da.mat_.update(METADATA_DE_FEATURE_NAME, this->feature_names_);
-		da.mat_.update(METADATA_DE_Z_SCORE_DIFFERENCE, custom::cast<QVector>(z_diff));
-		da.mat_.update(METADATA_DE_ADJUSTED_P_VALUE, custom::cast<QVector>(p_adjusted));
-		da.mat_.update(METADATA_DE_COMPARISON_1, QStringList(feature_number, this->comparison_[1]), CustomMatrix::DataType::QStringFactor);
-		da.mat_.update(METADATA_DE_COMPARISON_2, QStringList(feature_number, this->comparison_[2]), CustomMatrix::DataType::QStringFactor);
-		da.mat_.update(METADATA_DE_METADATA_NAME, QStringList(feature_number, this->metadata_name_), CustomMatrix::DataType::QStringFactor);
-		emit x_differential_analysis_ready(da, this->comparison_[1] + " vs. " + this->comparison_[2]);
+
+		this->res_.data_type_ = DifferentialAnalysis::DataType::ChromVAR;
+		this->res_.mat_.set_rownames(this->feature_names_);
+		this->res_.mat_.update(METADATA_DE_FEATURE_NAME, this->feature_names_);
+		this->res_.mat_.update(METADATA_DE_Z_SCORE_DIFFERENCE, custom::cast<QVector>(z_diff));
+		this->res_.mat_.update(METADATA_DE_ADJUSTED_P_VALUE, custom::cast<QVector>(p_adjusted));
+		this->res_.mat_.update(METADATA_DE_COMPARISON_1, QStringList(feature_number, this->comparison_[1]), CustomMatrix::DataType::QStringFactor);
+		this->res_.mat_.update(METADATA_DE_COMPARISON_2, QStringList(feature_number, this->comparison_[2]), CustomMatrix::DataType::QStringFactor);
+		this->res_.mat_.update(METADATA_DE_METADATA_NAME, QStringList(feature_number, this->metadata_name_), CustomMatrix::DataType::QStringFactor);
+		
 	}
 	else {
 		QStringList factors = custom::unique(this->metadata_);
@@ -349,16 +353,15 @@ void DifferentialAnalysisWorker::chromvar_mode() {
 			comparison2.append(QStringList(feature_number, this->comparison_[2]));
 		}
 
-		DifferentialAnalysis da;
-		da.data_type_ = DifferentialAnalysis::DataType::ChromVAR;
-		da.mat_.set_nrow(all_feature_names.size());
-		da.mat_.update(METADATA_DE_FEATURE_NAME, all_feature_names);
-		da.mat_.update(METADATA_DE_Z_SCORE_DIFFERENCE, all_z_diff);
-		da.mat_.update(METADATA_DE_ADJUSTED_P_VALUE, all_p_adjusted);
-		da.mat_.update(METADATA_DE_COMPARISON_1, comparison1, CustomMatrix::DataType::QStringFactor);
-		da.mat_.update(METADATA_DE_COMPARISON_2, comparison2, CustomMatrix::DataType::QStringFactor);
-		da.mat_.update(METADATA_DE_METADATA_NAME, QStringList(all_feature_names.size(), this->metadata_name_), CustomMatrix::DataType::QStringFactor);
-		emit x_differential_analysis_ready(da, this->comparison_[1] + " vs. " + this->comparison_[2]);
+		this->res_.data_type_ = DifferentialAnalysis::DataType::ChromVAR;
+		this->res_.mat_.set_nrow(all_feature_names.size());
+		this->res_.mat_.update(METADATA_DE_FEATURE_NAME, all_feature_names);
+		this->res_.mat_.update(METADATA_DE_Z_SCORE_DIFFERENCE, all_z_diff);
+		this->res_.mat_.update(METADATA_DE_ADJUSTED_P_VALUE, all_p_adjusted);
+		this->res_.mat_.update(METADATA_DE_COMPARISON_1, comparison1, CustomMatrix::DataType::QStringFactor);
+		this->res_.mat_.update(METADATA_DE_COMPARISON_2, comparison2, CustomMatrix::DataType::QStringFactor);
+		this->res_.mat_.update(METADATA_DE_METADATA_NAME, QStringList(all_feature_names.size(), this->metadata_name_), CustomMatrix::DataType::QStringFactor);
+		
 	}
 };
 
@@ -403,7 +406,7 @@ void DifferentialAnalysisWorker::scmultiome_mode() {
 	}
 };
 
-void DifferentialAnalysisWorker::run() {
+bool DifferentialAnalysisWorker::work() {
 
 	if (this->mode_ == WorkMode::SingleCellRna) {
 		scrna_mode();
@@ -423,6 +426,17 @@ void DifferentialAnalysisWorker::run() {
 	else {
 		cicero_mode();
 	}
+
+	return true;
+};
+
+void DifferentialAnalysisWorker::run() {
+
+	if (!this->work()) {
+		G_TASK_END;
+	}
+
+	emit x_differential_analysis_ready(this->res_, this->comparison_[1] + " vs. " + this->comparison_[2]);
 
 	G_TASK_END;
 }

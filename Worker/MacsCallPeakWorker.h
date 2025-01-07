@@ -55,11 +55,18 @@ class MacsCallPeakWorker
 	Q_OBJECT
 
 public:
+
 	MacsCallPeakWorker(const QList<const Fragments*>& fragments_objects) :fragments_objects_(fragments_objects)	{};
 
-	void run();
+	GenomicRange res_;
 
-	static GenomicRange call_peak(const QList<const Fragments*>& fragments_objects);
+public:
+
+	bool work();
+
+public slots:
+
+	void run();
 
 signals:
 

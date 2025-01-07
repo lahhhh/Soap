@@ -27,9 +27,9 @@ bool CellchatWorker::load_database() {
 		this->cofactor_.reset(read_sv(FILE_CELLCHAT_MOUSE_COFACTOR));
 	}
 
-	if (this->interactions_ == nullptr || 
-		this->complex_ == nullptr || 
-		this->gene_information_ == nullptr || 
+	if (this->interactions_ == nullptr ||
+		this->complex_ == nullptr ||
+		this->gene_information_ == nullptr ||
 		this->cofactor_ == nullptr) {
 		return false;
 	}
@@ -261,8 +261,8 @@ void CellchatWorker::compute_communication_probability() {
 	data_receptor = data_receptor * data_receptor_co_a_receptor / data_receptor_co_i_receptor;
 
 	int n_ligand = gene_ligand.size(),
-		n_receptor = gene_receptor.size(), 
-		n_cell = data_use.mat_.cols(), 
+		n_receptor = gene_receptor.size(),
+		n_cell = data_use.mat_.cols(),
 		n_ligand_receptor = this->significant_ligand_receptor_.rows();
 
 	Eigen::ArrayXXd data_ligand_average(n_ligand, this->n_levels_);
@@ -372,10 +372,10 @@ void CellchatWorker::compute_communication_probability() {
 			for (int k = 0; k < this->n_boot_; ++k) {
 
 				// calculate only 1 pair lr
-				Eigen::VectorXd data_ligand_average_b(this->n_levels_), 
+				Eigen::VectorXd data_ligand_average_b(this->n_levels_),
 					data_receptor_average_b(this->n_levels_);
 
-				Eigen::VectorXd data_receptor_average_b_co_A_receptor(this->n_levels_), 
+				Eigen::VectorXd data_receptor_average_b_co_A_receptor(this->n_levels_),
 					data_receptor_average_b_co_I_receptor(this->n_levels_);
 
 				QStringList new_group = custom::reordered(this->metadata_, Eigen::ArrayXi(permutation.col(k)));
@@ -486,7 +486,7 @@ void CellchatWorker::subset_communication() {
 	receptor = custom::reordered(this->significant_ligand_receptor_.get_qstring("receptor"), order);
 	annotation = custom::reordered(this->significant_ligand_receptor_.get_qstring("annotation"), order);
 	evidence = custom::reordered(this->significant_ligand_receptor_.get_qstring("evidence"), order);
-	
+
 	int n_lr = order.size();
 
 	this->interaction_summary_.set_nrow(n_lr);
@@ -545,7 +545,7 @@ void CellchatWorker::subset_communication() {
 
 Eigen::ArrayXd CellchatWorker::compute_antagonist_group_expression(
 	const DenseDouble& data_use,
-	int index, 
+	int index,
 	const QStringList& group) {
 
 	QString antagonist = this->significant_ligand_receptor_.get_qstring("antagonist", index);
@@ -587,7 +587,7 @@ Eigen::ArrayXd CellchatWorker::compute_antagonist_group_expression(
 
 Eigen::ArrayXd CellchatWorker::compute_agonist_group_expression(
 	const DenseDouble& data_use,
-	int index, 
+	int index,
 	const QStringList& group) {
 
 	QString agonist = this->significant_ligand_receptor_.get_qstring("agonist", index);
@@ -596,7 +596,7 @@ Eigen::ArrayXd CellchatWorker::compute_agonist_group_expression(
 	agonist_index_value = custom::intersect(agonist_index_value, data_use.rownames_);
 
 	Eigen::ArrayXd data_agonist(this->n_levels_);
-	
+
 	if (agonist_index_value.size() == 1) {
 		Eigen::ArrayXd ago = data_use.get_row(agonist_index_value[0]);
 		for (int i = 0; i < this->n_levels_; ++i) {
@@ -693,7 +693,7 @@ Eigen::ArrayXXd CellchatWorker::compute_complex_expression(const DenseDouble& da
 };
 
 Eigen::ArrayXXd CellchatWorker::compute_ligand_receptor_expression(
-	const QStringList& gene_ligand_receptor, 
+	const QStringList& gene_ligand_receptor,
 	const DenseDouble& data_use) const
 {
 	int n_ligand_receptor = gene_ligand_receptor.size(), n_cell = data_use.mat_.cols();
@@ -735,15 +735,15 @@ void CellchatWorker::filter_levels() {
 	this->normalized_ = this->normalized_;
 };
 
-void CellchatWorker::run(
-) {
+bool CellchatWorker::work() {
+
 	this->filter_levels();
 	this->random_engine_.seed(this->random_state_);
 
 	if (!this->load_database())
 	{
 		G_TASK_WARN("Database Loading Failed");
-		G_TASK_END;
+		return false;
 	}
 	if (this->annotation_type_ != "ALL") {
 		this->subset_database(this->annotation_type_);
@@ -755,6 +755,16 @@ void CellchatWorker::run(
 	this->compute_communication_probability();
 	this->compute_pathway_communication_probability();
 	this->subset_communication();
+
+	return true;
+};
+
+void CellchatWorker::run() {
+
+	if (!this->work()) {
+		G_TASK_END;
+	}
+
 	emit x_cellchat_ready(
 		{ this->identity_,
 		this->significant_ligand_receptor_.get_qstring("interaction_name"),

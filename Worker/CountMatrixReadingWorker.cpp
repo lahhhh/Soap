@@ -129,9 +129,9 @@ bool CountMatrixReadingWorker::read_file() {
 
 bool CountMatrixReadingWorker::create_data() {
 
-	this->single_cell_rna_.reset(new SingleCellRna());
+	this->res_.reset(new SingleCellRna());
 
-	SparseInt& counts = SUBMODULES(*this->single_cell_rna_, SparseInt)[VARIABLE_COUNTS];
+	SparseInt& counts = SUBMODULES(*this->res_, SparseInt)[VARIABLE_COUNTS];
 	counts.data_type_ = SparseInt::DataType::Counts;
 	counts.mat_.resize(this->nrow_, this->ncol_);
 	counts.mat_.reserve(this->triplets_.size());
@@ -218,19 +218,19 @@ bool CountMatrixReadingWorker::create_data() {
 	this->colnames_ = custom::make_unique(this->colnames_);
 	counts.rownames_ = gene_symbols;
 	counts.colnames_ = this->colnames_;
-	Metadata& metadata = SUBMODULES(*this->single_cell_rna_, Metadata)[VARIABLE_METADATA];
+	Metadata& metadata = SUBMODULES(*this->res_, Metadata)[VARIABLE_METADATA];
 	metadata.mat_.set_rownames(this->colnames_);
 	metadata.mat_.update(METADATA_RNA_UMI_NUMBER, custom::cast<QVector>(col_count));
 	metadata.mat_.update(METADATA_RNA_UNIQUE_GENE_NUMBER, custom::cast<QVector>(col_gene));
 	metadata.mat_.update(METADATA_RNA_MITOCHONDRIAL_CONTENT, custom::cast<QVector>(mitochondrial_content));
 	metadata.mat_.update(METADATA_RNA_RIBOSOMAL_CONTENT, custom::cast<QVector>(ribosomal_content));
 
-	this->single_cell_rna_->species_ = species;
+	this->res_->species_ = species;
 
 	return true;
 }
 
-bool CountMatrixReadingWorker::load() {
+bool CountMatrixReadingWorker::work() {
 
 	if (!this->read_file()) {
 
@@ -246,11 +246,11 @@ bool CountMatrixReadingWorker::load() {
 
 void CountMatrixReadingWorker::run() {
 
-	if (!this->load()) {
+	if (!this->work()) {
 		G_TASK_END;
 	}
 
-	emit x_data_create_soon(this->single_cell_rna_.release(), soap::VariableType::SingleCellRna, "Single Cell RNA Data");
+	emit x_data_create_soon(this->res_.release(), soap::VariableType::SingleCellRna, "Single Cell RNA Data");
 
 	G_TASK_END;
 }

@@ -460,30 +460,30 @@ bool CoveragePlotWorker::calculate_fragments_size() {
 	return true;
 }
 
-void CoveragePlotWorker::run() {
+bool CoveragePlotWorker::work() {
 
 	if (!this->load_genome()) {
-		G_TASK_END;
+		return false;
 	}
 
 	if (!this->get_location()) {
 		G_TASK_WARN("Can not determine the plot region: " + this->region_);
-		G_TASK_END;
+		return false;
 	}
 	this->expand_plot_region();
 
 	if (this->location_.end - this->location_.start > 1e7) {
 		G_TASK_WARN("Region are two broad for visualization.");
-		G_TASK_END;
+		return false;
 	}
 
 	this->build_index();
 
 	if (!this->calculate_fragments_size()) {
-		G_TASK_END;
+		return false;
 	}
 	if (!this->calculate_matrix()) {
-		G_TASK_END;
+		return false;
 	}
 	this->smooth_matrix();
 
@@ -500,6 +500,15 @@ void CoveragePlotWorker::run() {
 
 	if (!this->prepare_draw_matrix()) {
 		G_TASK_WARN("No insertion found in region.");
+		return false;
+	}
+
+	return true;
+};
+
+void CoveragePlotWorker::run() {
+
+	if (!this->work()) {
 		G_TASK_END;
 	}
 
@@ -523,6 +532,7 @@ void CoveragePlotWorker::run() {
 	}
 
 	emit x_plot_ready(res);
+
 	G_TASK_END;
 }
 

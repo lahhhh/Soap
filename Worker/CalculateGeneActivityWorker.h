@@ -38,7 +38,7 @@ public:
 
 	Eigen::MatrixXi dense_counts_;
 
-	SparseInt* counts_ = nullptr;
+	std::unique_ptr<SparseInt> counts_{ nullptr };
 
 	bool create_index();
 
@@ -49,6 +49,10 @@ public:
 	void build_matrix();
 
 	void find_row(const QString& seq_name, int cell_loc, int start, int end);
+
+public:
+
+	bool work();
 
 public slots:
 

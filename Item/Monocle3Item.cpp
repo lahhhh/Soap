@@ -540,8 +540,8 @@ void Monocle3Item::s_feature_plot() {
 			"Feature Plot Setting",
 			{ "Feature", "Normalized:yes", "Scale:no", "Show Trajectory:yes", "Trajectory Width:2",
 			"Trajectory Color",	"Show Nodes:yes", "Nodes Size:5" , "Nodes Color", "Lighten cell color:yes" },
-			{ soap::InputStyle::LineEditWithCompleter, soap::InputStyle::SwitchButton, soap::InputStyle::SwitchButton,
-			soap::InputStyle::ComboBox, soap::InputStyle::SwitchButton, soap::InputStyle::IntegerLineEdit,
+			{ soap::InputStyle::LineEditWithCompleter, soap::InputStyle::SwitchButton, 
+			soap::InputStyle::SwitchButton,	 soap::InputStyle::SwitchButton, soap::InputStyle::IntegerLineEdit,
 			soap::InputStyle::ColorChoice, soap::InputStyle::SwitchButton, soap::InputStyle::IntegerLineEdit,
 			soap::InputStyle::ColorChoice, soap::InputStyle::SwitchButton },
 			{ handler.get_feature_names().numeric_names }

@@ -16,6 +16,8 @@ public:
 
 	QList<SingleCellRna> objects_;
 
+	std::unique_ptr<SingleCellRna> res_{ nullptr };
+
 	bool load_single_object(
 		SingleCellRna& object, 
 		const QString& path,
@@ -33,6 +35,10 @@ public:
 		);
 
 	void integrate_metadata(Metadata& to, QList<Metadata*> froms);
+
+public:
+
+	bool work();
 
 public slots:
 

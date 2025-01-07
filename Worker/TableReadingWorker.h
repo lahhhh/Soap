@@ -19,6 +19,12 @@ public:
 
 	bool fast_{ false };
 
+	std::unique_ptr<CustomMatrix> res_{ nullptr };
+
+public:
+
+	bool work();
+
 public slots:
 
 	void run();

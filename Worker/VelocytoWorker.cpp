@@ -7,7 +7,7 @@
 
 #include "BamFileProcessor.h"
 
-void VelocytoWorker::run() {
+bool VelocytoWorker::work() {
 
 	this->create_index();
 
@@ -21,16 +21,16 @@ void VelocytoWorker::run() {
 	}
 
 	if (species == soap::Species::Human) {
-		
+
 		std::string hg38_path = (FILE_HUMAN_HG38_GTF).toStdString();
 		if (!this->parse_gtf(hg38_path.data())) {
-			G_TASK_END;
+			return false;
 		}
 	}
 	else {
 		std::string mm10_path = (FILE_MOUSE_MM10_GTF).toStdString();
 		if (!this->parse_gtf(mm10_path.data())) {
-			G_TASK_END;
+			return false;
 		}
 	}
 
@@ -39,13 +39,13 @@ void VelocytoWorker::run() {
 	if (species == soap::Species::Human) {
 		std::string hg38_path = (FILE_HUMAN_HG38_MASK_GTF).toStdString();
 		if (!this->parse_mask(hg38_path.data())) {
-			G_TASK_END;
+			return false;
 		}
 	}
 	else {
 		std::string mm10_path = (FILE_MOUSE_MM10_MASK_GTF).toStdString();
 		if (!this->parse_mask(mm10_path.data())) {
-			G_TASK_END;
+			return false;
 		}
 	}
 
@@ -63,14 +63,23 @@ void VelocytoWorker::run() {
 	this->unspliced_counts_.setZero();
 
 	if (!this->count_reads()) {
-		G_TASK_END;
+		return false;
 	}
 
 	this->umi_set_.clear();
 
 	this->generate_count_matrix();
 
-	emit x_velocyto_ready(this->velocyto_base_);
+	return true;
+};
+
+void VelocytoWorker::run() {
+
+	if (!this->work()) {
+		G_TASK_END;
+	}
+
+	emit x_velocyto_ready(this->res_.release());
 
 	G_TASK_END;
 
@@ -149,11 +158,12 @@ void VelocytoWorker::create_index() {
 };
 
 void VelocytoWorker::generate_count_matrix() {
-	this->velocyto_base_ = new VelocytoBase();	
+
+	this->res_.reset(new VelocytoBase());
 
 	int n_gene = this->gene_names_.size(), n_cell = this->cell_names_.size();
 
-	auto& spliced = SUBMODULES(*this->velocyto_base_, SparseInt)[VARIABLE_RNA_SPLICED];
+	auto& spliced = SUBMODULES(*this->res_, SparseInt)[VARIABLE_RNA_SPLICED];
 
 	spliced.data_type_ = SparseInt::DataType::Spliced;
 
@@ -165,7 +175,7 @@ void VelocytoWorker::generate_count_matrix() {
 	spliced.mat_ = this->spliced_counts_.sparseView();
 	this->spliced_counts_.resize(0, 0);
 
-	auto& unspliced = SUBMODULES(*this->velocyto_base_, SparseInt)[VARIABLE_RNA_UNSPLICED];
+	auto& unspliced = SUBMODULES(*this->res_, SparseInt)[VARIABLE_RNA_UNSPLICED];
 
 	unspliced.data_type_ = SparseInt::DataType::Unspliced;
 

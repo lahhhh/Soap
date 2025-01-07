@@ -14,6 +14,12 @@ public:
 
 	Eigen::MatrixXd mat_;
 
+	Eigen::MatrixXd res_;
+
+public:
+
+	bool work();
+
 public slots:
 
 	void run();

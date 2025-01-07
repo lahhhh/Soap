@@ -18,6 +18,10 @@ public:
 
 	int command_id_{ 0 };
 
+public:
+
+	bool work();
+
 public slots:
 
 	void run();

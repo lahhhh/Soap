@@ -2,30 +2,41 @@
 
 #include "pval.h"
 
-void ChromVARWorker::run() {
+bool ChromVARWorker::work() {
 
 	if (this->species_ != soap::Species::Human) {
 		G_TASK_WARN("ChromVAR now only support human genome.");
-		G_TASK_END;
+		return false;
 	}
 
 	this->genome_.set_sequence_file(FILE_HUMAN_GRCH38_2BIT);
 
 	if (!this->validate_input()) {
-		G_TASK_END;
+		return false;
 	}
 
 	if (!this->add_gc_bias()) {
-		G_TASK_END;
+		return false;
 	}
 
 	if (!this->get_background_peaks()) {
-		G_TASK_END;
+		return false;
 	}
 
 	if (!this->compute_deviations()) {
+		return false;
+	}
+
+	return true;
+};
+
+void ChromVARWorker::run() {
+
+	if (!this->work()) {
 		G_TASK_END;
 	}
+
+	emit x_chromvar_ready(this->res_.release());
 
 	G_TASK_END;
 };
@@ -239,10 +250,10 @@ bool ChromVARWorker::compute_deviations() {
 	int n_motif = motif_match.cols();
 	int n_cell = this->atac_counts_->cols();
 
-	ChromVAR* chrom_var = new ChromVAR();
-	chrom_var->motif_names_ = this->motif_position_->motif_names_;
-	chrom_var->z_ = Eigen::MatrixXd::Zero(n_motif, n_cell);
-	chrom_var->dev_ = Eigen::MatrixXd::Zero(n_motif, n_cell);
+	this->res_.reset(new ChromVAR());
+	this->res_->motif_names_ = this->motif_position_->motif_names_;
+	this->res_->z_ = Eigen::MatrixXd::Zero(n_motif, n_cell);
+	this->res_->dev_ = Eigen::MatrixXd::Zero(n_motif, n_cell);
 
 #pragma omp parallel for
 	for (int i = 0; i < n_motif; ++i) {
@@ -317,11 +328,9 @@ bool ChromVARWorker::compute_deviations() {
 			custom::assign(z, 0.0 /*std::nan("0")*/, fail_filter);
 		}
 
-		chrom_var->z_.row(i) = z;
-		chrom_var->dev_.row(i) = normdev;
+		this->res_->z_.row(i) = z;
+		this->res_->dev_.row(i) = normdev;
 	}
-
-	emit x_chromvar_ready(chrom_var);
 
 	return true;
 };

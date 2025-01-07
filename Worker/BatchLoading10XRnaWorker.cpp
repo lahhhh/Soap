@@ -6,12 +6,12 @@
 #include <QDirIterator>
 #include <QFileInfo>
 
-void BatchLoading10XRnaWorker::run() {
+bool BatchLoading10XRnaWorker::work() {
 
 	QDir dir(this->dir_);
 	if (!dir.exists()) {
 		G_TASK_WARN("Invalid Folder");
-		G_TASK_END;
+		return false;
 	}
 
 	this->objects_.reserve(1000);
@@ -47,12 +47,21 @@ void BatchLoading10XRnaWorker::run() {
 
 			if (!this->load_single_object(this->objects_.last(), file_iterator.path(), barcodes_file, features_file, matrix_file)) {
 				G_TASK_WARN("Trouble in loading file from " + file_iterator.path());
-				G_TASK_END;
+				return false;
 			}
 		}
 	}
 
 	this->integrate_objects();
+}
+
+void BatchLoading10XRnaWorker::run() {
+
+	if (!this->work()) {
+		G_TASK_END;
+	}
+
+	emit x_data_create_soon(this->res_.release(), soap::VariableType::SingleCellRna, "SingleCellRna");
 
 	G_TASK_END;
 };
@@ -138,11 +147,12 @@ void BatchLoading10XRnaWorker::integrate_objects() {
 
 	auto sp = custom::unique(custom::sapply(this->objects_, [](auto&& o) {return o.species_; }));
 
-	SingleCellRna* single_cell_rna = new SingleCellRna();
-	single_cell_rna->species_ = sp[0];
-	single_cell_rna->data_type_ = SingleCellRna::DataType::Integrated;
+	this->res_.reset(new SingleCellRna());
 
-	SparseInt& counts = SUBMODULES(*single_cell_rna, SparseInt)[VARIABLE_COUNTS];
+	this->res_->species_ = sp[0];
+	this->res_->data_type_ = SingleCellRna::DataType::Integrated;
+
+	SparseInt& counts = SUBMODULES(*this->res_, SparseInt)[VARIABLE_COUNTS];
 	counts.data_type_ = SparseInt::DataType::Counts;
 
 	QList<SparseInt const*> list_of_counts = custom::sapply(this->objects_,
@@ -150,14 +160,12 @@ void BatchLoading10XRnaWorker::integrate_objects() {
 
 	this->integrate_sparseint(counts, list_of_counts, true);
 
-	Metadata& metadata = SUBMODULES(*single_cell_rna, Metadata)[VARIABLE_METADATA];
+	Metadata& metadata = SUBMODULES(*this->res_, Metadata)[VARIABLE_METADATA];
 	metadata.mat_.set_rownames(counts.colnames_);
 
 	QList<Metadata*> list_of_metadata = custom::sapply(this->objects_, [](auto&& data) {return data.metadata(); });
 
 	this->integrate_metadata(metadata, list_of_metadata);
-
-	emit x_data_create_soon(single_cell_rna, soap::VariableType::SingleCellRna, "SingleCellRna");
 };
 
 void BatchLoading10XRnaWorker::integrate_metadata(Metadata& to, QList<Metadata*> froms) {
@@ -262,11 +270,11 @@ bool BatchLoading10XRnaWorker::load_single_object(
 
 	Read10XRnaWorker worker(barcodes_file_name, features_file_name, matrix_file_name);
 
-	if (!worker.load()) {
+	if (!worker.work()) {
 		return false;
 	}
 
-	SingleCellRna* ptr = worker.single_cell_rna_.release();
+	SingleCellRna* ptr = worker.res_.release();
 
 	int n_cell = ptr->counts()->mat_.cols();
 

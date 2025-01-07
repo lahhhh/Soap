@@ -24,7 +24,14 @@ public:
     double tol_{ 0.00001 };
     int maximum_iteration_{ 1000 };
 
+    Eigen::MatrixXd res_;
+    Eigen::ArrayXd sdev_;
+
     bool find_variable_features();
+
+public:
+
+    bool work();
 
 public slots:
 

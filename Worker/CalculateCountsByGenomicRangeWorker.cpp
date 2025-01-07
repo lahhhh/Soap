@@ -11,29 +11,29 @@ CalculateCountsByGenomicRangeWorker::CalculateCountsByGenomicRangeWorker(
 	genomic_range_(genomic_range)
 {};
 
-SparseInt* CalculateCountsByGenomicRangeWorker::calculate_counts(const Fragments* fragments, const GenomicRange& genomic_range) {
-	CalculateCountsByGenomicRangeWorker worker(fragments, genomic_range);
-	worker.create_index();
-	if (!worker.calculate_counts()) {
-		return nullptr;
-	}
-	worker.build_matrix();
-	return worker.counts_;
-};
-
-void CalculateCountsByGenomicRangeWorker::run() {
+bool CalculateCountsByGenomicRangeWorker::work() {
 
 	G_TASK_LOG("Creating index...");
 
 	this->create_index();
 	G_TASK_LOG("Mapping fragments...");
 
-	if (!this->calculate_counts()) {
+	this->calculate_counts();
+
+	G_TASK_LOG("Building counts matrix...");
+
+	this->build_matrix();
+
+	return true;
+};
+
+void CalculateCountsByGenomicRangeWorker::run() {
+
+	if (!this->work()) {
 		G_TASK_END;
 	}
-	G_TASK_LOG("Building counts matrix...");
-	this->build_matrix();
-	emit x_peak_counts_ready(this->counts_);
+
+	emit x_peak_counts_ready(this->res_.release());
 
 	G_TASK_LOG("Counts calculation finished.");
 
@@ -54,16 +54,16 @@ void CalculateCountsByGenomicRangeWorker::create_index() {
 void CalculateCountsByGenomicRangeWorker::build_matrix() {
 
 
-	this->counts_ = new SparseInt();
-	this->counts_->data_type_ = SparseInt::DataType::Counts;
+	this->res_.reset(new SparseInt());
+	this->res_->data_type_ = SparseInt::DataType::Counts;
 
-	this->counts_->rownames_ = this->genomic_range_.get_range_names();
-
-
-	this->counts_->colnames_ = this->fragments_->cell_names_;
+	this->res_->rownames_ = this->genomic_range_.get_range_names();
 
 
-	Eigen::SparseMatrix<int>& counts_matrix = this->counts_->mat_;
+	this->res_->colnames_ = this->fragments_->cell_names_;
+
+
+	Eigen::SparseMatrix<int>& counts_matrix = this->res_->mat_;
 
 	counts_matrix = this->dense_counts_.sparseView();
 
@@ -71,7 +71,7 @@ void CalculateCountsByGenomicRangeWorker::build_matrix() {
 
 	auto filter = custom::greater_than(custom::row_sum(counts_matrix), 0);
 
-	this->counts_->row_slice(filter);
+	this->res_->row_slice(filter);
 }
 
 void CalculateCountsByGenomicRangeWorker::find_row(const QString& seq_name, int cell_loc, int start, int end) {
@@ -87,7 +87,7 @@ void CalculateCountsByGenomicRangeWorker::find_row(const QString& seq_name, int 
 	}
 };
 
-bool CalculateCountsByGenomicRangeWorker::calculate_counts() {
+void CalculateCountsByGenomicRangeWorker::calculate_counts() {
 
 	for (const auto& [name, data] : this->fragments_->data_) {
 		const int n_cell = data.size();
@@ -99,5 +99,4 @@ bool CalculateCountsByGenomicRangeWorker::calculate_counts() {
 			}
 		}
 	}
-	return true;
 }

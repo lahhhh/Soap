@@ -5,15 +5,31 @@
 #include "ItemDatabase.h"
 #include "DenseDouble.h"
 
-void CellTypeAnnotationWorker::run() {
+bool CellTypeAnnotationWorker::work() {
 
 	this->load_database();
 
 	if (!this->filter_data()) {
-		G_TASK_END;
+		return false;
 	}
 
 	this->assign_type();
+
+	return true;
+};
+
+void CellTypeAnnotationWorker::run() {
+
+	if (!this->work()) {
+		G_TASK_END;
+	}
+
+	emit x_annotation_ready(
+		this->main_type_,
+		this->sub_type_,
+		this->main_type_name_,
+		this->sub_type_name_
+	);
 
 	G_TASK_END;
 };
@@ -89,8 +105,8 @@ void CellTypeAnnotationWorker::assign_type() {
 	int n_cell = this->query_expression_.cols();
 	int n_type = this->celltype_expression_.cols();
 
-	QStringList main_type(n_cell);
-	QStringList sub_type(n_cell);
+	this->main_type_.resize(n_cell);
+	this->sub_type_.resize(n_cell);
 
 	if (this->annotate_by_cluster_) {
 		QStringList levels = custom::unique(this->cluster_);
@@ -113,8 +129,8 @@ void CellTypeAnnotationWorker::assign_type() {
 				}
 			}
 
-			custom::assign(main_type, this->main_type_database_[min_index], cluster_index);
-			custom::assign(sub_type, this->sub_type_database_[min_index], cluster_index);
+			custom::assign(this->main_type_, this->main_type_database_[min_index], cluster_index);
+			custom::assign(this->sub_type_, this->sub_type_database_[min_index], cluster_index);
 		}
 	}
 	else {
@@ -135,15 +151,8 @@ void CellTypeAnnotationWorker::assign_type() {
 				}
 			}		
 
-			main_type[i] = this->main_type_database_[min_index];
-			sub_type[i] = this->sub_type_database_[min_index];
+			this->main_type_[i] = this->main_type_database_[min_index];
+			this->sub_type_[i] = this->sub_type_database_[min_index];
 		}
 	}
-
-	emit x_annotation_ready(
-		main_type,
-		sub_type,
-		this->main_type_name_,
-		this->sub_type_name_
-	);
 };

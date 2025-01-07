@@ -41,6 +41,10 @@ public:
 
 	Eigen::SparseMatrix<double> transition_matrix();
 
+public:
+
+	bool work();
+
 public slots:
 
 	void run();

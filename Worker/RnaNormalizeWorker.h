@@ -23,11 +23,17 @@ public:
 
 	QString method_;
 
+	DenseDouble res_;
+
 	std::pair<QStringList, QVector<int>> get_transcript_length();
 
 	bool fpkm();
 	bool tpm();
 	bool normalize_1();
+
+public:
+
+	bool work();
 
 public slots:
 

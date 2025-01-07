@@ -31,8 +31,6 @@ public:
 
 	QString coverage_track_name_;
 
-	CoverageTrack* coverage_track_{ nullptr };
-
 	QMap<QString, std::vector< std::vector< std::pair<int, float> > > > temp_data_;
 
 	std::vector<int> cell_index_;
@@ -41,6 +39,8 @@ public:
 
 	QStringList group_factors_;
 	QMap<QString, int> group_distribution_;
+
+	std::unique_ptr<CoverageTrack> res_{ nullptr };
 
 	void build_index();
 
@@ -51,6 +51,10 @@ public:
 	bool load_annotation();
 
 	void create_track();
+
+public:
+
+	bool work();
 
 public slots:
 

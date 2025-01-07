@@ -61,7 +61,7 @@ public:
 		double link_cutoff,
 		bool draw_legend);
 
-	enum class WorkMode { 
+	enum class WorkMode {
 		MultiomeFragmentsObject,
 		MultiomeFragmentsObjectCcan,
 		AtacFragmentsObject,
@@ -134,6 +134,10 @@ public:
 	bool get_location_by_name();
 
 	bool prepare_draw_matrix();
+
+public:
+
+	bool work();
 
 public slots:
 

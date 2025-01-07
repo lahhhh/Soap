@@ -36,6 +36,10 @@ public:
 
 	void write();
 
+public:
+
+	bool work();
+
 public slots:
 
 	void run();

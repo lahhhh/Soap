@@ -54,6 +54,8 @@ public:
 	QVector<QVector<int>> regulation_groups_;
 	Eigen::MatrixXi regulation_group_counts_;
 
+	std::unique_ptr<Cicero> res_{ nullptr };
+
 	bool estimate_distance_parameter();
 
 	bool generate_cicero_models();
@@ -67,6 +69,10 @@ public:
 	double find_ccan_cutoff();
 
 	bool aggregate();
+
+public:
+
+	bool work();
 
 public slots:
 

@@ -66,11 +66,17 @@ public:
 	QStringList gene_use_;
 	QList<QList<int>> gene_to_peak_;
 
+	Pando res_;
+
 	bool initiate_grn();
 
 	bool infer_grn();
 
 	QStringList find_variable_features(int n_feature);
+
+public:
+
+	bool work();
 
 public slots:
 

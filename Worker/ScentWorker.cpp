@@ -133,24 +133,35 @@ bool ScentWorker::do_integ_ppi() {
 	return true;
 };
 
-void ScentWorker::run() {
+bool ScentWorker::work() {
 
 	igraph_set_attribute_table(&igraph_cattribute_table);
 
 	if (!this->read_ppi_database()) {
 		G_TASK_WARN("Database Loading Failed.");
-		G_TASK_END;
+		return false;
 	}
 
 	if (!this->do_integ_ppi()) {
-		G_TASK_END;
+		return false;
 	}
 
 	if (!this->calculate_max_sr()) {
-		G_TASK_END;
+		return false;
 	}
 
 	this->calculate_sr();
+
+	return true;
+};
+
+void ScentWorker::run() {
+
+	if (!this->work()) {
+		G_TASK_END;
+	}
+
+	emit x_sr_ready(this->res_);
 
 	G_TASK_END;
 };
@@ -232,7 +243,7 @@ bool ScentWorker::calculate_sr() {
 
 	srv /= this->max_sr_;
 
-	emit x_sr_ready(srv);
+	this->res_ = srv;
 
 	return true;
 };

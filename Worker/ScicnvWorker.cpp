@@ -265,14 +265,14 @@ void ScicnvWorker::compute_cnv() {
 	
 };
 
-void ScicnvWorker::run() {
+bool ScicnvWorker::work() {
 
 	if (!this->filter_data()) {
-		G_TASK_END;
+		return false;
 	}
 
 	if (!this->sort_expression_by_chromosome()) {
-		G_TASK_END;
+		return false;
 	}
 
 	this->compute_reference();
@@ -300,7 +300,18 @@ void ScicnvWorker::run() {
 	this->U_.resize(0, 0);
 	this->mat_.clear();
 
-	CNV* cnv = new CNV(this->W_, this->metadata_location_, this->chromosome_location_, CNV::DataType::SciCnv);
-	emit x_cnv_ready(cnv);
+	this->res_.reset(new CNV(this->W_, this->metadata_location_, this->chromosome_location_, CNV::DataType::SciCnv));
+
+	return true;
+};
+
+void ScicnvWorker::run() {
+
+	if (!this->work()) {
+		G_TASK_END;
+	}
+
+	emit x_cnv_ready(this->res_.release());
+
 	G_TASK_END;
 }

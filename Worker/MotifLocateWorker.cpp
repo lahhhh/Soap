@@ -6,20 +6,29 @@
 
 #include "MOODS/moods_interface.h"
 
-void MotifLocateWorker::run() {
+bool MotifLocateWorker::work() {
 
 	this->get_peak();
 
 	if (!this->get_peak_sequence()) {
 		G_TASK_WARN("Motif location Failed.");
-		G_TASK_END;
+		return false;
 	}
 
 	this->get_base_background();
 
 	this->get_result();
 
-	emit x_motif_location_ready(this->mp_);
+	return true;
+};
+
+void MotifLocateWorker::run() {
+
+	if (!this->work()) {
+		G_TASK_END;
+	}
+
+	emit x_motif_location_ready(this->res_);
 
 	G_TASK_END;
 }
@@ -41,7 +50,7 @@ void MotifLocateWorker::get_result() {
 
 	match_motif(mp, this->peak_sequences_, this->sequence_background_, 5e-5, 7);
 
-	this->mp_ = mp;
+	this->res_ = mp;
 };
 
 void MotifLocateWorker::get_base_background() {
