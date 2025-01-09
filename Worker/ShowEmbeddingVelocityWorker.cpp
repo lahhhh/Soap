@@ -7,6 +7,8 @@
 
 void ShowEmbeddingVelocityWorker::run() {
 
+	G_TASK_LOG("Start calculating embedding...");
+
 	if (!this->work()) {
 		G_TASK_END;
 	}

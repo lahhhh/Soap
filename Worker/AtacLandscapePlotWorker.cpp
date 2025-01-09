@@ -21,6 +21,8 @@ bool AtacLandscapePlotWorker::work() {
 
 void AtacLandscapePlotWorker::run() {
 
+	G_TASK_LOG("Start calculating ATAC landscape...");
+
 	if (!this->work()) {
 		G_TASK_END;
 	}

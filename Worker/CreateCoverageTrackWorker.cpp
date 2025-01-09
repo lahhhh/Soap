@@ -27,11 +27,15 @@ bool CreateCoverageTrackWorker::work() {
 
 void CreateCoverageTrackWorker::run() {
 
+	G_TASK_LOG("Start calculating coverage track...");
+
 	if (!this->work()) {
 		G_TASK_END;
 	}
 
 	emit x_coverage_track_ready(this->res_.release());
+
+	G_TASK_LOG("Coverage track calculation finished.");
 
 	G_TASK_END;
 }

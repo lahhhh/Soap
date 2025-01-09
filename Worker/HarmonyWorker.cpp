@@ -129,7 +129,6 @@ bool HarmonyWorker::work() {
         );
         this->init_cluster_cpp();
         this->harmonize();
-        return true;
     }
     catch (std::exception& e) {
         G_TASK_WARN(QString::fromUtf8(e.what()));
@@ -139,15 +138,23 @@ bool HarmonyWorker::work() {
         G_TASK_WARN("Meeting Error in computation.");
         return false;
     }
+
+    this->res_ = arma2eigen(this->Z_corr.t());
+
+    return true;
 };
 
 void HarmonyWorker::run() {
+
+    G_TASK_LOG("Start harmony...");
 
     if (!this->work()) {
         G_TASK_END;
     }
 
-    emit x_harmony_ready(arma2eigen(this->Z_corr.t()));
+    emit x_harmony_ready(this->res_);
+
+    G_TASK_END("Harmony finished.");
     
     G_TASK_END;
 };

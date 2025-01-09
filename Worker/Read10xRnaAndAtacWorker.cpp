@@ -54,11 +54,15 @@ bool Read10XMultiomeWorker::work() {
 
 void Read10XMultiomeWorker::run() {
 
+	G_TASK_LOG("Start loading 10X multiome...");
+
 	if (!this->work()) {
 		G_TASK_END;
 	}
 
 	emit x_data_create_soon(this->res_.release(), soap::VariableType::SingleCellMultiome, "SingleCellMultiome");
+
+	G_TASK_LOG("Loading finished.");
 	
 	G_TASK_END;
 };

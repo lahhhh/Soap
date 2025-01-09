@@ -34,11 +34,15 @@ bool PandoWorker::work() {
 
 void PandoWorker::run() {
 
+	G_TASK_LOG("Start pando...");
+
 	if (!this->work()) {
 		G_TASK_END;
 	}
 
 	emit x_pando_ready(this->res_);
+
+	G_TASK_LOG("Pando finished.");
 
 	G_TASK_END;
 };

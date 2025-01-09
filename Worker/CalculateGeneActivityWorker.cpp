@@ -112,6 +112,7 @@ bool CalculateGeneActivityWorker::work() {
 
 void CalculateGeneActivityWorker::run() {
 
+	G_TASK_LOG("Start calculating gene activity...");
 	
 	if (!this->work()) {
 		G_TASK_END;

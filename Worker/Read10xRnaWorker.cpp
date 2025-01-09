@@ -270,11 +270,15 @@ bool Read10XRnaWorker::work() {
 
 void Read10XRnaWorker::run() {
 
+	G_TASK_LOG("Start loading 10X scRNA...");
+
 	if (!this->work()) {
 		G_TASK_END;
 	}
 
 	emit x_data_create_soon(this->res_.release(), soap::VariableType::SingleCellRna, "Single Cell RNA Data");
+
+	G_TASK_LOG("Loading finished.");
 	
 	G_TASK_END;
 }

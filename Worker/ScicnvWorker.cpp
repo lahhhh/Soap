@@ -307,9 +307,13 @@ bool ScicnvWorker::work() {
 
 void ScicnvWorker::run() {
 
+	G_TASK_LOG("SciCNV start...");
+
 	if (!this->work()) {
 		G_TASK_END;
 	}
+
+	G_TASK_LOG("SciCNV finished.");
 
 	emit x_cnv_ready(this->res_.release());
 

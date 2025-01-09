@@ -32,11 +32,15 @@ bool TfidfWorker::work() {
 
 void TfidfWorker::run() {
 
+	G_TASK_LOG("Start TFIDF...");
+
 	if (!this->work()) {
 		G_TASK_END;
 	}
 
 	emit x_tfidf_ready(this->res_.release());
+
+	G_TASK_LOG("TFIDF finished.");
 
 	G_TASK_END;
 }

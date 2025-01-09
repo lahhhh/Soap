@@ -130,6 +130,8 @@ bool LeidenPartitionWorker::work() {
 
 void LeidenPartitionWorker::run() {
 
+	G_TASK_LOG("Start leiden partition...");
+
 	if (!this->work()) {
 		G_TASK_END;
 	}

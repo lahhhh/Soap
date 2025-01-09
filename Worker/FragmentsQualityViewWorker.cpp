@@ -132,6 +132,8 @@ bool FragmentsQualityViewWorker::work() {
 
 void FragmentsQualityViewWorker::run() {
 
+	G_TASK_LOG("Start checking fragments...");
+
 	if (!this->work()) {
 		G_TASK_END;
 	}

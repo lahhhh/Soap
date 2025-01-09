@@ -761,6 +761,8 @@ bool CellchatWorker::work() {
 
 void CellchatWorker::run() {
 
+	G_TASK_LOG("Start cellchat...");
+
 	if (!this->work()) {
 		G_TASK_END;
 	}
@@ -778,6 +780,8 @@ void CellchatWorker::run() {
 		this->interaction_summary_,
 		this->pathway_summary_
 		});
+
+	G_TASK_LOG("Cellchat finished.");
 
 	G_TASK_END;
 }

@@ -125,11 +125,14 @@ bool EnrichWorker::work() {
 
 void EnrichWorker::run() {
 
+	G_TASK_LOG("Enrichment start...");
+
 	if (!this->work()) {
 		G_TASK_END;
 	}
 
 	emit x_enrichment_ready(this->res_, this->res_name_);
 
+	G_TASK_LOG("Enrichment finished.");
 	G_TASK_END;
 };

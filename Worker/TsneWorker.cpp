@@ -62,11 +62,15 @@ bool TsneWorker::work() {
 
 void TsneWorker::run() {
 
+    G_TASK_LOG("tSNE start...");
+
     if (!this->work()) {
         G_TASK_END;
     }
 
     emit x_tsne_ready(this->res_);
+
+    G_TASK_LOG("tSNE finished.");
 
     G_TASK_END;
 }

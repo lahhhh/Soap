@@ -53,6 +53,8 @@ bool SlmWorker::work() {
 
 void SlmWorker::run() {
 
+    G_TASK_LOG("Start partition...");
+
     if (!this->work()) {
         G_TASK_END;
     }

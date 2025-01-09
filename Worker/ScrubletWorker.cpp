@@ -329,11 +329,15 @@ bool ScrubletWorker::work() {
 
 void ScrubletWorker::run() {
 
+	G_TASK_LOG("Scrublet start...");
+
 	if (!this->work()) {
 		G_TASK_END;
 	}
 
 	emit x_scrublet_ready(this->res1_, this->res2_);
+
+	G_TASK_LOG("Scrublet finished.");
 
 	G_TASK_END;
 }

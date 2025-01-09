@@ -116,10 +116,13 @@ bool FileWritingWorker::work() {
 
 void FileWritingWorker::run() {
 
+	G_TASK_LOG("Start file writing...");
+
 	if (!this->work()) {
 		G_TASK_END;
 	}
 
 	G_TASK_LOG("File writing succeeds.");
+
 	G_TASK_END;
 }

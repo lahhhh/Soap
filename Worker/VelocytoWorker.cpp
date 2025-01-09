@@ -75,11 +75,15 @@ bool VelocytoWorker::work() {
 
 void VelocytoWorker::run() {
 
+	G_TASK_LOG("Start velocyto...");
+
 	if (!this->work()) {
 		G_TASK_END;
 	}
 
 	emit x_velocyto_ready(this->res_.release());
+
+	G_TASK_LOG("Velocyto finished.");
 
 	G_TASK_END;
 

@@ -29,6 +29,8 @@ bool CalculateCountsByGenomicRangeWorker::work() {
 
 void CalculateCountsByGenomicRangeWorker::run() {
 
+	G_TASK_LOG("Start calculating counts...");
+
 	if (!this->work()) {
 		G_TASK_END;
 	}

@@ -631,6 +631,8 @@ bool GseaWorker::work() {
 
 void GseaWorker::run() {
 
+	G_TASK_LOG("Start GSEA...");
+
 	if (!this->work()) {
 		G_TASK_END;
 	}
@@ -649,6 +651,8 @@ void GseaWorker::run() {
 		this->point_x_,
 		this->point_y_
 	));
+
+	G_TASK_LOG("GSEA finished.");
 
 	G_TASK_END;
 }

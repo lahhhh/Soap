@@ -57,11 +57,15 @@ bool BatchLoading10XRnaWorker::work() {
 
 void BatchLoading10XRnaWorker::run() {
 
+	G_TASK_LOG("Start loading...");
+
 	if (!this->work()) {
 		G_TASK_END;
 	}
 
 	emit x_data_create_soon(this->res_.release(), soap::VariableType::SingleCellRna, "SingleCellRna");
+
+	G_TASK_LOG("Loading finished.");
 
 	G_TASK_END;
 };

@@ -664,9 +664,13 @@ bool IntegrateWorker::work() {
 
 void IntegrateWorker::run() {
 
+	G_TASK_LOG("Start integrating...");
+
 	if (!this->work()) {
 		G_TASK_END;
 	}
+
+	G_TASK_LOG("Integration finished.");
 
 	G_TASK_END;
 }

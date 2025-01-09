@@ -9,11 +9,15 @@ bool VelocytoDownstreamWorker::work() {
 
 void VelocytoDownstreamWorker::run() {
 
+	G_TASK_LOG("Start velocity estimation...");
+
 	if (!this->work()) {
 		G_TASK_END;
 	}
 
 	emit x_estimate_ready(this->res_.release());
+
+	G_TASK_LOG("Velocity estimation finished.");
 
 	G_TASK_END;
 }

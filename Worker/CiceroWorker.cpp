@@ -71,11 +71,15 @@ bool CiceroWorker::work() {
 
 void CiceroWorker::run() {
 
+	G_TASK_LOG("Start cicero...");
+
 	if (!this->work()) {
 		G_TASK_END;
 	}
 
 	emit x_cicero_ready(this->res_.release());
+
+	G_TASK_LOG("Cicero finished.");
 
 	G_TASK_END;
 };

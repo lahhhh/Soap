@@ -246,11 +246,15 @@ bool CountMatrixReadingWorker::work() {
 
 void CountMatrixReadingWorker::run() {
 
+	G_TASK_LOG("Start loading count matrix...");
+
 	if (!this->work()) {
 		G_TASK_END;
 	}
 
 	emit x_data_create_soon(this->res_.release(), soap::VariableType::SingleCellRna, "Single Cell RNA Data");
+
+	G_TASK_LOG("Count matrix loading finished.");
 
 	G_TASK_END;
 }

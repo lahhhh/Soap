@@ -23,11 +23,15 @@ bool ScveloWorker::work() {
 
 void ScveloWorker::run() {
 
+	G_TASK_LOG("Scvelo start...");
+
 	if (!this->work()) {
 		G_TASK_END;
 	}
 
 	emit x_scvelo_ready(this->res_.release());
+
+	G_TASK_LOG("Scvelo finished.");
 
 	G_TASK_END;
 }

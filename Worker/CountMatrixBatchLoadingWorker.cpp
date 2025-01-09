@@ -25,11 +25,15 @@ bool CountMatrixBatchLoadingWorker::work() {
 
 void CountMatrixBatchLoadingWorker::run() {
 
+	G_TASK_LOG("Start loading count matrix...");
+
 	if (!this->work()) {
 		G_TASK_END;
 	}
 
 	emit x_data_create_soon(this->res_.release(), soap::VariableType::SingleCellRna, "SingleCellRna");
+
+	G_TASK_LOG("Count matrix loading finished.");
 
 	G_TASK_END;
 };

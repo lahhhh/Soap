@@ -432,11 +432,15 @@ bool DifferentialAnalysisWorker::work() {
 
 void DifferentialAnalysisWorker::run() {
 
+	G_TASK_LOG("Start differential analysis...");
+
 	if (!this->work()) {
 		G_TASK_END;
 	}
 
 	emit x_differential_analysis_ready(this->res_, this->comparison_[1] + " vs. " + this->comparison_[2]);
+
+	G_TASK_LOG("Differential analysis finished.");
 
 	G_TASK_END;
 }

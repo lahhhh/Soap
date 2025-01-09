@@ -24,11 +24,15 @@ bool MotifLocateWorker::work() {
 
 void MotifLocateWorker::run() {
 
+	G_TASK_LOG("Start motif locating...");
+
 	if (!this->work()) {
 		G_TASK_END;
 	}
 
 	emit x_motif_location_ready(this->res_);
+
+	G_TASK_LOG("Motif locating finished.");
 
 	G_TASK_END;
 }

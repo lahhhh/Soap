@@ -336,9 +336,13 @@ bool ItemIOWorker::work() {
 
 void ItemIOWorker::run() {
 
+	G_TASK_LOG("Start loading item...");
+
 	if (!this->work()) {
 		G_TASK_END;
 	}
+
+	G_TASK_LOG("Item loading finished.");
 
 	G_TASK_END;
 }

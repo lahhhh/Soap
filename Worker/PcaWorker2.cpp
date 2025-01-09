@@ -90,11 +90,15 @@ bool PcaWorker2::work() {
 
 void PcaWorker2::run() {
 
+	G_TASK_LOG("PCA start...");
+
 	if (!this->work()) {
 		G_TASK_END;
 	}
 
     emit x_pca_ready(this->res_, custom::cast<QVector>(this->sdev_), custom::cast<QVector>(this->variance_proportion_));
+
+	G_TASK_LOG("PCA finished.");
 
     G_TASK_END;
 };

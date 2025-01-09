@@ -2,11 +2,15 @@
 
 void SingleCellRnaCreateWorker::run() {
 
+	G_TASK_LOG("Start creating object...");
+
 	if (!this->work()) {
 		G_TASK_END;
 	}
 
 	emit x_single_cell_rna_created(this->res_.release());
+
+	G_TASK_LOG("Object created.");
 
 	G_TASK_END;
 };

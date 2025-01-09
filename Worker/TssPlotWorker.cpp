@@ -39,11 +39,15 @@ bool TssPlotWorker::work() {
 
 void TssPlotWorker::run() {
 
+	G_TASK_LOG("Start TSS calculation...");
+
 	if (!this->work()) {
 		G_TASK_END;
 	}
 
 	emit x_tss_ready(this->tss_matrix_, this->tss_vector_);
+
+	G_TASK_LOG("TSS calculation finished.");
 
 	G_TASK_END;
 }

@@ -204,11 +204,15 @@ bool LoadAtacFromFragmentsWorker::work() {
 
 void LoadAtacFromFragmentsWorker::run() {
 
+	G_TASK_LOG("Start loading fragments...");
+
 	if (!this->work()) {
 		G_TASK_END;
 	}
 
 	emit x_data_create_soon(this->res_.release(), soap::VariableType::SingleCellAtac, "Single Cell ATAC Data");
+
+	G_TASK_LOG("Fragments loading finished.");
 
 	G_TASK_END;
 

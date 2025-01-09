@@ -71,6 +71,8 @@ public:
     // flags
     bool ran_setup, ran_init, lambda_estimation, verbose; // do_merge_R;
 
+    Eigen::MatrixXd res_;
+
 public:
 
     bool work();

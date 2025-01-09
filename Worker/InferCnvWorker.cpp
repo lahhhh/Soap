@@ -133,11 +133,15 @@ bool InferCnvWorker::work() {
 
 void InferCnvWorker::run() {
 
+	G_TASK_LOG("Start infercnv...");
+
 	if (!this->work()) {
 		G_TASK_END;
 	}
 
 	emit x_cnv_ready(this->res_.release());
+
+	G_TASK_LOG("Infercnv finished.");
 
 	G_TASK_END;
 };

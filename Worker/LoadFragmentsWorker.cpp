@@ -24,6 +24,8 @@ bool LoadFragmentsWorker::work() {
 
 void LoadFragmentsWorker::run() {
 
+	G_TASK_LOG("Start loading fragments...");
+
 	if (!this->work()) {
 		G_TASK_END;
 	}
@@ -31,6 +33,7 @@ void LoadFragmentsWorker::run() {
 	emit x_fragments_ready(this->fragments_.release());
 
 	G_TASK_LOG("Fragments loading finished.");
+
 	G_TASK_END;
 }
 

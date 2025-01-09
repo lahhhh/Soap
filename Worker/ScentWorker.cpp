@@ -157,11 +157,15 @@ bool ScentWorker::work() {
 
 void ScentWorker::run() {
 
+	G_TASK_LOG("SCENT start...");
+
 	if (!this->work()) {
 		G_TASK_END;
 	}
 
 	emit x_sr_ready(this->res_);
+
+	G_TASK_LOG("SCENT finished.");
 
 	G_TASK_END;
 };

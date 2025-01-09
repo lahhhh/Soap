@@ -32,11 +32,15 @@ bool ChromVARWorker::work() {
 
 void ChromVARWorker::run() {
 
+	G_TASK_LOG("Start chromVAR...");
+
 	if (!this->work()) {
 		G_TASK_END;
 	}
 
 	emit x_chromvar_ready(this->res_.release());
+
+	G_TASK_LOG("ChromVAR finished.");
 
 	G_TASK_END;
 };

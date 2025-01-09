@@ -24,11 +24,15 @@ bool SimpleUmapWorker::work() {
 
 void SimpleUmapWorker::run() {
 
+	G_TASK_LOG("Start UMAP...");
+
 	if (!this->work()) {
 		G_TASK_END;
 	}
 
 	emit x_umap_ready(this->res_);
+
+	G_TASK_LOG("UMAP finished.");
 
 	G_TASK_END;
 };

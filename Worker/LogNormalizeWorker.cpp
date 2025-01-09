@@ -32,11 +32,15 @@ bool LogNormalizeWorker::work() {
 
 void LogNormalizeWorker::run() {
 
+	G_TASK_LOG("Start normalization...");
+
 	if (!this->work()) {
 		G_TASK_END;
 	}
 
 	emit x_log_normalize_ready(this->res_.release());
+
+	G_TASK_LOG("Normalization finished.");
 
 	G_TASK_END;
 }

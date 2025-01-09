@@ -508,6 +508,8 @@ bool CoveragePlotWorker::work() {
 
 void CoveragePlotWorker::run() {
 
+	G_TASK_LOG("Start calculating coverage...");
+
 	if (!this->work()) {
 		G_TASK_END;
 	}

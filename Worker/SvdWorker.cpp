@@ -64,9 +64,13 @@ bool SvdWorker::work() {
 
 void SvdWorker::run() {
 
+	G_TASK_LOG("SVD start...");
+
 	if (!this->work()) {
 		G_TASK_END;
 	}
+
+	G_TASK_LOG("SVD finished.");
 
 	emit x_svd_ready(this->res_, custom::cast<QVector>(this->sdev_));
 

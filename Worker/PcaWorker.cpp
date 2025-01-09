@@ -163,11 +163,15 @@ bool PcaWorker::work() {
 
 void PcaWorker::run() {
 
+	G_TASK_LOG("Start PCA...");
+
 	if (!this->work()) {
 		G_TASK_END;
 	}
 
 	emit x_pca_ready(this->res_, this->sdev_);
+
+	G_TASK_LOG("PCA finished.");
 
 	G_TASK_END;
 }

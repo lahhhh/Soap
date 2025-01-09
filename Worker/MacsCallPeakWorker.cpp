@@ -115,15 +115,20 @@ bool MacsCallPeakWorker::work() {
 
 	this->res_.finalize();
 
+	return true;
 };
 
 void MacsCallPeakWorker::run() {
+
+	G_TASK_LOG("Start calling peak...");
 
 	if (!this->work()) {
 		G_TASK_END;
 	}
 
 	emit x_genomic_range_ready(this->res_);
+
+	G_TASK_LOG("Peaking calling finished.");
 
 	G_TASK_END;
 

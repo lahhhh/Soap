@@ -837,11 +837,15 @@ bool Monocle3Worker::work() {
 
 void Monocle3Worker::run() {
 
+	G_TASK_LOG("Monocle3 start...");
+
 	if (!this->work()) {
 		G_TASK_END;
 	}
 
 	emit x_monocle3_ready(this->res_.release());
+
+	G_TASK_LOG("Monocle3 finished.");
 
 	G_TASK_END;
 };

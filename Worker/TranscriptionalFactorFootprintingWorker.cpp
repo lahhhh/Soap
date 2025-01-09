@@ -361,6 +361,8 @@ void TranscriptionalFactorFootprintingWorker::mode2() {
 
 void TranscriptionalFactorFootprintingWorker::run() {
 
+	G_TASK_LOG("Footprinting estimation start...");
+
 	if (this->mode_ == WorkMode::GenomicRange) {
 		this->mode2();
 		G_TASK_END;
@@ -443,6 +445,7 @@ void TranscriptionalFactorFootprintingWorker::run() {
 		}
 	}
 
-	G_TASK_LOG("Footprinting Finished.");
+	G_TASK_LOG("Footprinting estimation Finished.");
+
 	G_TASK_END;
 }

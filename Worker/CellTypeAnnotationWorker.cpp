@@ -20,6 +20,8 @@ bool CellTypeAnnotationWorker::work() {
 
 void CellTypeAnnotationWorker::run() {
 
+	G_TASK_LOG("Start annotating...");
+
 	if (!this->work()) {
 		G_TASK_END;
 	}
@@ -30,6 +32,8 @@ void CellTypeAnnotationWorker::run() {
 		this->main_type_name_,
 		this->sub_type_name_
 	);
+
+	G_TASK_LOG("Annotation finished.");
 
 	G_TASK_END;
 };
