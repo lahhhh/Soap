@@ -50,9 +50,9 @@ public:
 
 	QString res_name_;
 
-	void enrich_pathway();
+	bool enrich_pathway();
 
-	void enrich_motif();
+	bool enrich_motif();
 
 public:
 

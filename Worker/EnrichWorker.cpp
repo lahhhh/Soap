@@ -37,7 +37,7 @@ EnrichWorker::EnrichWorker(
 	p_threshold_(p_threshold)
 {};
 
-void EnrichWorker::enrich_pathway() {
+bool EnrichWorker::enrich_pathway() {
 
 	CustomMatrix enrichment = enrich(
 		this->database_,
@@ -49,25 +49,27 @@ void EnrichWorker::enrich_pathway() {
 
 	if (enrichment.is_empty()) {
 		G_TASK_WARN("Enrichment in " + this->database_ + " database failed.");
-
+		return false;
 	}
 	else {
 
 		this->res_ = enrichment;
 
 		this->res_name_ = this->database_ + " " + this->enrich_type_ + " " + this->ontology_;
+
+		return true;
 	}
 };
 
 // modified from signac FindMotifs
 
-void EnrichWorker::enrich_motif() {
+bool EnrichWorker::enrich_motif() {
 
 	auto index = custom::valid_index_of(this->peak_names_, this->motif_position_->peak_names_);
 
 	if (index.isEmpty()) {
 		G_TASK_WARN("No peaks detected in motif position");
-		return;
+		return false;
 	}
 
 	Eigen::MatrixXi frequency = this->motif_position_->get_motif_matrix().cwiseMin(1);
@@ -102,25 +104,27 @@ void EnrichWorker::enrich_motif() {
 
 	if (ret.is_empty()) {
 		G_TASK_WARN("No Results meet requirements.");
+
+		return false;
 	}
 	else {
 
 		this->res_ = ret;
 
 		this->res_name_ =  "Motif " + this->enrich_type_;
+
+		return true;
 	}
 };
 
 bool EnrichWorker::work() {
 
 	if (this->mode_ == WorkMode::EnrichPathway) {
-		this->enrich_pathway();
+		return this->enrich_pathway();
 	}
 	else {
-		this->enrich_motif();
+		return this->enrich_motif();
 	}
-
-	return true;
 };
 
 void EnrichWorker::run() {

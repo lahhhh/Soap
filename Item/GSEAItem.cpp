@@ -352,8 +352,8 @@ void GSEAItem::mountain_plot_patch(
 	top_rect->axis(QCPAxis::atRight)->setVisible(true);
 	top_rect->axis(QCPAxis::atRight)->setTicks(false);
 	top_rect->setMarginGroup(QCP::msLeft | QCP::msRight, margin_group);
-	top_rect->axis(QCPAxis::atLeft)->setLabel("Enrichment score (ES)");
-	top_rect->axis(QCPAxis::atLeft)->setLabelFont(gs.get_left_title_font());
+	//top_rect->axis(QCPAxis::atLeft)->setLabel("Enrichment score (ES)");
+	//top_rect->axis(QCPAxis::atLeft)->setLabelFont(gs.get_left_title_font());
 	top_rect->setMargins(QMargins(0, 0, 0, 0));
 
 	QCPAxisRect* middle_rect = new QCPAxisRect(draw_area, true);

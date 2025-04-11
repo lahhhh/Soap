@@ -226,11 +226,17 @@ double p_wilcox(double q, double m, double n, bool lower_tail) {
 
 double p_normal(double x, double mu, double sigma, bool lower_tail) {
 
-	boost::math::normal distribution(mu, sigma);
+	boost::math::normal dist(mu, sigma);
 
-	double p = boost::math::cdf(distribution, x);
-	
-	return lower_tail ? p : (1.0 - p);
+	if (lower_tail) {
+
+		return boost::math::cdf(dist, x);
+	}
+	else {
+
+		return boost::math::cdf(boost::math::complement(dist, x));
+	}
+
 }
 
 double dnorm(double x, double mu, double sigma) {
@@ -261,29 +267,44 @@ Eigen::MatrixXd dnorm(const Eigen::MatrixXd& mat, double mu, double sigma) {
 
 double p_students_t(double x, double n, bool lower_tail) {
 
-	boost::math::students_t distribution(n);
+	boost::math::students_t dist(n);
 
-	double p = boost::math::cdf(distribution, x);
+	if (lower_tail) {
 
-	return lower_tail ? p : (1.0 - p);
+		return boost::math::cdf(dist, x);
+	}
+	else {
+
+		return boost::math::cdf(boost::math::complement(dist, x));
+	}
 };
 
 double p_fisher_f(double f, double m, double n, bool lower_tail) {
 
-	boost::math::fisher_f distribution(m, n);
+	boost::math::fisher_f dist(m, n);
 
-	double p = boost::math::cdf(distribution, f);
+	if (lower_tail) {
 
-	return lower_tail ? p : (1.0 - p);
+		return boost::math::cdf(dist, f);
+	}
+	else {
+
+		return boost::math::cdf(boost::math::complement(dist, f));
+	}
 };
 
 double p_logistic(double q, double location, double scale, bool lower_tail) {
 
-	boost::math::logistic distribution(location, scale);
+	boost::math::logistic dist(location, scale);
 
-	double p = boost::math::cdf(distribution, q);
+	if (lower_tail) {
 
-	return lower_tail ? p : (1.0 - p);
+		return boost::math::cdf(dist, q);
+	}
+	else {
+
+		return boost::math::cdf(boost::math::complement(dist, q));
+	}
 };
 
 double p_chisq(double q, int df, bool lower_tail) {
@@ -294,6 +315,6 @@ double p_chisq(double q, int df, bool lower_tail) {
 		return boost::math::cdf(chi_sq_dist, q);  
 	}
 	else {
-		return boost::math::cdf(complement(chi_sq_dist, q));  
+		return boost::math::cdf(boost::math::complement(chi_sq_dist, q));
 	}
 }

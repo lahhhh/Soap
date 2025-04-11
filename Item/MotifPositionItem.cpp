@@ -39,6 +39,8 @@ void MotifPositionItem::__set_menu() {
 
 	ADD_MAIN_ACTION("Show Motif Overlapping Rate", s_show_motif_overlapping_rate);
 
+	ADD_MAIN_ACTION("Show Similar Binding Region Motif", s_show_overlapping_transcription_factors);
+
 	ADD_MAIN_ACTION("Show Binding Site Sequence", s_show_typical_binding_sequence);
 
 	if (this->attached_to(soap::VariableType::SingleCellMultiome) || this->attached_to(soap::VariableType::SingleCellAtac)) {
@@ -942,6 +944,53 @@ void MotifPositionItem::s_multiple_footprint_plot() {
 	);
 
 	this->draw_suite_->update(draw_area);
+};
+
+void MotifPositionItem::s_show_overlapping_transcription_factors() {
+
+	QStringList tf_names = this->data()->motif_names_;
+
+	auto settings = CommonDialog::get_response(
+		this->signal_emitter_,
+		"Overlap Calculation Settings",
+		{ "Transcription Factor"},
+		{ soap::InputStyle::LineEditWithCompleter},
+		{ tf_names}
+	);
+
+	if (settings.isEmpty()) {
+		return;
+	}
+
+	QString tf = settings[0];
+
+	GenomicRange g1 = this->data()->get_position(tf);
+
+	tf_names.removeOne(tf);
+
+	QVector<int> o1, o2;
+	QStringList names;
+
+	for (auto&& tf_name : tf_names) {
+
+		GenomicRange g2 = this->data()->get_position(tf_name);
+
+		int overlap = g1.count_overlap(g2);
+		int overlap2 = g2.count_overlap(g1);
+
+		names << tf_name;
+		o1 << overlap;
+		o2 << overlap2;
+	}
+
+	CustomMatrix res(names);
+
+	res.update("Overlap Region 1", o1);
+	res.update("Overlap Region 2", o2);
+
+	res.row_reorder(custom::order(o1, true));
+
+	MatrixWindow::show_matrix(&res, "Overlapping Results", this->signal_emitter_);
 };
 
 void MotifPositionItem::s_show_motif_overlapping_rate() {

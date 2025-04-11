@@ -149,7 +149,6 @@ void ItemIOWorker::write() {
 	else {
 		G_TASK_WARN("Unknown type");
 	}
-	G_TASK_LOG("Item saved.");
 };
 
 void ItemIOWorker::read() {
@@ -318,8 +317,6 @@ void ItemIOWorker::read() {
 	else {
 		G_TASK_WARN("Unrecognized item type : " + type);
 	}
-
-	G_TASK_LOG("Item Reading finished.");
 };
 
 bool ItemIOWorker::work() {
@@ -336,13 +333,13 @@ bool ItemIOWorker::work() {
 
 void ItemIOWorker::run() {
 
-	G_TASK_LOG("Start loading item...");
+	G_TASK_LOG("Start item processing...");
 
 	if (!this->work()) {
 		G_TASK_END;
 	}
 
-	G_TASK_LOG("Item loading finished.");
+	G_TASK_LOG("Item processing finished.");
 
 	G_TASK_END;
 }

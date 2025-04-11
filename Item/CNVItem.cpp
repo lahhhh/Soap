@@ -193,15 +193,16 @@ void CNVItem::draw_cnv(
 	bottom_legend->axis(QCPAxis::atLeft)->setTicks(false);
 
 	bottom_legend->axis(QCPAxis::atBottom)->setRange(0, nrow);
-	bottom_legend->axis(QCPAxis::atLeft)->setRange(-10, 1);
+	bottom_legend->axis(QCPAxis::atLeft)->setRange(-5, 1);
 
 	bottom_legend->setMarginGroup(QCP::msLeft | QCP::msRight, margin_group);
+	bottom_legend->setMargins({ 0, 0, 0, 0 });
 
 	main_layout->setColumnStretchFactor(0, 1);
 	main_layout->setColumnStretchFactor(1, 6);
 	main_layout->setColumnStretchFactor(2, 1);
 
-	main_layout->setRowStretchFactor(0, 5);
+	main_layout->setRowStretchFactor(0, 7);
 	main_layout->setRowStretchFactor(1, 1);
 
 	draw_area->plotLayout()->setRowStretchFactor(0, 1);

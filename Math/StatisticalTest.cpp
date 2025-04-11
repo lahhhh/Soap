@@ -118,7 +118,6 @@ bool Welch_anova(const std::vector<Eigen::ArrayXd>& groups, double significance_
 		return false;
 	}
 
-	// 计算每组均值、总体均值和总样本数
 	Eigen::ArrayXd group_means(num_groups);
 	Eigen::ArrayXd group_vars(num_groups);
 	Eigen::ArrayXd group_sizes(num_groups);

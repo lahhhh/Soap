@@ -341,7 +341,27 @@ QString SignalEmitter::get_unique_name(const QString& name) {
 		return name;
 	}
 
-	QString new_name = name.split(" | ")[0], ret = new_name;
+	QStringList s = name.split(" | ");
+
+	QString new_name;
+
+	if (s.size() > 1) {
+
+		if (custom::is_integer(s.last())) {
+
+			auto q = name.lastIndexOf(" | ");
+
+			new_name = name.sliced(0, q);
+		}
+		else {
+			new_name = name;
+		}
+	}
+	else {
+		new_name = name;
+	}
+
+	QString ret;
 
 	do {
 		ret = new_name + " | " + QString::number(this->suffix_++);

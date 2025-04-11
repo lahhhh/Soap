@@ -478,8 +478,13 @@ void GseaWorker::calculate_fwer() {
 		minimum_enrichment_score_negative(this->n_permutation_, 0);
 
 	for (const auto& path : this->pathway_list_) {
-		auto& enrichment_scores = this->enrichment_scores_[path];
+		auto& enrichment_scores = this->enrichment_scores_[path]; // has been normalized before
 		int size = enrichment_scores.size();
+
+		if (size != n_permutation_) {
+			G_TASK_WARN("Detected error size in pathway permutation number in " + path + " size number : " + QString::number(size));
+			continue;
+		}
 
 		for (int i = 0; i < size; ++i) {
 
@@ -504,6 +509,7 @@ void GseaWorker::calculate_fwer() {
 		}
 		this->fwer_[path] = fwer;
 	}
+
 }
 
 void GseaWorker::calculate_fdr() {
@@ -612,6 +618,7 @@ bool GseaWorker::work() {
 	this->get_order();
 
 	this->original_correlations_ = this->correlations_;
+
 
 	if (this->permutation_type_ == "Phenotype") {
 		this->gsea_phenotype();

@@ -184,6 +184,7 @@ void MainWindow::set_left_layout() {
 	this->left_layout_->setStretchFactor(this->information_area_, 5);
 };
 
+
 void MainWindow::s_test() {	
 };
 
@@ -569,8 +570,6 @@ void MainWindow::s_load_10X_scRNA()
 void MainWindow::s_load_item() {
 	QString file_path = QFileDialog::getOpenFileName(this, "Select Item File", "", "soap item(*.sif)");
 	if (file_path.isEmpty())return;
-
-	G_LOG("Start Loading SOAP Item...");
 
 	ItemIOWorker* worker = new ItemIOWorker(file_path);
 	G_LINK_WORKER_THREAD(ItemIOWorker, x_data_create_soon, MainWindow, s_create_data)

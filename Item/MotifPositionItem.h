@@ -58,6 +58,8 @@ private slots:
 
     void s_show_motif_overlapping_rate();
 
+    void s_show_overlapping_transcription_factors();
+
     void s_show_typical_binding_sequence();
 };
 

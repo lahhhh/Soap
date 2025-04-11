@@ -29,7 +29,6 @@ public:
 		const QMap<QString, QVector<double>>& point_y
 	);
 
-
 	bool is_empty() const;
 
 	DataType data_type_{ DataType::Plain };

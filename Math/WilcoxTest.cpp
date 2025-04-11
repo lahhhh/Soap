@@ -102,6 +102,7 @@ double wilcox_test(
 			if (alternative == 0) {
 				double p = statistic > ((n_x * n_y) / 2.0) ?
 					p_wilcox(statistic - 1, n_x, n_y, false) : p_wilcox(statistic, n_x, n_y);
+
 				return std::min(2 * p, 1.0);
 			}
 			else if (alternative == 2) {
@@ -136,7 +137,10 @@ double wilcox_test(
 			}
 
 			if (alternative == 0) {
-				return 2 * std::min(p_normal(z), p_normal(z, 0.0, 1.0, false));
+
+				double p = 2 * std::min(p_normal(z), p_normal(z, 0.0, 1.0, false));
+
+				return p;
 			}
 			else if (alternative == 2) {
 				return p_normal(z, 0.0, 1.0, false);

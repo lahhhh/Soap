@@ -46,7 +46,6 @@ GSEA::GSEA(
 		QColor(69, 0, 173, 221) 
 	};
 
-
 	this->bar_points_ = QVector<double>(length2);
 	this->bar_points_[0] = 0;
 	this->bar_points_[length2 - 1] = length - 1;
