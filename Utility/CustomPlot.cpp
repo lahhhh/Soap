@@ -145,19 +145,18 @@ namespace custom_plot {
 						gs.get_scatter_point_size()
 					);
 
-					custom_plot::patch::add_gradient_legend(
+					custom_plot::add_gradient_legend(
 						draw_area,
 						legend_layout,
 						-1.0,
 						1.0,
 						legend_title,
-						"Low",
-						"High",
-						gs.get_legend_title_font(),
-						gs.get_legend_label_font(),
+						gs,
 						low_color,
 						middle_color,
-						high_color
+						high_color,
+						"Low",
+						"High"
 					);
 
 					custom_plot::patch::add_title(draw_area, sub_layout, data.name, gs.get_title_font());
@@ -1173,13 +1172,13 @@ namespace custom_plot {
 		double x_span = maximum_x - minimum_x, y_span = maximum_y - minimum_y;
 
 		QCPItemLine* arrow_x = new QCPItemLine(draw_area);
-		arrow_x->start->setCoords(minimum_x - margin / 2 * x_span, minimum_y - margin / 2 * y_span);
-		arrow_x->end->setCoords(minimum_x + margin * 1.5 * x_span, minimum_y - margin / 2 * y_span);
+		arrow_x->start->setCoords(minimum_x - margin * 0.5 * x_span, minimum_y - margin * 0.5 * y_span);
+		arrow_x->end->setCoords(minimum_x + margin * x_span, minimum_y - margin * 0.5 * y_span);
 		arrow_x->setHead(QCPLineEnding::esSpikeArrow);
 
 		QCPItemLine* arrow_y = new QCPItemLine(draw_area);
-		arrow_y->start->setCoords(minimum_x - margin / 2 * x_span, minimum_y - margin / 2 * y_span);
-		arrow_y->end->setCoords(minimum_x - margin / 2 * x_span, minimum_y + margin * 1.5 * y_span);
+		arrow_y->start->setCoords(minimum_x - margin * 0.5 * x_span, minimum_y - margin * 0.5 * y_span);
+		arrow_y->end->setCoords(minimum_x - margin * 0.5 * x_span, minimum_y + margin * y_span);
 		arrow_y->setHead(QCPLineEnding::esSpikeArrow);
 
 		QCPItemText* label_x = new QCPItemText(draw_area);
@@ -1188,12 +1187,12 @@ namespace custom_plot {
 		label_x->position->setAxes(axis_rect->axis(QCPAxis::atBottom), axis_rect->axis(QCPAxis::atLeft));
 		label_x->position->setType(QCPItemPosition::ptPlotCoords);
 		if (type == 0) {
-			label_x->setPositionAlignment(Qt::AlignCenter);
-			label_x->position->setCoords(minimum_x + margin / 2 * x_span, minimum_y - margin * 0.75 * y_span);
+			label_x->setPositionAlignment(Qt::AlignTop | Qt::AlignLeft);
+			label_x->position->setCoords(minimum_x - margin * 0.5 * x_span, minimum_y - margin * 0.6 * y_span);
 		}
 		else {
 			label_x->setPositionAlignment(Qt::AlignLeft | Qt::AlignVCenter);
-			label_x->position->setCoords(minimum_x + margin * 1.5 * x_span, minimum_y - margin / 2 * y_span);
+			label_x->position->setCoords(minimum_x + margin * 1.2 * x_span, minimum_y - margin * 0.5 * y_span);
 		}
 		label_x->setText(gs.get_bottom_title(bottom_title));
 		label_x->setFont(gs.get_bottom_title_font());
@@ -1202,18 +1201,21 @@ namespace custom_plot {
 		label_y->setClipToAxisRect(false);
 		label_y->position->setAxisRect(axis_rect);
 		label_y->position->setAxes(axis_rect->axis(QCPAxis::atBottom), axis_rect->axis(QCPAxis::atLeft));
-		label_y->position->setType(QCPItemPosition::ptPlotCoords);
+		label_y->position->setType(QCPItemPosition::ptPlotCoords);		
+
+		label_y->setText(gs.get_left_title(left_title));
+		label_y->setFont(gs.get_left_title_font());
+
 		if (type == 0) {
-			label_y->setPositionAlignment(Qt::AlignCenter);
-			label_y->position->setCoords(minimum_x - margin * 0.75 * x_span, minimum_y + margin / 2 * y_span);
+			label_y->setPositionAlignment(Qt::AlignLeft | Qt::AlignBottom);
+			label_y->position->setCoords(minimum_x - margin * 0.6 * x_span, minimum_y + margin * 0.2 * y_span); // unknown bug
 		}
 		else {
 			label_y->setPositionAlignment(Qt::AlignLeft | Qt::AlignVCenter);
-			label_y->position->setCoords(minimum_x - margin / 2 * x_span, minimum_y + margin * 1.5 * y_span);
-		}
+			label_y->position->setCoords(minimum_x - margin * 0.5 * x_span, minimum_y + margin * 1.5 * y_span); // unknown bug
+		}		
+
 		label_y->setRotation(-90);
-		label_y->setText(gs.get_left_title(left_title));
-		label_y->setFont(gs.get_left_title_font());
 	};
 
 	void set_scatter_plot_axis_style(
@@ -1498,19 +1500,15 @@ namespace custom_plot {
 
 		if (ele.info.contains("Legend Low Label") && ele.info.contains("Legend High Label")) {
 
-			custom_plot::patch::add_gradient_legend(
+			custom_plot::add_gradient_legend(
 				draw_area,
 				legend_layout,
 				minimum_value,
 				maximum_value,
-				gs.get_legend_title(ele.legend_title),
+				ele.legend_title,				
+				gs,
 				ele.info["Legend Low Label"],
-				ele.info["Legend High Label"],
-				gs.get_legend_title_font(),
-				gs.get_legend_label_font(),
-				gs.get_gradient_low_color(),
-				gs.get_gradient_middle_color(),
-				gs.get_gradient_high_color()
+				ele.info["Legend High Label"]
 			);
 		}
 		else {
@@ -1876,19 +1874,15 @@ namespace custom_plot {
 		}
 
 		if (normalize_by_row) {
-			custom_plot::patch::add_gradient_legend(
+			custom_plot::add_gradient_legend(
 				draw_area,
 				legend_layout,
 				minimum_value,
 				maximum_value,
-				gs.get_legend_title("Normalized Expression"),
+				"Normalized Expression",				
+				gs,
 				"Low",
-				"High",
-				gs.get_legend_title_font(),
-				gs.get_legend_label_font(),
-				gs.get_gradient_low_color(),
-				gs.get_gradient_middle_color(),
-				gs.get_gradient_high_color()
+				"High"
 			);
 		}
 		else {
@@ -2024,48 +2018,28 @@ namespace custom_plot {
 		const GraphSettings& gs,
 		QColor low_color,
 		QColor middle_color,
-		QColor high_color
+		QColor high_color,
+		const QString& lower_label,
+		const QString& higher_label
 	) {
-		QCPLayoutGrid* sub_legend_layout = new QCPLayoutGrid;
-		QCPLayoutGrid* color_scale_layout = new QCPLayoutGrid;
-		QCPAxisRect* color_scale_left_rect = new QCPAxisRect(draw_area, false);
-		QCPAxisRect* color_scale_right_rect = new QCPAxisRect(draw_area, false);
-		sub_legend_layout->setRowSpacing(30);
-		auto [row, col] = custom_plot::patch::find_next_empty_position(legend_layout);
-		legend_layout->addElement(row, col, sub_legend_layout);
 
-		QCPColorGradient gradient;
-		gradient.setColorStopAt(0.0, low_color);
-		gradient.setColorStopAt(0.5, middle_color);
-		gradient.setColorStopAt(1.0, high_color);
-		QCPColorScale* color_scale = new QCPColorScale(draw_area);
-		color_scale->setType(QCPAxis::atRight);
+		custom_plot::patch::add_gradient_legend(
+			draw_area,
+			legend_layout,
+			minimum_value,
+			maximum_value,
+			gs.get_legend_title(title),
+			gs.get_legend_title_font(),
+			gs.get_legend_label_font(),
+			gs.get_legend_tick_label_font(),
+			gs.is_legend_tick_shown(),
+			low_color,
+			middle_color,
+			high_color,
+			lower_label,
+			higher_label
+		);
 
-		if (minimum_value == maximum_value) {
-			maximum_value += 0.01;
-		}
-		color_scale->setDataRange(QCPRange(minimum_value, maximum_value));
-		color_scale->setGradient(gradient);
-		color_scale->axis()->setLabelFont(gs.get_legend_tick_label_font());
-
-		color_scale->mAxisRect->axis(QCPAxis::atBottom)->setBasePen(Qt::NoPen);
-		color_scale->mAxisRect->axis(QCPAxis::atLeft)->setBasePen(Qt::NoPen);
-		color_scale->mAxisRect->axis(QCPAxis::atTop)->setBasePen(Qt::NoPen);
-		color_scale->mAxisRect->axis(QCPAxis::atRight)->setBasePen(Qt::NoPen);
-
-		if (!gs.is_legend_tick_shown()) {
-			color_scale->axis()->setTickPen(Qt::NoPen);
-			color_scale->axis()->setSubTickPen(Qt::NoPen);
-		}
-
-		color_scale_layout->addElement(0, 0, color_scale_left_rect);
-		color_scale_layout->addElement(0, 1, color_scale);
-		color_scale_layout->addElement(0, 2, color_scale_right_rect);
-		color_scale->setBarWidth(28);
-		color_scale_layout->setMinimumSize(200, 200);
-		color_scale_layout->setMaximumSize(200, 200);
-		sub_legend_layout->addElement(0, 0, color_scale_layout);
-		custom_plot::patch::add_title(draw_area, sub_legend_layout, gs.get_legend_title(title), gs.get_legend_title_font());
 	};
 
 	void add_gradient_legend(
@@ -2074,45 +2048,27 @@ namespace custom_plot {
 		double minimum_value,
 		double maximum_value,
 		const QString& title,
-		const GraphSettings& gs
+		const GraphSettings& gs,
+		const QString& lower_label,
+		const QString& higher_label
 	) {
-		QCPLayoutGrid* sub_legend_layout = new QCPLayoutGrid;
-		QCPLayoutGrid* color_scale_layout = new QCPLayoutGrid;
-		QCPAxisRect* color_scale_left_rect = new QCPAxisRect(draw_area, false);
-		QCPAxisRect* color_scale_right_rect = new QCPAxisRect(draw_area, false);
-		sub_legend_layout->setRowSpacing(30);
-		auto [row, col] = custom_plot::patch::find_next_empty_position(legend_layout);
-		legend_layout->addElement(row, col, sub_legend_layout);
 
-		QCPColorGradient gradient;
-		gradient.setColorStopAt(0.0, gs.get_gradient_low_color());
-		gradient.setColorStopAt(0.5, gs.get_gradient_middle_color());
-		gradient.setColorStopAt(1.0, gs.get_gradient_high_color());
-		QCPColorScale* color_scale = new QCPColorScale(draw_area);
-		color_scale->setType(QCPAxis::atRight);
-
-		color_scale->setDataRange(QCPRange(minimum_value, maximum_value));
-		color_scale->setGradient(gradient);
-		color_scale->axis()->setLabelFont(gs.get_legend_tick_label_font());
-
-		color_scale->mAxisRect->axis(QCPAxis::atBottom)->setBasePen(Qt::NoPen);
-		color_scale->mAxisRect->axis(QCPAxis::atLeft)->setBasePen(Qt::NoPen);
-		color_scale->mAxisRect->axis(QCPAxis::atTop)->setBasePen(Qt::NoPen);
-		color_scale->mAxisRect->axis(QCPAxis::atRight)->setBasePen(Qt::NoPen);
-
-		if (!gs.is_legend_tick_shown()) {
-			color_scale->axis()->setTickPen(Qt::NoPen);
-			color_scale->axis()->setSubTickPen(Qt::NoPen);
-		}
-
-		color_scale_layout->addElement(0, 0, color_scale_left_rect);
-		color_scale_layout->addElement(0, 1, color_scale);
-		color_scale_layout->addElement(0, 2, color_scale_right_rect);
-		color_scale->setBarWidth(28);
-		color_scale_layout->setMinimumSize(200, 200);
-		color_scale_layout->setMaximumSize(200, 200);
-		sub_legend_layout->addElement(0, 0, color_scale_layout);
-		custom_plot::patch::add_title(draw_area, sub_legend_layout, gs.get_legend_title(title), gs.get_legend_title_font());
+		custom_plot::patch::add_gradient_legend(
+			draw_area,
+			legend_layout,
+			minimum_value,
+			maximum_value,
+			gs.get_legend_title(title),
+			gs.get_legend_title_font(),
+			gs.get_legend_label_font(),
+			gs.get_legend_tick_label_font(),
+			gs.is_legend_tick_shown(),
+			gs.get_gradient_low_color(),
+			gs.get_gradient_middle_color(),
+			gs.get_gradient_high_color(),
+			lower_label, 
+			higher_label
+		);
 	};
 
 	void proportion_legend(

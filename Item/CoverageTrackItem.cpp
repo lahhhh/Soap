@@ -185,7 +185,7 @@ void CoverageTrackItem::s_show_coverage() {
 	coverage_layout->setRowSpacing(0);
 	main_layout->addElement(1, 1, coverage_layout);
 
-	main_layout->setColumnStretchFactors(QList<double>{ 1, 5.0 * n_level});
+	main_layout->setColumnStretchFactors(QList<double>{ 1.0, 5.0 * n_region});
 
 	main_layout->setRowStretchFactor(0, std::round(0.7 * n_level));
 

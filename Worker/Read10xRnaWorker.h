@@ -18,6 +18,8 @@ public:
 		matrix_file_name_(matrix_file_name)
 	{}
 
+    explicit Read10XRnaWorker(const QString& folder_name);
+
 	QString barcodes_file_name_;
 	QString features_file_name_;
 	QString matrix_file_name_;

@@ -54,6 +54,7 @@ public:
 	VariableTreeWidget* variable_tree_widget_{ nullptr };
 	QLabel* message_label_{ nullptr };
 	QPushButton* log_export_button_{ nullptr };
+	QPushButton* log_clear_button_{ nullptr };
 	InformationTextBrowser* information_area_{ nullptr };
 
 	/*
@@ -119,12 +120,14 @@ private slots:
 	void closeEvent(QCloseEvent* e);
 
 	void s_export_log();
+	void s_clear_log();
 
 	void s_set_graph_setting();
 
 	void s_load_10X_scMultiome();
 
 	void s_load_10X_scRNA();
+	void s_load_10X_scRNA_folder();
 	void s_batch_load_10X_scRNA();
 
 	void s_load_fragments_scATAC();

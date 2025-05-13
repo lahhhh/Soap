@@ -357,20 +357,18 @@ void DifferentialAnalysisItem::s_heatmap_plot() {
 		heatmap->setGradient(gradient);
 		heatmap->setDataRange({ -1.0, 1.0 });
 
-
-		custom_plot::patch::add_gradient_legend(
+		custom_plot::add_gradient_legend(
 			draw_area,
 			legend_layout,
 			-1.0,
 			1.0,
 			"Expression",
-			"Low",
-			"High",
-			gs.get_legend_title_font(),
-			gs.get_legend_label_font(),
+			gs,
 			custom_plot::color::navy,
 			custom_plot::color::aquamarine3,
-			custom_plot::color::gold
+			custom_plot::color::gold,
+			"Low",
+			"High"
 		);
 
 		this->draw_suite_->update(draw_area);
@@ -467,19 +465,18 @@ void DifferentialAnalysisItem::s_heatmap_plot() {
 		heatmap->setGradient(gradient);
 		heatmap->setDataRange({ -1.0, 1.0 });
 
-		custom_plot::patch::add_gradient_legend(
+		custom_plot::add_gradient_legend(
 			draw_area,
 			legend_layout,
 			-1.0,
 			1.0,
-			"Expression",
-			"Low",
-			"High",
-			gs.get_legend_title_font(),
-			gs.get_legend_label_font(),
+			"Expression",			
+			gs,
 			custom_plot::color::navy,
 			custom_plot::color::aquamarine3,
-			custom_plot::color::gold
+			custom_plot::color::gold,
+			"Low",
+			"High"
 		);
 
 		this->draw_suite_->update(draw_area);

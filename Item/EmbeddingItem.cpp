@@ -369,19 +369,15 @@ void EmbeddingItem::s_multiple_numeric_feature_plot() {
 	}
 
 	if (scale) {
-		custom_plot::patch::add_gradient_legend(
+		custom_plot::add_gradient_legend(
 			draw_area,
 			legend_layout,
 			-1.0,
 			1.0,
 			"Expression",
+			gs,
 			"Low",
-			"High",
-			gs.get_legend_title_font(),
-			gs.get_legend_label_font(),
-			gs.get_gradient_low_color(),
-			gs.get_gradient_middle_color(),
-			gs.get_gradient_high_color()
+			"High"
 		);
 	}
 	else {

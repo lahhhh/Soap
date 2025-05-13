@@ -4,6 +4,13 @@
 #include <QFile>
 #include "Custom.h"
 
+Read10XRnaWorker::Read10XRnaWorker(const QString& folder_name) {
+
+	barcodes_file_name_ = folder_name + "/barcodes.tsv.gz";
+	features_file_name_ = folder_name + "/features.tsv.gz";
+	matrix_file_name_ = folder_name + "/matrix.mtx.gz";
+};
+
 bool Read10XRnaWorker::read_barcodes() {
 
 	std::unique_ptr<char[]> bu(new char[1024]);

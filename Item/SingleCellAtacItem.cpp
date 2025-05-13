@@ -2501,19 +2501,18 @@ void SingleCellAtacItem::s_receive_atac_landscape_plot(ATAC_LANDSCAPE_PLOT_ELEME
 	auto legend_layout = custom_plot::patch::set_legend_layout(draw_area, right_layout);
 
 	if (ele.scale) {
-		custom_plot::patch::add_gradient_legend(
+		custom_plot::add_gradient_legend(
 			draw_area,
 			legend_layout,
 			-1.0,
 			1.0,
-			"Accessibiliy",
-			"Low",
-			"High",
-			gs.get_legend_title_font(),
-			gs.get_legend_label_font(),
+			"Accessibiliy",			
+			gs,
 			custom_plot::color::navy,
 			Qt::white,
-			custom_plot::color::firebrick3
+			custom_plot::color::firebrick3,
+			"Low",
+			"High"
 		);
 	}
 	else {

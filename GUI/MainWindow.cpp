@@ -164,12 +164,15 @@ void MainWindow::set_left_layout() {
 	G_SET_LARGE_LABEL(this->message_label_);
 
 	G_SET_BUTTON(this->log_export_button_, "Export", soap::MiddleSize);
+	G_SET_BUTTON(this->log_clear_button_, "Clear", soap::MiddleSize);
 	connect(this->log_export_button_, &QPushButton::clicked, this, &MainWindow::s_export_log);
+	connect(this->log_clear_button_, &QPushButton::clicked, this, &MainWindow::s_clear_log);
 
 	QHBoxLayout* row_layout = new QHBoxLayout;
 	row_layout->addWidget(this->message_label_);
 	row_layout->addStretch();
 	row_layout->addWidget(this->log_export_button_);
+	row_layout->addWidget(this->log_clear_button_);
 
 	this->information_area_ = new InformationTextBrowser(this);
 
@@ -265,6 +268,7 @@ void MainWindow::set_file_menu() {
 	auto rna_10X_menu = scrnaseq_menu->addMenu("Load 10X");
 
 	rna_10X_menu->addAction("Default", this, &MainWindow::s_load_10X_scRNA);
+	rna_10X_menu->addAction("Default(folder)", this, &MainWindow::s_load_10X_scRNA_folder);
 	rna_10X_menu->addAction("Batch", this, &MainWindow::s_batch_load_10X_scRNA);
 
 	auto count_menu = scrnaseq_menu->addMenu("Load Count Matrix");
@@ -390,6 +394,8 @@ void MainWindow::set_variable_tree_widget() {
 	this->variable_tree_widget_->setColumnCount(3);
 	this->variable_tree_widget_->setHeaderLabels(QStringList{ "Object" , "Type" , "Size" });
 	this->variable_tree_widget_->header()->setSectionResizeMode(QHeaderView::ResizeToContents);
+	this->variable_tree_widget_->header()->setStretchLastSection(false);
+	this->variable_tree_widget_->setTextElideMode(Qt::ElideNone);
 	this->variable_tree_widget_->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Expanding);
 };
 
@@ -541,6 +547,16 @@ void MainWindow::s_batch_load_10X_scRNA() {
 	G_LINK_WORKER_THREAD(BatchLoading10XRnaWorker, x_data_create_soon, MainWindow, s_create_data);
 };
 
+void MainWindow::s_load_10X_scRNA_folder() {
+
+	QString dir_name = QFileDialog::getExistingDirectory(this, tr("Choose Directory"));
+	if (!dir_name.isEmpty()) {
+
+		Read10XRnaWorker* worker = new Read10XRnaWorker(dir_name);
+		G_LINK_WORKER_THREAD(Read10XRnaWorker, x_data_create_soon, MainWindow, s_create_data);
+	}
+};
+
 void MainWindow::s_load_10X_scRNA()
 {
 
@@ -573,6 +589,11 @@ void MainWindow::s_load_item() {
 
 	ItemIOWorker* worker = new ItemIOWorker(file_path);
 	G_LINK_WORKER_THREAD(ItemIOWorker, x_data_create_soon, MainWindow, s_create_data)
+};
+
+void MainWindow::s_clear_log() {
+
+	this->information_area_->clear();
 };
 
 void MainWindow::s_export_log() {

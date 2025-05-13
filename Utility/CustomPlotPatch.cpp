@@ -1154,13 +1154,15 @@ namespace custom_plot {
 			double minimum_value,
 			double maximum_value,
 			const QString& title,
-			const QString& lower_label,
-			const QString& upper_label,
 			const QFont& legend_title_font,
 			const QFont& legend_label_font,
+			const QFont& legend_tick_label_font,
+			bool is_legend_tick_shown,
 			QColor low_color,
 			QColor middle_color,
-			QColor high_color
+			QColor high_color,
+			const QString& lower_label,
+			const QString& upper_label
 		) {
 			QCPLayoutGrid* sub_legend_layout = new QCPLayoutGrid;
 			QCPLayoutGrid* color_scale_layout = new QCPLayoutGrid;
@@ -1176,30 +1178,57 @@ namespace custom_plot {
 			gradient.setColorStopAt(1.0, high_color);
 			QCPColorScale* color_scale = new QCPColorScale(draw_area);
 			color_scale->setType(QCPAxis::atRight);
+
+			if (minimum_value == maximum_value) {
+				maximum_value += 0.01;
+			}
+
 			color_scale->setDataRange(QCPRange(minimum_value, maximum_value));
 			color_scale->setGradient(gradient);
-			QSharedPointer<QCPAxisTickerText> ticker(new QCPAxisTickerText);
-			ticker->setTicks(QVector<double>{minimum_value, maximum_value}, { lower_label, upper_label });
+			color_scale->axis()->setLabelFont(legend_tick_label_font);
 
-			color_scale->axis()->setTicks(true);
-			color_scale->axis()->setTickLength(0);
-			color_scale->axis()->setTickPen(Qt::NoPen);
-			color_scale->axis()->setTickLabels(true);
-			color_scale->axis()->setTicker(ticker);
-			color_scale->axis()->setTickLabelFont(legend_label_font);
+			if (!lower_label.isEmpty()) {
 
+				QSharedPointer<QCPAxisTickerText> ticker(new QCPAxisTickerText);
+				ticker->setTicks(QVector<double>{minimum_value, maximum_value}, { lower_label, upper_label });
+				color_scale->axis()->setTicker(ticker);
+			}
+			
 			color_scale->mAxisRect->axis(QCPAxis::atBottom)->setBasePen(Qt::NoPen);
 			color_scale->mAxisRect->axis(QCPAxis::atLeft)->setBasePen(Qt::NoPen);
 			color_scale->mAxisRect->axis(QCPAxis::atTop)->setBasePen(Qt::NoPen);
 			color_scale->mAxisRect->axis(QCPAxis::atRight)->setBasePen(Qt::NoPen);
 
+			if (!is_legend_tick_shown) {
+				color_scale->axis()->setTickPen(Qt::NoPen);
+				color_scale->axis()->setSubTickPen(Qt::NoPen);
+			}
+			else {
+				color_scale->axis()->setTicks(true);
+				color_scale->axis()->setTickLabels(true);
+				color_scale->axis()->setTickLabelFont(legend_tick_label_font);
+			}
+
+			color_scale->setBarWidth(30);
+
+			color_scale_left_rect->setMinimumSize(10, 160);
+			color_scale_left_rect->setMaximumSize(10, 160);
+
+			color_scale->setMinimumSize(100, 160);
+			color_scale->setMaximumSize(100, 160);
+
+			color_scale_right_rect->setMinimumSize(10, 160);
+			color_scale_right_rect->setMaximumSize(10, 160);
+
 			color_scale_layout->addElement(0, 0, color_scale_left_rect);
 			color_scale_layout->addElement(0, 1, color_scale);
 			color_scale_layout->addElement(0, 2, color_scale_right_rect);
-			color_scale->setBarWidth(28);
-			color_scale_layout->setMinimumSize(200, 200);
-			color_scale_layout->setMaximumSize(200, 200);
+
+			color_scale_layout->setMinimumSize(120, 160);
+			color_scale_layout->setMaximumSize(120, 160);
+
 			sub_legend_layout->addElement(0, 0, color_scale_layout);
+			
 			custom_plot::patch::add_title(draw_area, sub_legend_layout, title, legend_title_font);
 		}
 

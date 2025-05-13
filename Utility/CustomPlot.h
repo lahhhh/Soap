@@ -104,7 +104,9 @@ namespace custom_plot {
 		const GraphSettings& gs,
 		QColor low_color,
 		QColor middle_color,
-		QColor high_color
+		QColor high_color,
+		const QString& lower_label = {},
+		const QString& higher_label = {}
 	);
 
 	void add_gradient_legend(
@@ -113,7 +115,9 @@ namespace custom_plot {
 		double minimum_value, 
 		double maximum_value,
 		const QString& title, 
-		const GraphSettings& gs
+		const GraphSettings& gs,
+		const QString& lower_label = {},
+		const QString& higher_label = {}
 	);
 
 	void bar_plot(

@@ -11,21 +11,21 @@ void InformationTextBrowser::log(const QString& info) {
 
 	this->setTextColor(Qt::black);
 
-	this->append(QDateTime::currentDateTime().toString("[yyyy-MM-dd ddd hh:mm:ss] ") + info);
+	this->append(QDateTime::currentDateTime().toString("[yyyy-MM-dd ddd hh:mm:ss.zzz] ") + info);
 }
 
 void InformationTextBrowser::warn(const QString& info) {	
 
 	this->setTextColor(Qt::red);
 
-	this->append(QDateTime::currentDateTime().toString("[yyyy-MM-dd ddd hh:mm:ss] ") + info);
+	this->append(QDateTime::currentDateTime().toString("[yyyy-MM-dd ddd hh:mm:ss.zzz] ") + info);
 };
 
 void InformationTextBrowser::notice(const QString& info) {
 
 	this->setTextColor(Qt::darkCyan);
 
-	this->append(QDateTime::currentDateTime().toString("[yyyy-MM-dd ddd hh:mm:ss] ") + info);
+	this->append(QDateTime::currentDateTime().toString("[yyyy-MM-dd ddd hh:mm:ss.zzz] ") + info);
 };
 
 void InformationTextBrowser::s_receive_log(QString info) {

@@ -141,6 +141,7 @@ QStringList PandoWorker::find_variable_features(int n_feature) {
 	return custom::sliced(this->single_cell_multiome_->rna_counts()->rownames_, filter);
 };
 
+// bug 
 bool PandoWorker::infer_grn() {
 
 	auto gene_location = custom::get_hg38_gene_location();

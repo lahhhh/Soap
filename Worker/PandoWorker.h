@@ -22,7 +22,7 @@ public:
 		const QString& motif_database,
 		bool filter_cell,
 		bool use_tss,
-		const Eigen::ArrayX<bool> cell_filter,
+		const Eigen::ArrayX<bool>& cell_filter,
 		int n_feature,
 		double peak_correlation_threshold,
 		double motif_correlation_threshold,

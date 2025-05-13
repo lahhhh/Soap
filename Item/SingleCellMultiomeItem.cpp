@@ -316,7 +316,7 @@ void SingleCellMultiomeItem::__set_menu() {
 
 	ADD_ACTION("InferCNV [No HMM]", "RNA | CNV Detection", s_infercnv);
 
-	ADD_MAIN_ACTION("Infer Gene Regulatory NetWork", s_pando);
+	//ADD_MAIN_ACTION("Infer Gene Regulatory NetWork", s_pando);
 
 	// cell-cell interaction
 	ADD_MAIN_MENU("Cell-cell Interaction");
@@ -1139,7 +1139,7 @@ void SingleCellMultiomeItem::s_show_fragments_length_distribution() {
 	draw_area->addGraph(axis_rect->axis(QCPAxis::atBottom), axis_rect->axis(QCPAxis::atLeft));
 	QPen pen;
 	pen.setWidth(1);
-	pen.setColor(custom::random_color());
+	pen.setColor(Qt::gray);
 
 	draw_area->graph()->setPen(pen);
 	draw_area->graph()->setLineStyle(QCPGraph::lsImpulse);
@@ -2901,19 +2901,18 @@ void SingleCellMultiomeItem::s_receive_atac_landscape_plot(ATAC_LANDSCAPE_PLOT_E
 	auto legend_layout = custom_plot::patch::set_legend_layout(draw_area, right_layout);
 
 	if (ele.scale) {
-		custom_plot::patch::add_gradient_legend(
+		custom_plot::add_gradient_legend(
 			draw_area,
 			legend_layout,
 			-1.0,
 			1.0,
 			"Accessibiliy",
-			"Low",
-			"High",
-			gs.get_legend_title_font(),
-			gs.get_legend_label_font(),
+			gs,
 			custom_plot::color::navy,
 			Qt::white,
-			custom_plot::color::firebrick3
+			custom_plot::color::firebrick3,
+			"Low",
+			"High"
 		);
 	}
 	else {

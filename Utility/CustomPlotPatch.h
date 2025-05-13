@@ -387,13 +387,15 @@ namespace custom_plot {
 			double minimum_value,
 			double maximum_value,
 			const QString& title,
-			const QString& lower_label,
-			const QString& upper_label,
 			const QFont& legend_title_font,
 			const QFont& legend_label_font,
+			const QFont& legend_tick_label_font,
+			bool is_legend_tick_shown,
 			QColor low_color,
 			QColor middle_color,
-			QColor high_color
+			QColor high_color,
+			const QString& lower_label = {},
+			const QString& upper_label = {}
 		);
 
 		void set_fixed_width(QCPAxisRect* axis_rect, int width);
