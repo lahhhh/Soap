@@ -151,8 +151,6 @@ public:
 
 	void clear();
 
-	void show(int showsize = 100000);
-
 	G_SET_IDENTIFIER("GenomicRange");
 
 };

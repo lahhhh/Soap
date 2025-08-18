@@ -113,9 +113,9 @@ namespace custom_plot {
 			QColor high_color = gs.get_gradient_high_color();
 
 			if (lighten_color) {
-				low_color.setAlpha(64);
-				middle_color.setAlpha(64);
-				high_color.setAlpha(64);
+				low_color.setAlpha(96);
+				middle_color.setAlpha(96);
+				high_color.setAlpha(96);
 			}
 
 			Eigen::ArrayXd d = custom::cast<Eigen::ArrayX>(data.get_continuous());
@@ -1172,11 +1172,23 @@ namespace custom_plot {
 		double x_span = maximum_x - minimum_x, y_span = maximum_y - minimum_y;
 
 		QCPItemLine* arrow_x = new QCPItemLine(draw_area);
+		arrow_x->start->setAxisRect(axis_rect);
+		arrow_x->start->setAxes(axis_rect->axis(QCPAxis::atBottom), axis_rect->axis(QCPAxis::atLeft));
+		arrow_x->start->setType(QCPItemPosition::ptPlotCoords);
+		arrow_x->end->setAxisRect(axis_rect);
+		arrow_x->end->setAxes(axis_rect->axis(QCPAxis::atBottom), axis_rect->axis(QCPAxis::atLeft));
+		arrow_x->end->setType(QCPItemPosition::ptPlotCoords);
 		arrow_x->start->setCoords(minimum_x - margin * 0.5 * x_span, minimum_y - margin * 0.5 * y_span);
 		arrow_x->end->setCoords(minimum_x + margin * x_span, minimum_y - margin * 0.5 * y_span);
 		arrow_x->setHead(QCPLineEnding::esSpikeArrow);
 
 		QCPItemLine* arrow_y = new QCPItemLine(draw_area);
+		arrow_y->start->setAxisRect(axis_rect);
+		arrow_y->start->setAxes(axis_rect->axis(QCPAxis::atBottom), axis_rect->axis(QCPAxis::atLeft));
+		arrow_y->start->setType(QCPItemPosition::ptPlotCoords);
+		arrow_y->end->setAxisRect(axis_rect);
+		arrow_y->end->setAxes(axis_rect->axis(QCPAxis::atBottom), axis_rect->axis(QCPAxis::atLeft));
+		arrow_y->end->setType(QCPItemPosition::ptPlotCoords);
 		arrow_y->start->setCoords(minimum_x - margin * 0.5 * x_span, minimum_y - margin * 0.5 * y_span);
 		arrow_y->end->setCoords(minimum_x - margin * 0.5 * x_span, minimum_y + margin * y_span);
 		arrow_y->setHead(QCPLineEnding::esSpikeArrow);

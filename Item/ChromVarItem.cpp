@@ -75,7 +75,6 @@ void ChromVARItem::s_differential_analysis() {
 
 	QString p_adjust_method = settings[1];
 
-	G_LOG("Differential Analysis in " + factor_name + "...");
 	DifferentialAnalysisWorker* worker = new DifferentialAnalysisWorker(
 		this->data(),
 		factor_name,
@@ -132,8 +131,6 @@ void ChromVARItem::s_receive_differential_analysis(DifferentialAnalysis da, QStr
 	);
 
 	this->set_item(item);
-
-	G_LOG("Differential Analysis finished");
 };
 
 void ChromVARItem::s_umap() {
@@ -181,6 +178,4 @@ void ChromVARItem::s_receive_umap(Eigen::MatrixXd emb) {
 	);
 
 	this->set_item(item);
-
-	G_LOG("UMAP finished.");
 };

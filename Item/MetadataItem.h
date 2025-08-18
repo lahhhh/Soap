@@ -33,7 +33,12 @@ private slots:
 	void s_delete_metadata();
 	void s_change_data_type();
 	void s_change_data_name();
+
 	void s_slice_data();
+	void s_map_values();
+	void s_replace_first();
+	void s_replace_last();
+	void s_replace_all();
 	void s_remove_first();
 	void s_remove_last();
 	void s_remove_all();

@@ -400,8 +400,6 @@ void SingleCellMultiomeItem::s_receive_macs_peaks(GenomicRange genomic_range) {
 	);
 
 	this->set_item(item);
-
-	G_LOG("MACS finished");
 };
 
 void SingleCellMultiomeItem::s_receive_loaded_fragments(Fragments* fragments) {
@@ -684,8 +682,6 @@ void SingleCellMultiomeItem::s_receive_motif_location(MotifPosition motif_positi
 	);
 
 	this->set_item(item);
-
-	G_LOG("Motif Finding finished");
 };
 
 void SingleCellMultiomeItem::s_receive_fast_annotation(
@@ -699,8 +695,6 @@ void SingleCellMultiomeItem::s_receive_fast_annotation(
 	this->data()->metadata()->mat_.update(sub_type_name, sub_type, CustomMatrix::DataType::QStringFactor);
 
 	this->signal_emitter_->x_update_interface();
-
-	G_NOTICE("Cell Type Annotation Finished.");
 };
 
 void SingleCellMultiomeItem::s_fast_annotation() {
@@ -823,8 +817,6 @@ void SingleCellMultiomeItem::s_cicero() {
 		return;
 	}
 
-	G_LOG("Cicero start...");
-
 	QString embedding_name = settings[0];
 	Embedding* embedding = static_cast<Embedding*>(this->index_tree_->search(embedding_name)->data_);
 
@@ -852,8 +844,6 @@ void SingleCellMultiomeItem::s_receive_cicero(Cicero* cicero) {
 	);
 
 	this->set_item(item);
-
-	G_LOG("Cicero finished");
 };
 
 void SingleCellMultiomeItem::s_find_motifs() {
@@ -1655,8 +1645,6 @@ void SingleCellMultiomeItem::s_receive_scrublet(Eigen::ArrayXd original_score, E
 	draw_area->plotLayout()->addElement(2, 0, title2);
 
 	this->draw_suite_->update(draw_area);
-
-	G_LOG("Detect doublets by Scrublet finished.");
 }
 
 void SingleCellMultiomeItem::s_rna_scrublet() {
@@ -1833,7 +1821,6 @@ void SingleCellMultiomeItem::s_gsea_in_database() {
 	selected << index;
 
 	metadata = custom::reordered(metadata, selected);
-	G_LOG("GSEAing in " + factor_name + "...");
 	SparseDouble tmp = rna_normalized->col_reordered(selected);
 
 	GseaWorker* worker = new GseaWorker(
@@ -1938,8 +1925,6 @@ void SingleCellMultiomeItem::s_receive_infercnv(CNV* cnv) {
 	);
 
 	this->set_item(item);
-
-	G_LOG("InferCNV finished");
 };
 
 void SingleCellMultiomeItem::s_scicnv() {
@@ -2036,8 +2021,6 @@ void SingleCellMultiomeItem::s_receive_scicnv(CNV* cnv) {
 	);
 
 	this->set_item(item);
-
-	G_LOG("SciCNV finished");
 };
 
 void SingleCellMultiomeItem::s_edit_metadata() {
@@ -2637,8 +2620,6 @@ void SingleCellMultiomeItem::s_receive_pando(Pando pando) {
 	);
 
 	this->set_item(item);
-
-	G_LOG("Pando finished.");
 };
 
 
@@ -2746,8 +2727,6 @@ void SingleCellMultiomeItem::s_receive_monocle3(Monocle3* monocle3) {
 	);
 
 	this->set_item(item);
-
-	G_LOG("Monocle3 computation finished.");
 };
 
 void SingleCellMultiomeItem::s_velocyto() {
@@ -2804,8 +2783,6 @@ void SingleCellMultiomeItem::s_receive_velocyto(VelocytoBase* velocyto_base) {
 	);
 
 	this->set_item(item);
-
-	G_LOG("Velocyto Base computation finished.");
 };
 
 void SingleCellMultiomeItem::s_show_atac_landscape() {
@@ -3068,8 +3045,6 @@ void SingleCellMultiomeItem::s_receive_cellchat(CellChat cellchat) {
 	);
 
 	this->set_item(item);
-
-	G_LOG(title + " finished");
 };
 
 void SingleCellMultiomeItem::s_cellchat_default() {
@@ -3131,7 +3106,6 @@ void SingleCellMultiomeItem::s_cellchat_default() {
 		G_WARN("Invalid min cluster size. Reset to 0.");
 		minimum_cluster_size = 0;
 	}
-	G_LOG("CellChat in " + settings[0] + " start...");
 
 	CellchatWorker* worker = new CellchatWorker(
 		settings[0],

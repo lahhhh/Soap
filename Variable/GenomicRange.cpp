@@ -403,13 +403,6 @@ QStringList GenomicRange::colnames() const {
 	return QStringList() << "Seq Names" << "Range Start" << "Range End" << "Strand" << this->metadata_.colnames_;
 };
 
-void GenomicRange::show(int showsize) {
-	const std::size_t size = this->size();
-	for (std::size_t i = 0; i < size && i < showsize; ++i) {
-		qDebug() << this->sequence_names_[i] << this->ranges_.start_[i] << this->ranges_.width_[i] << this->strand_[i];
-	}
-};
-
 void GenomicRange::finalize() {
 
 	QStringList unique_seqs = this->sequence_names_.unique();

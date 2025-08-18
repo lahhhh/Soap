@@ -1,7 +1,5 @@
 #include "TwoBitFileProcessor.h"
 
-#include <QDebug>
-
 template<int N>
 char get_base(uint8_t byte) {
 	constexpr int offset =  8 - N * 2;

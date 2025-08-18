@@ -250,8 +250,6 @@ void BulkRnaItem::s_receive_normalize(DenseDouble normalized) {
 	);
 
 	this->set_item(item);
-
-	G_LOG("Normalize finished.");
 };
 
 void BulkRnaItem::s_pca_default() {
@@ -267,8 +265,6 @@ void BulkRnaItem::s_pca_default() {
 	if (auto item = this->pca()) {
 		item->__remove_this();
 	}
-
-	G_LOG("Default PCA started...");
 
 	auto* worker = new PcaWorker2(normalized->mat_);
 	G_LINK_WORKER_THREAD(PcaWorker2, x_pca_ready, BulkRnaItem, s_receive_pca);
@@ -310,8 +306,6 @@ void BulkRnaItem::s_pca_custom() {
 		item->__remove_this();
 	}
 
-	G_LOG("PCA started...");
-
 	auto* worker = new PcaWorker2(normalized->mat_, use_variable_features, n_variable_features);
 	G_LINK_WORKER_THREAD(PcaWorker2, x_pca_ready, BulkRnaItem, s_receive_pca);
 };
@@ -340,8 +334,6 @@ void BulkRnaItem::s_receive_pca(Eigen::MatrixXd emb, QVector<double> sdev, QVect
 	);
 
 	this->set_item(item);
-
-	G_LOG("PCA finished.");
 };
 
 
@@ -457,8 +449,6 @@ void BulkRnaItem::s_receive_tsne(Eigen::MatrixXd mat) {
 	);
 
 	this->set_item(item);
-
-	G_LOG("t-SNE finished.");
 };
 
 void BulkRnaItem::s_umap_default() {
@@ -663,8 +653,6 @@ void BulkRnaItem::s_receive_umap(Eigen::MatrixXd mat) {
 	);
 
 	this->set_item(item);
-
-	G_LOG("UMAP finished.");
 }
 
 void BulkRnaItem::s_receive_integrated_data(BulkRna* data, QList<const BulkRna* > items) {
@@ -1199,8 +1187,6 @@ void BulkRnaItem::s_receive_differential_analysis(DifferentialAnalysis da, QStri
 	);
 
 	this->set_item(item);
-
-	G_LOG("Differential Expression Analysis finished");
 };
 
 

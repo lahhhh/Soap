@@ -246,7 +246,6 @@ void CiceroItem::s_differential_analysis() {
 
 	QString p_adjust_method = settings[2];
 
-	G_LOG("Differential Analysis in " + factor_name + "...");
 	DifferentialAnalysisWorker* worker = new DifferentialAnalysisWorker(
 		this->data(),
 		factor_name,
@@ -274,8 +273,6 @@ void CiceroItem::s_receive_differential_analysis(DifferentialAnalysis da, QStrin
 	);
 
 	this->set_item(item);
-
-	G_LOG("Differential Analysis finished");
 };
 
 void CiceroItem::s_umap() {
@@ -323,8 +320,6 @@ void CiceroItem::s_receive_umap(Eigen::MatrixXd emb) {
 	);
 
 	this->set_item(item);
-
-	G_LOG("UMAP finished.");
 };
 
 void CiceroItem::s_reset_threshold() {

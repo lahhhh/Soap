@@ -303,6 +303,7 @@ void EmbeddingItem::s_multiple_numeric_feature_plot() {
 
 			++n_valid;
 		}
+
 		if (n_valid == 0) {
 			G_WARN("No Valid Feature.");
 			return;
@@ -316,6 +317,9 @@ void EmbeddingItem::s_multiple_numeric_feature_plot() {
 				valid_features << d.name;
 			}
 		}
+	}
+	else {
+		return;
 	}
 
 	double min_val = feature_mat.minCoeff(), max_val = feature_mat.maxCoeff();
@@ -337,11 +341,11 @@ void EmbeddingItem::s_multiple_numeric_feature_plot() {
 		max_val = 1.0;
 	}
 
-
 	auto& gs = this->draw_suite_->graph_settings_;
 	auto [draw_area, left_layout, legend_layout] = custom_plot::prepare_lg_lg(gs);
 
 	for (int i = 0; i < n_valid_feature; ++i) {
+
 		QCPLayoutGrid* sub_layout = new QCPLayoutGrid;
 		int col = i / nrow;
 		int row = i - col * nrow;
@@ -381,6 +385,7 @@ void EmbeddingItem::s_multiple_numeric_feature_plot() {
 		);
 	}
 	else {
+
 		custom_plot::add_gradient_legend(draw_area, legend_layout, min_val, max_val, "Expression", gs);
 	}
 

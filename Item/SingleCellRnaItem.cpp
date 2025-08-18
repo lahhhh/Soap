@@ -203,8 +203,6 @@ void SingleCellRnaItem::s_receive_fast_annotation(
 	this->data()->metadata()->mat_.update(sub_type_name, sub_type, CustomMatrix::DataType::QStringFactor);
 
 	this->signal_emitter_->x_update_interface();
-
-	G_NOTICE("Cell Type Annotation Finished.");
 };
 
 void SingleCellRnaItem::s_fast_annotation() {
@@ -513,8 +511,6 @@ void SingleCellRnaItem::s_receive_normalize(SparseDouble* data) {
 	);
 
 	this->set_item(item);
-
-	G_LOG("Normalize finished.");
 };
 
 void SingleCellRnaItem::s_log_normalize_default() {
@@ -789,8 +785,6 @@ void SingleCellRnaItem::s_pca_custom() {
 		}
 	}
 
-	G_LOG("PCA start...");
-
 	PcaWorker* worker = new PcaWorker(
 		&this->data()->counts()->mat_, 
 		variable_feature_number_fixed ? variable_number : variable_proportion, 
@@ -812,8 +806,6 @@ void SingleCellRnaItem::s_pca_default() {
 	if (auto item = this->pca()) {
 		item->__remove_this();
 	}
-
-	G_LOG("PCA by tSVD start...");
 
 	PcaWorker* worker = new PcaWorker(&counts->mat_, 2000, 50, this->data()->random_state_);
 
@@ -843,8 +835,6 @@ void SingleCellRnaItem::s_receive_pca(Eigen::MatrixXd mat, QVector<double> sd) {
 	);
 
 	this->set_item(item);
-
-	G_LOG("PCA finished.");
 }
 
 void SingleCellRnaItem::s_harmony() {
@@ -909,8 +899,6 @@ void SingleCellRnaItem::s_harmony() {
 		factor_list
 	);
 
-	G_LOG("Harmony start...");
-
 	G_LINK_WORKER_THREAD(HarmonyWorker, x_harmony_ready, SingleCellRnaItem, s_receive_harmony)
 };
 
@@ -934,8 +922,6 @@ void SingleCellRnaItem::s_receive_harmony(Eigen::MatrixXd mat) {
 	);
 
 	this->set_item(item);
-
-	G_LOG("Harmony finished");
 };
 
 void SingleCellRnaItem::s_tsne_default() {
@@ -1072,8 +1058,6 @@ void SingleCellRnaItem::s_receive_tsne(Eigen::MatrixXd mat) {
 	);
 
 	this->set_item(item);
-
-	G_LOG("t-SNE finished.");
 };
 
 void SingleCellRnaItem::s_umap_default() {
@@ -1303,8 +1287,6 @@ void SingleCellRnaItem::s_receive_umap(Eigen::MatrixXd mat) {
 	);
 
 	this->set_item(item);
-
-	G_LOG("UMAP finished.");
 }
 
 void SingleCellRnaItem::s_leiden_default() {
@@ -1915,8 +1897,6 @@ void SingleCellRnaItem::s_receive_scrublet(const Eigen::ArrayXd& original_score,
 	draw_area->plotLayout()->addElement(2, 0, title2);
 
 	this->draw_suite_->update(draw_area);
-
-	G_LOG("Detect doublets by Scrublet finished.");
 }
 
 void SingleCellRnaItem::s_scrublet() {
@@ -2263,8 +2243,6 @@ void SingleCellRnaItem::s_receive_differential_analysis(DifferentialAnalysis da,
 	);
 
 	this->set_item(item);
-
-	G_LOG("Differential Expression Analysis finished");
 };
 
 void SingleCellRnaItem::s_receive_velocyto(VelocytoBase* velocyto_base) {
@@ -2284,8 +2262,6 @@ void SingleCellRnaItem::s_receive_velocyto(VelocytoBase* velocyto_base) {
 	);
 	
 	this->set_item(item);
-
-	G_LOG("Velocyto Base computation finished.");
 };
 
 void SingleCellRnaItem::s_monocle3() {
@@ -2392,8 +2368,6 @@ void SingleCellRnaItem::s_receive_monocle3(Monocle3* monocle3) {
 	);
 
 	this->set_item(item);
-
-	G_LOG("Monocle3 computation finished.");
 };
 
 void SingleCellRnaItem::s_velocyto() {
@@ -2592,7 +2566,6 @@ void SingleCellRnaItem::s_gsea() {
 	selected << index;
 
 	metadata = custom::reordered(metadata, selected);
-	G_LOG("GSEAing in " + factor_name + "...");
 	SparseDouble tmp = normalized->col_reordered(selected);
 
 	GseaWorker* worker = new GseaWorker(
@@ -2627,8 +2600,6 @@ void SingleCellRnaItem::s_receive_infercnv(CNV* cnv) {
 	);
 
 	this->set_item(item);
-
-	G_LOG("InferCNV finished");
 };
 
 void SingleCellRnaItem::s_infercnv() {
@@ -2803,8 +2774,6 @@ void SingleCellRnaItem::s_receive_scicnv(CNV* cnv) {
 	);
 	
 	this->set_item(item);
-
-	G_LOG("SciCnv finished");
 };
 
 void SingleCellRnaItem::s_combine_existed_metadata() {
@@ -3204,8 +3173,6 @@ void SingleCellRnaItem::s_receive_cellchat(CellChat cellchat) {
 	);
 
 	this->set_item(item);
-
-	G_LOG(title + " finished");
 };
 
 void SingleCellRnaItem::s_cellchat_default() {
@@ -3267,7 +3234,6 @@ void SingleCellRnaItem::s_cellchat_default() {
 		G_WARN("Invalid min cluster size. Reset to 0.");
 		minimum_cluster_size = 0;
 	}
-	G_LOG("CellChat in " + settings[0] + " start...");
 
 	CellchatWorker* worker = new CellchatWorker(
 		settings[0],

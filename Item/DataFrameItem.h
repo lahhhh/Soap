@@ -52,6 +52,10 @@ private slots:
 	void s_delete_first_row();
 
 	void s_slice_data();
+	void s_map_values();
+	void s_replace_first();
+	void s_replace_last();
+	void s_replace_all();
 	void s_remove_first();
 	void s_remove_last();
 	void s_remove_all();

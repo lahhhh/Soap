@@ -187,10 +187,6 @@ void MainWindow::set_left_layout() {
 	this->left_layout_->setStretchFactor(this->information_area_, 5);
 };
 
-
-void MainWindow::s_test() {	
-};
-
 void MainWindow::set_utility_menu() {
 
 	auto menu_utility = this->menubar_->addMenu("Utility");
@@ -200,8 +196,6 @@ void MainWindow::set_utility_menu() {
 	auto menu_create_string_vector = menu_create_variable->addMenu("String Vector");
 
 	menu_create_string_vector->addAction("From Input", this, &MainWindow::s_create_string_vector_from_input);
-
-	//menu_utility->addAction("Test", this, &MainWindow::s_test);
 };
 
 void MainWindow::s_create_string_vector_from_input() {

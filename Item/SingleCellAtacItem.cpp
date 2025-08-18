@@ -304,8 +304,6 @@ void SingleCellAtacItem::s_receive_normalized_gene_activity(SparseDouble* data) 
 	);
 
 	this->set_item(item);
-
-	G_LOG("Gene Activity Normalize finished.");
 };
 
 void SingleCellAtacItem::s_tfidf_default() {
@@ -351,8 +349,6 @@ void SingleCellAtacItem::s_receive_tfidf(SparseDouble* data) {
 	);
 
 	this->set_item(item);
-
-	G_LOG("TFIDF finished.");
 }
 
 
@@ -446,8 +442,6 @@ void SingleCellAtacItem::s_receive_svd(Eigen::MatrixXd mat, QVector<double> sd) 
 		this->signal_emitter_
 	);
 	this->set_item(item);
-
-	G_LOG("SVD finished.");
 };
 
 
@@ -680,8 +674,6 @@ void SingleCellAtacItem::s_receive_umap(Eigen::MatrixXd mat) {
 		this->signal_emitter_
 	);
 	this->set_item(item);
-
-	G_LOG("UMAP finished.");
 };
 
 
@@ -822,8 +814,6 @@ void SingleCellAtacItem::s_receive_tsne(Eigen::MatrixXd mat) {
 		this->signal_emitter_
 	);
 	this->set_item(item);
-
-	G_LOG("tSNE finished.");
 };
 
 
@@ -1371,8 +1361,6 @@ void SingleCellAtacItem::s_receive_differential_analysis(DifferentialAnalysis da
 	);
 
 	this->set_item(item);
-
-	G_LOG("Differential Expression Analysis finished");
 };
 
 
@@ -2683,8 +2671,6 @@ void SingleCellAtacItem::s_receive_macs_peaks(GenomicRange genomic_range) {
 	);
 
 	this->set_item(item);
-
-	G_LOG("MACS finished");
 };
 
 
@@ -2779,8 +2765,6 @@ void SingleCellAtacItem::s_receive_fast_annotation(
 	this->data()->metadata()->mat_.update(sub_type_name, sub_type, CustomMatrix::DataType::QStringFactor);
 
 	this->signal_emitter_->x_update_interface();
-
-	G_NOTICE("Cell Type Annotation Finished.");
 };
 
 void SingleCellAtacItem::s_fast_annotation() {
@@ -2928,8 +2912,6 @@ void SingleCellAtacItem::s_receive_motif_location(MotifPosition motif_position) 
 	);
 
 	this->set_item(item);
-
-	G_LOG("Motif Finding finished");
 };
 
 
@@ -3183,6 +3165,4 @@ void SingleCellAtacItem::s_receive_monocle3(Monocle3* monocle3) {
 	);
 
 	this->set_item(item);
-
-	G_LOG("Monocle3 computation finished.");
 };

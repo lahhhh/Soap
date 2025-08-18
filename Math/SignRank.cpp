@@ -1,5 +1,6 @@
 #include "SignRank.h"
 
+#include <algorithm>
 #include <cmath>
 
 #ifndef M_LN2

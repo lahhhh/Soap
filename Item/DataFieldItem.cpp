@@ -308,8 +308,6 @@ void DataFieldItem::s_receive_differential_analysis(DifferentialAnalysis da, QSt
 	);
 
 	this->set_item(item);
-
-	G_LOG("Differential Analysis finished");
 };
 
 void DataFieldItem::s_find_dag() {
@@ -367,7 +365,6 @@ void DataFieldItem::s_find_dag() {
 
 	QString p_adjust_method = settings[2];
 
-	G_LOG("Finding DAG in " + factor_name + "...");
 	DifferentialAnalysisWorker* worker = new DifferentialAnalysisWorker(
 		this->data(),
 		factor_name,
@@ -436,7 +433,6 @@ void DataFieldItem::s_find_dap() {
 
 	QString p_adjust_method = settings[2];
 
-	G_LOG("Finding DAP in " + factor_name + "...");
 	DifferentialAnalysisWorker* worker = new DifferentialAnalysisWorker(
 		this->data(),
 		factor_name,
@@ -503,7 +499,6 @@ void DataFieldItem::s_find_deg() {
 
 	QString p_adjust_method = settings[2];
 
-	G_LOG("Finding DEG in " + factor_name + "...");
 	DifferentialAnalysisWorker* worker = new DifferentialAnalysisWorker(
 		this->data(),
 		factor_name,
@@ -548,8 +543,6 @@ void DataFieldItem::s_receive_umap(Eigen::MatrixXd mat) {
 		this->signal_emitter_
 	);
 	this->set_item(item);
-
-	G_LOG("UMAP finished.");
 };
 
 void DataFieldItem::s_receive_svd(Eigen::MatrixXd mat, QVector<double> sd) {
@@ -596,8 +589,6 @@ void DataFieldItem::s_receive_svd(Eigen::MatrixXd mat, QVector<double> sd) {
 		this->signal_emitter_
 	);
 	this->set_item(item);
-
-	G_LOG("SVD finished.");
 };
 
 void DataFieldItem::s_receive_pca(Eigen::MatrixXd mat, QVector<double> sd) {
@@ -644,8 +635,6 @@ void DataFieldItem::s_receive_pca(Eigen::MatrixXd mat, QVector<double> sd) {
 		this->signal_emitter_
 	);
 	this->set_item(item);
-
-	G_LOG("PCA finished.");
 };
 
 void DataFieldItem::s_receive_leiden(QVector<int> cluster) {
@@ -1558,8 +1547,6 @@ void DataFieldItem::s_pca_default() {
 		item->__remove_this();
 	}
 
-	G_LOG("PCA by tSVD start...");
-
 	PcaWorker* worker = new PcaWorker(&counts->mat_, 2000, 50, single_cell_multiome->random_state_);
 	G_LINK_WORKER_THREAD(PcaWorker, x_pca_ready, DataFieldItem, s_receive_pca);
 };
@@ -1638,8 +1625,6 @@ void DataFieldItem::s_pca_custom() {
 	if (auto item = this->pca()) {
 		item->__remove_this();
 	}
-
-	G_LOG("PCA by tSVD start...");
 
 	PcaWorker* worker = new PcaWorker(
 		&counts->mat_,
@@ -1732,8 +1717,6 @@ void DataFieldItem::s_receive_normalize(SparseDouble* data) {
 	);
 
 	this->set_item(item);
-
-	G_LOG("Log normalize finished.");
 };
 
 void DataFieldItem::s_receive_harmony(Eigen::MatrixXd mat) {
@@ -1769,8 +1752,6 @@ void DataFieldItem::s_receive_harmony(Eigen::MatrixXd mat) {
 		this->signal_emitter_
 	);
 	this->set_item(item);
-
-	G_LOG("Harmony finished");
 };
 
 void DataFieldItem::s_tsne_default() {
@@ -1935,8 +1916,6 @@ void DataFieldItem::s_receive_tsne(Eigen::MatrixXd mat) {
 		this->signal_emitter_
 	);
 	this->set_item(item);
-
-	G_LOG("tSNE finished.");
 };
 
 void DataFieldItem::s_umap_default() {
@@ -2221,8 +2200,6 @@ void DataFieldItem::s_receive_tfidf(SparseDouble* data) {
 	);
 
 	this->set_item(item);
-
-	G_LOG("TFIDF finished.");
 }
 
 void DataFieldItem::s_log_normalize_default() {

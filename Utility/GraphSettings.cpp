@@ -189,7 +189,7 @@ QFont GraphSettings::get_left_label_font(const QFont& left_label_font) const {
 };
 
 QFont GraphSettings::get_label_font(QCPAxis::AxisType type) const {
-	if (type == QCPAxis::atLeft || QCPAxis::atRight) {
+	if ((type == QCPAxis::atLeft) || (type == QCPAxis::atRight)) {
 		return this->get_left_label_font();
 	}
 	else {

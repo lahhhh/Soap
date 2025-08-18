@@ -135,8 +135,6 @@ private slots:
 	void s_load_scRNAseq_count_matrix();
 	void s_batch_load_count_matrix();
 
-	void s_test();
-
 	void s_save_pdf_and_png();
 
 	void s_save_png();

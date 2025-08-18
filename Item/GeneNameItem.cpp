@@ -286,8 +286,6 @@ void GeneNameItem::s_receive_enrichment(const CustomMatrix& matrix, QString name
 	);
 
 	this->set_item(item);
-
-	G_LOG("Enrichment finished");
 };
 
 void GeneNameItem::s_remove_elements_by_chromosome_location() {

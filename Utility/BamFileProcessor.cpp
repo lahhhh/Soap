@@ -27,6 +27,7 @@ BamFileProcessor::~BamFileProcessor() {
 	delete[] this->buffer_;
 };
 
+
 bool BamFileProcessor::read_block() {
 
 	auto buffer_left_size = this->uncompressed_end_ - this->reading_location_;
@@ -358,7 +359,7 @@ std::string BamFileProcessor::get_cigar_string() {
 
 		cigar_string += std::to_string(op_length);
 
-		uint32_t op_type = op & 0x15;
+		uint32_t op_type = op & 0xf;
 
 		char type_char{ '\0' };
 

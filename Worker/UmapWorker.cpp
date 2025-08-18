@@ -2,7 +2,6 @@
 #include "annoylib.h"
 #include "kissrandom.h"
 #include "mman.h"
-#include <QDebug>
 #include "Umap.h"
 
 UmapWorker::UmapWorker(

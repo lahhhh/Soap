@@ -1,12 +1,14 @@
 #include "MetadataItem.h"
 
 #include "ComparePlotDialog.h"
+#include "CommonDialog.h"
+#include "YesOrNoDialog.h"
 
 #include "FileIO.h"
 #include "FileWritingWorker.h"
 #include "MetadataViewWindow.h"
 #include "ItemIOWorker.h"
-#include "CommonDialog.h"
+
 #include "MatrixWindow.h"
 #include "CustomPlot.h"
 #include "WilcoxTest.h"
@@ -38,6 +40,10 @@ void MetadataItem::__set_menu() {
 	ADD_ACTION("Change Data Type", "Edit", s_change_data_type);
 	ADD_ACTION("Change Data Name", "Edit", s_change_data_name);
 	ADD_ACTION("Slice Data", "Edit", s_slice_data);
+	ADD_ACTION("Map Values", "Edit", s_map_values);
+	ADD_ACTION("Replace First", "Edit", s_replace_first);
+	ADD_ACTION("Replace Last", "Edit", s_replace_last);
+	ADD_ACTION("Replace All", "Edit", s_replace_all);
 	ADD_ACTION("Remove First", "Edit", s_remove_first);
 	ADD_ACTION("Remove Last", "Edit", s_remove_last);
 	ADD_ACTION("Remove All", "Edit", s_remove_all);
@@ -61,6 +67,76 @@ void MetadataItem::__set_menu() {
 
 }
 
+
+void MetadataItem::s_map_values() {
+
+	G_GETLOCK;
+	G_UNLOCK;
+
+	auto valid_names = this->data()->mat_.get_type_names(CustomMatrix::DataType::QStringFactor);
+
+	if (valid_names.isEmpty()) {
+		G_WARN("No Factor Data");
+		return;
+	}
+
+	auto settings = CommonDialog::get_response(
+		this->signal_emitter_,
+		"Choose Data to edit",
+		{ "Data:" },
+		{ soap::InputStyle::ComboBox },
+		{ valid_names }
+	);
+
+	if (settings.isEmpty()) {
+		return;
+	}
+
+	QString data_name = settings[0];
+
+	auto levels = this->data()->mat_.string_factors_.at(data_name);
+
+	settings = CommonDialog::get_response(
+		this->signal_emitter_,
+		"Set New Value",
+		QStringList() << "New Data Name" << levels,
+		{ levels.size() + 1, soap::InputStyle::StringLineEdit }
+	);
+
+	if (settings.isEmpty()) {
+		return;
+	}
+
+	QString new_data_name = settings[0];
+
+	if (this->data()->mat_.contains(new_data_name)) {
+
+		bool ok = YesOrNoDialog::get_response(
+			"Existed Data Name!",
+			"Continue?"
+		);
+
+		if (!ok) {
+			return;
+		}
+
+	}
+
+	QMap<QString, QString> value_map;
+
+	for (int i = 0; i < levels.size(); ++i) {
+
+		value_map[levels[i]] = settings[i + 1];
+	}
+
+	QStringList original_values = this->data()->mat_.get_qstring(data_name);
+
+	QStringList new_value = custom::sapply(original_values, [&value_map](const QString& val) {
+		return value_map[val];
+	});
+
+	this->data()->mat_.update(new_data_name, new_value, CustomMatrix::DataType::QStringFactor);
+};
 
 void MetadataItem::s_rownames_as_column() {
 
@@ -797,6 +873,59 @@ void MetadataItem::s_remove_from_last() {
 	metadata.update(feature_name, data, metadata.data_type_[feature_name]);
 };
 
+void MetadataItem::s_replace_all() {
+
+	G_GETLOCK;
+
+	G_UNLOCK;
+
+	auto&& metadata = this->data()->mat_;
+
+	auto valid_names = metadata.get_type_names(CustomMatrix::DataType::QStringFactor) << metadata.get_type_names(CustomMatrix::DataType::QString);
+	if (valid_names.isEmpty()) {
+		G_WARN("No Valid Metadata.");
+		return;
+	}
+
+	auto settings = CommonDialog::get_response(
+		this->signal_emitter_,
+		"Edit Settings",
+		{ "Feature", "To replace", "new value" },
+		{ soap::InputStyle::ComboBox, soap::InputStyle::StringLineEdit, soap::InputStyle::StringLineEdit },
+		{ valid_names }
+	);
+
+	if (settings.isEmpty()) {
+		return;
+	}
+
+	QString feature_name = settings[0];
+	QString to_replace = settings[1];
+	QString new_value = settings[2];
+
+	if (to_replace.isEmpty()) {
+		return;
+	}
+
+	int replace_size = to_replace.size();
+
+	auto data = metadata.get_qstring(feature_name);
+
+	for (auto&& d : data) {
+
+		qsizetype ind = d.indexOf(to_replace);
+
+		while (ind != -1) {
+
+			d = d.sliced(0, ind) + new_value + d.sliced(ind + replace_size);
+
+			ind = d.indexOf(to_replace);
+		}
+	}
+
+	metadata.update(feature_name, data, metadata.data_type_[feature_name]);
+};
+
 void MetadataItem::s_remove_all() {
 
 	G_GETLOCK;
@@ -837,6 +966,105 @@ void MetadataItem::s_remove_all() {
 	for (auto&& d : data) {
 
 		d.remove(to_delete);
+	}
+
+	metadata.update(feature_name, data, metadata.data_type_[feature_name]);
+};
+
+void MetadataItem::s_replace_first() {
+
+	G_GETLOCK;
+
+	G_UNLOCK;
+
+	auto&& metadata = this->data()->mat_;
+
+	auto valid_names = metadata.get_type_names(CustomMatrix::DataType::QStringFactor) << metadata.get_type_names(CustomMatrix::DataType::QString);
+	if (valid_names.isEmpty()) {
+		G_WARN("No Valid Metadata.");
+		return;
+	}
+
+	auto settings = CommonDialog::get_response(
+		this->signal_emitter_,
+		"Edit Settings",
+		{ "Feature", "To replace", "new value"},
+		{ soap::InputStyle::ComboBox, soap::InputStyle::StringLineEdit, soap::InputStyle::StringLineEdit },
+		{ valid_names }
+	);
+
+	if (settings.isEmpty()) {
+		return;
+	}
+
+	QString feature_name = settings[0];
+	QString to_replace = settings[1];
+	QString new_value = settings[2];
+
+	if (to_replace.isEmpty()) {
+		return;
+	}
+
+	int replace_size = to_replace.size();
+
+	auto data = metadata.get_qstring(feature_name);
+
+	for (auto&& d : data) {
+
+		auto ind = d.indexOf(to_replace);
+
+		if (ind != -1) {
+			d = d.sliced(0, ind) + new_value + d.sliced(ind + replace_size);
+		}
+	}
+
+	metadata.update(feature_name, data, metadata.data_type_[feature_name]);
+};
+void MetadataItem::s_replace_last() {
+
+	G_GETLOCK;
+
+	G_UNLOCK;
+
+	auto&& metadata = this->data()->mat_;
+
+	auto valid_names = metadata.get_type_names(CustomMatrix::DataType::QStringFactor) << metadata.get_type_names(CustomMatrix::DataType::QString);
+	if (valid_names.isEmpty()) {
+		G_WARN("No Valid Metadata.");
+		return;
+	}
+
+	auto settings = CommonDialog::get_response(
+		this->signal_emitter_,
+		"Edit Settings",
+		{ "Feature", "To replace", "new value" },
+		{ soap::InputStyle::ComboBox, soap::InputStyle::StringLineEdit, soap::InputStyle::StringLineEdit },
+		{ valid_names }
+	);
+
+	if (settings.isEmpty()) {
+		return;
+	}
+
+	QString feature_name = settings[0];
+	QString to_replace = settings[1];
+	QString new_value = settings[2];
+
+	if (to_replace.isEmpty()) {
+		return;
+	}
+
+	int replace_size = to_replace.size();
+
+	auto data = metadata.get_qstring(feature_name);
+
+	for (auto&& d : data) {
+
+		auto ind = d.lastIndexOf(to_replace);
+
+		if (ind != -1) {
+			d = d.sliced(0, ind) + new_value + d.sliced(ind + replace_size);
+		}
 	}
 
 	metadata.update(feature_name, data, metadata.data_type_[feature_name]);

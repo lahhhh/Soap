@@ -1047,6 +1047,4 @@ void DifferentialAnalysisItem::s_receive_enrichment(const CustomMatrix& matrix, 
 	);
 
 	this->set_item(item);
-
-	G_LOG("Enrichment finished");
 };
