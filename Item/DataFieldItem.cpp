@@ -327,7 +327,7 @@ void DataFieldItem::s_find_dag() {
 
 	auto factor_map = single_cell_multiome->metadata()->mat_.get_factor_information(false);
 	if (factor_map.isEmpty()) {
-		G_LOG("No suitable feature for Find DAG");
+		G_WARN("No suitable feature for Find DAG");
 		G_UNLOCK;
 		return;
 	}
@@ -395,7 +395,7 @@ void DataFieldItem::s_find_dap() {
 
 	auto factor_map = single_cell_multiome->metadata()->mat_.get_factor_information(false);
 	if (factor_map.isEmpty()) {
-		G_LOG("No suitable feature for Find DAP");
+		G_WARN("No suitable feature for Find DAP");
 		G_UNLOCK;
 		return;
 	}
@@ -461,7 +461,7 @@ void DataFieldItem::s_find_deg() {
 
 	auto factor_map = single_cell_multiome->metadata()->mat_.get_factor_information(false);
 	if (factor_map.isEmpty()) {
-		G_LOG("No suitable feature for Find DEG");
+		G_WARN("No suitable feature for Find DEG");
 		G_UNLOCK;
 		return;
 	}
@@ -872,8 +872,6 @@ void DataFieldItem::s_smart_local_moving_custom() {
 		return;
 	}
 
-	G_LOG("Start Clustering...");
-
 	SlmWorker* worker;
 	if (start_dim == 1 && end_dim == ncol) {
 		worker = new SlmWorker(*from_matrix, "SLM", metric, modularity_function, n_start, n_iteration, random_state, n_neighbors, n_trees, resolution);
@@ -1002,8 +1000,6 @@ void DataFieldItem::s_modified_louvain_custom() {
 		return;
 	}
 
-	G_LOG("Start Clustering...");
-
 	SlmWorker* worker;
 	if (start_dim == 1 && end_dim == ncol) {
 		worker = new SlmWorker(*from_matrix, "Modified Louvain", metric, modularity_function, n_start, n_iteration, random_state, n_neighbors, n_trees, resolution);
@@ -1113,8 +1109,6 @@ void DataFieldItem::s_leiden_custom() {
 		G_UNLOCK;
 		return;
 	}
-
-	G_LOG("Start Clustering...");
 
 	LeidenPartitionWorker* worker;
 	if (start_dim == 1 && end_dim == ncol) {
@@ -1251,8 +1245,6 @@ void DataFieldItem::s_louvain_custom() {
 		return;
 	}
 
-	G_LOG("Start Clustering...");
-
 	SlmWorker* worker;
 	if (start_dim == 1 && end_dim == ncol) {
 		worker = new SlmWorker(*from_matrix, "Louvain", metric, modularity_function, n_start, n_iteration, random_state, n_neighbors, n_trees, resolution);
@@ -1274,8 +1266,6 @@ void DataFieldItem::s_leiden_default() {
 
 	G_GETLOCK;
 
-	G_LOG("Start Clustering...");
-
 	LeidenPartitionWorker* worker = new LeidenPartitionWorker(
 		pca->data_.mat_,
 		"Modularity",
@@ -1296,8 +1286,6 @@ void DataFieldItem::s_louvain_default() {
 		return;
 	}
 	G_GETLOCK;
-
-	G_LOG("Start Clustering...");
 
 	SlmWorker* worker = new SlmWorker(
 		pca->data_.mat_,
@@ -1324,8 +1312,6 @@ void DataFieldItem::s_modified_louvain_default() {
 	}
 	G_GETLOCK;
 
-	G_LOG("Start Clustering...");
-
 	SlmWorker* worker = new SlmWorker(
 		pca->data_.mat_,
 		"Modified Louvain",
@@ -1350,8 +1336,6 @@ void DataFieldItem::s_smart_local_moving_default() {
 		return;
 	}
 	G_GETLOCK;
-
-	G_LOG("Start Clustering...");
 
 	SlmWorker* worker = new SlmWorker(
 		pca->data_.mat_,
@@ -1390,7 +1374,7 @@ void DataFieldItem::s_harmony() {
 	QStringList factor_names = single_cell_multiome->metadata()->mat_.get_factor_name(false);
 
 	if (factor_names.isEmpty()) {
-		G_LOG("No suitable feature for Harmony");
+		G_WARN("No suitable feature for Harmony");
 		G_UNLOCK;
 		return;
 	}
@@ -1440,8 +1424,6 @@ void DataFieldItem::s_harmony() {
 		factor_list
 	);
 
-	G_LOG("Harmony start...");
-
 	G_LINK_WORKER_THREAD(HarmonyWorker, x_harmony_ready, DataFieldItem, s_receive_harmony)
 };
 
@@ -1489,8 +1471,6 @@ void DataFieldItem::s_svd_custom() {
 		item->__remove_this();
 	}
 
-	G_LOG("SVD start...");
-
 	SvdWorker* worker = new SvdWorker(normalized->mat_, perc, 50, single_cell_multiome->random_state_);
 	G_LINK_WORKER_THREAD(SvdWorker, x_svd_ready, DataFieldItem, s_receive_svd);
 };
@@ -1517,8 +1497,6 @@ void DataFieldItem::s_svd_default() {
 	if (auto item = this->pca()) {
 		item->__remove_this();
 	}
-
-	G_LOG("SVD start...");
 
 	SvdWorker* worker = new SvdWorker(normalized->mat_, 25, 50, single_cell_multiome->random_state_);
 	G_LINK_WORKER_THREAD(SvdWorker, x_svd_ready, DataFieldItem, s_receive_svd);
@@ -2096,27 +2074,27 @@ void DataFieldItem::s_umap_custom() {
 	double minimum_distance = settings[6].toDouble();
 	double spread = settings[7].toDouble();
 	if (minimum_distance < 0 || minimum_distance > spread) {
-		G_LOG("Minimum distance must be less than or equal to spread and can not be negative. Please reset");
+		G_NOTICE("Minimum distance must be less than or equal to spread and can not be negative. Please reset");
 		G_UNLOCK;
 		return;
 	}
 	double set_op_mix_ratio = settings[8].toDouble();
 	if (set_op_mix_ratio < 0 || set_op_mix_ratio > 1.0) {
-		G_LOG("Set op mix ratio must be between 0.0 and 1.0. Reset to 1.0");
+		G_NOTICE("Set op mix ratio must be between 0.0 and 1.0. Reset to 1.0");
 		set_op_mix_ratio = 1.0;
 	}
 	double repulsion_strength = settings[9].toDouble();
 	if (repulsion_strength < 0) {
-		G_LOG("Repulsion strength cannot be negative. Reset to 1.0");
+		G_NOTICE("Repulsion strength cannot be negative. Reset to 1.0");
 		repulsion_strength = 1.0;
 	}
 	int negative_sample_rate = settings[10].toInt();
 	if (negative_sample_rate <= 0) {
-		G_LOG("Negative sample rate must be positive. Reset to 5.");
+		G_NOTICE("Negative sample rate must be positive. Reset to 5.");
 		negative_sample_rate = 5;
 	}
 	else if (negative_sample_rate > 10) {
-		G_LOG("Larger negative sample rate may cost more time.");
+		G_NOTICE("Larger negative sample rate may cost more time.");
 	}
 	int random_state = settings[11].toInt();
 	umap_input = mat->block(0, start_dimension - 1, nrow, last_dimension - start_dimension + 1);
@@ -2157,7 +2135,6 @@ void DataFieldItem::s_tfidf_default() {
 		normalized->__remove_this();
 	}
 
-	G_LOG("TFIDF start...");
 	TfidfWorker* worker = new TfidfWorker(
 		counts,
 		10000
@@ -2217,7 +2194,6 @@ void DataFieldItem::s_log_normalize_default() {
 		item->__remove_this();
 	}
 
-	G_LOG("Log normalize start...");
 	LogNormalizeWorker* worker = new LogNormalizeWorker(
 		counts,
 		10000.0
@@ -2259,7 +2235,6 @@ void DataFieldItem::s_log_normalize_custom() {
 		item->__remove_this();
 	}
 
-	G_LOG("Log normalize start...");
 	LogNormalizeWorker* worker = new LogNormalizeWorker(
 		counts,
 		scale_factor
@@ -2522,7 +2497,7 @@ void DataFieldItem::s_distribution_plot() {
 	auto factor_info = metadata.get_factor_information(false);
 
 	if (factor_info.isEmpty()) {
-		G_LOG("No suitable metadata detected.");
+		G_NOTICE("No suitable metadata detected.");
 		return;
 	}
 
@@ -2643,7 +2618,7 @@ void DataFieldItem::s_cell_heatmap_plot() {
 	QMap<QString, QStringList> map = metadata.get_factor_information();
 
 	if (map.isEmpty()) {
-		G_LOG("No suitable metadata detected.");
+		G_NOTICE("No suitable metadata detected.");
 		return;
 	}
 
@@ -2785,7 +2760,7 @@ void DataFieldItem::s_heatmap_plot() {
 	QMap<QString, QStringList> map = metadata.get_factor_information();
 
 	if (map.isEmpty()) {
-		G_LOG("No suitable metadata detected.");
+		G_NOTICE("No suitable metadata detected.");
 		return;
 	}
 
@@ -2980,7 +2955,7 @@ void DataFieldItem::s_bubble_plot() {
 	QMap<QString, QStringList> map = metadata.get_factor_information();
 
 	if (map.isEmpty()) {
-		G_LOG("No suitable metadata detected.");
+		G_NOTICE("No suitable metadata detected.");
 		return;
 	}
 

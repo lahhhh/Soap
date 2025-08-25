@@ -52,7 +52,7 @@ void SparseDoubleItem::s_search_row(){
     QVector<int> row_index = custom::valid_index_of(quest, this->data()->rownames_);
 
     if(row_index.isEmpty()){
-        G_LOG("Feature Not Found.");
+        G_NOTICE("Feature Not Found.");
         return;
     }
     auto tmp = this->data()->row_reordered(row_index);
@@ -79,7 +79,7 @@ void SparseDoubleItem::s_search_column(){
     QVector<int> column_index = custom::valid_index_of(quest, this->data()->colnames_);
 
     if(column_index.isEmpty()){
-        G_LOG("Column Not Found.");
+        G_NOTICE("Column Not Found.");
         return;
     }
     auto tmp = this->data()->col_reordered(column_index);
@@ -106,7 +106,7 @@ void SparseDoubleItem::s_search_block(){
     QVector<int> row_index = custom::valid_index_of(row_quests, this->data()->rownames_);
     QVector<int> column_index = custom::valid_index_of(col_quests, this->data()->colnames_);
     if(column_index.isEmpty() || row_index.isEmpty()){
-        G_LOG("Data Not Found.");
+        G_NOTICE("Data Not Found.");
         return;
     }
     auto tmp = this->data()->reordered(row_index, column_index);

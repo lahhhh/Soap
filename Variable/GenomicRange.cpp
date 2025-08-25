@@ -1,7 +1,5 @@
 #include "GenomicRange.h"
 
-#include <QDebug>
-
 #include "Custom.h"
 #include "GenomeUtility.h"
 

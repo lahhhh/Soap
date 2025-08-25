@@ -57,7 +57,7 @@ void GSEAItem::s_extract_pathway_names() {
 
 	double threshold = settings[0].toDouble();
 	if (threshold <= 0 || threshold > 1) {
-		G_LOG("Invalid p threshold. Reset to 0.05");
+		G_NOTICE("Invalid p threshold. Reset to 0.05");
 		threshold = 0.05;
 	}
 
@@ -105,7 +105,7 @@ void GSEAItem::s_show_significant() {
 
 	double threshold = settings[0].toDouble();
 	if (threshold <= 0 || threshold > 1) {
-		G_LOG("Invalid p threshold. Reset to 0.05");
+		G_NOTICE("Invalid p threshold. Reset to 0.05");
 		threshold = 0.05;
 	}
 

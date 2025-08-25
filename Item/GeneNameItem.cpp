@@ -165,7 +165,7 @@ void GeneNameItem::s_enrich_kegg() {
 		species = res[0] == "Human" ? soap::Species::Human : soap::Species::Mouse;
 	}
 	if (species == soap::Species::Undefined) {
-		G_LOG("Only human and mouse gene enrichment are supported");
+		G_NOTICE("Only human and mouse gene enrichment are supported");
 		G_UNLOCK;
 		return;
 	}
@@ -186,7 +186,7 @@ void GeneNameItem::s_enrich_kegg() {
 	QString p_adjust_method = settings[0];
 	double pathway_p_threshold = settings[1].toDouble();
 	if (pathway_p_threshold <= 0 || pathway_p_threshold > 1) {
-		G_LOG("Invalid p value to filter pathways! Reset to 0.05");
+		G_NOTICE("Invalid p value to filter pathways! Reset to 0.05");
 		pathway_p_threshold = 0.05;
 	}
 
@@ -233,7 +233,7 @@ void GeneNameItem::s_enrich_go() {
 		species = res[0] == "Human" ? soap::Species::Human : soap::Species::Mouse;
 	}
 	if (species == soap::Species::Undefined) {
-		G_LOG("Only human and mouse gene enrichment are supported");
+		G_NOTICE("Only human and mouse gene enrichment are supported");
 		G_UNLOCK;
 		return;
 	}
@@ -255,7 +255,7 @@ void GeneNameItem::s_enrich_go() {
 
 	double pathway_p_threshold = settings[2].toDouble();
 	if (pathway_p_threshold <= 0 || pathway_p_threshold > 1) {
-		G_LOG("Invalid p value to filter pathways! Reset to 0.05");
+		G_NOTICE("Invalid p value to filter pathways! Reset to 0.05");
 		pathway_p_threshold = 0.05;
 	}
 

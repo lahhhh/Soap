@@ -303,8 +303,8 @@ void Monocle3Item::s_pseudo_time_graph() {
 	if (show_trajectory) {
 
 		if (trajectory_width < 1 || trajectory_width > 10) {
-			trajectory_width = 2;
-			G_LOG("Trajectory Width is reset to 2.");
+			trajectory_width = 3;
+			G_NOTICE("Trajectory Width is reset to 3.");
 		}
 
 		igraph_vector_int_t edge_list;
@@ -329,7 +329,7 @@ void Monocle3Item::s_pseudo_time_graph() {
 
 		if (nodes_size < 1 || nodes_size > 10) {
 			nodes_size = 5;
-			G_LOG("Node Size is reset to 5.");
+			G_NOTICE("Node Size is reset to 5.");
 		}
 
 		x = this->data()->pr_embedding_.row(0);
@@ -487,7 +487,7 @@ void Monocle3Item::s_feature_plot() {
 
 			if (trajectory_width < 1 || trajectory_width > 10) {
 				trajectory_width = 3;
-				G_LOG("Trajectory Width is reset to 3.");
+				G_NOTICE("Trajectory Width is reset to 3.");
 			}
 
 			igraph_vector_int_t edge_list;
@@ -511,8 +511,8 @@ void Monocle3Item::s_feature_plot() {
 		if (show_nodes) {
 
 			if (nodes_size < 1 || nodes_size > 10) {
-				nodes_size = 3;
-				G_LOG("Node Size is reset to 3.");
+				nodes_size = 5;
+				G_NOTICE("Node Size is reset to 5.");
 			}
 
 			Eigen::ArrayXd x = this->data()->pr_embedding_.row(0);
@@ -583,7 +583,7 @@ void Monocle3Item::s_feature_plot() {
 
 			if (trajectory_width < 1 || trajectory_width > 10) {
 				trajectory_width = 3;
-				G_LOG("Trajectory Width is reset to 3.");
+				G_NOTICE("Trajectory Width is reset to 3.");
 			}
 
 			igraph_vector_int_t edge_list;
@@ -607,8 +607,8 @@ void Monocle3Item::s_feature_plot() {
 		if (show_nodes) {
 
 			if (nodes_size < 1 || nodes_size > 10) {
-				nodes_size = 3;
-				G_LOG("Node Size is reset to 3.");
+				nodes_size = 5;
+				G_NOTICE("Node Size is reset to 5.");
 			}
 
 			Eigen::ArrayXd x = this->data()->pr_embedding_.row(0);

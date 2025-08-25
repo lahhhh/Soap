@@ -579,30 +579,30 @@ void BulkRnaItem::s_umap_custom() {
 
 	double minimum_distance = settings[6].toDouble(), spread = settings[7].toDouble();
 	if (minimum_distance < 0 || minimum_distance > spread) {
-		G_LOG("Minimum distance must be less than or equal to spread and can not be negative. Please reset");
+		G_NOTICE("Minimum distance must be less than or equal to spread and can not be negative. Please reset");
 		G_UNLOCK;
 		return;
 	}
 
 	double set_op_mix_ratio = settings[8].toDouble();
 	if (set_op_mix_ratio < 0 || set_op_mix_ratio > 1.0) {
-		G_LOG("Set op mix ratio must be between 0.0 and 1.0. Reset to 1.0");
+		G_NOTICE("Set op mix ratio must be between 0.0 and 1.0. Reset to 1.0");
 		set_op_mix_ratio = 1.0;
 	}
 
 	double gamma = settings[9].toDouble();
 	if (gamma < 0) {
-		G_LOG("Repulsion strength cannot be negative. Reset to 1.0");
+		G_NOTICE("Repulsion strength cannot be negative. Reset to 1.0");
 		gamma = 1.0;
 	}
 
 	int negative_sample_rate = settings[10].toInt();
 	if (negative_sample_rate <= 0) {
-		G_LOG("Negative sample rate must be positive. Reset to 5.");
+		G_NOTICE("Negative sample rate must be positive. Reset to 5.");
 		negative_sample_rate = 5;
 	}
 	else if (negative_sample_rate > 10) {
-		G_LOG("Larger negative sample rate may cost more time.");
+		G_NOTICE("Larger negative sample rate may cost more time.");
 	}
 
 	if (auto item = this->umap()) {
@@ -668,7 +668,7 @@ void BulkRnaItem::s_integrate() {
 
 	QStringList available_data = this->signal_emitter_->get_type_variable(soap::VariableType::BulkRna).keys();
 	if (available_data.size() < 2) {
-		G_LOG("No enough single cell data found.");
+		G_WARN("No enough single cell data found.");
 		return;
 	}
 
@@ -700,11 +700,9 @@ void BulkRnaItem::s_integrate() {
 	auto species = custom::unique(custom::sapply(choosed, [](const BulkRna* rna) {return rna->species_; }));
 
 	if (species.size() != 1) {
-		G_LOG("Unmatched species!");
+		G_WARN("Unmatched species!");
 		return;
 	}
-
-	G_LOG("Start integrating data...");
 
 	IntegrateWorker* worker = new IntegrateWorker(choosed, species[0]);
 
@@ -736,8 +734,6 @@ void BulkRnaItem::s_louvain_default() {
 
 	G_GETLOCK;
 
-	G_LOG("Start Clustering...");
-
 	SlmWorker* worker = new SlmWorker(pca->data_.mat_, "Louvain", "Euclidean", 1, 10, 10, 1997, 30, 50, 0.6);
 	G_LINK_WORKER_THREAD(SlmWorker, x_cluster_ready, BulkRnaItem, s_receive_louvain);
 }
@@ -752,8 +748,6 @@ void BulkRnaItem::s_modified_louvain_default() {
 
 	G_GETLOCK;
 
-	G_LOG("Start Clustering...");
-
 	SlmWorker* worker = new SlmWorker(pca->data_.mat_, "Modified Louvain", "Euclidean", 1, 10, 10, 1997, 30, 50, 0.6);
 	G_LINK_WORKER_THREAD(SlmWorker, x_cluster_ready, BulkRnaItem, s_receive_modified_louvain);
 }
@@ -767,8 +761,6 @@ void BulkRnaItem::s_smart_local_moving_default() {
 	}
 
 	G_GETLOCK;
-
-	G_LOG("Start Clustering...");
 
 	SlmWorker* worker = new SlmWorker(pca->data_.mat_, "SLM", "Euclidean", 1, 10, 10, 1997, 30, 50, 0.6);
 	G_LINK_WORKER_THREAD(SlmWorker, x_cluster_ready, BulkRnaItem, s_receive_slm);
@@ -854,8 +846,6 @@ void BulkRnaItem::s_smart_local_moving_custom() {
 
 	int modularity_function = settings[7].toInt();
 
-	G_LOG("Start Clustering...");
-
 	SlmWorker* worker = new SlmWorker(*from_matrix, "SLM", metric, modularity_function, n_start, n_iteration, random_state, n_neighbors, n_trees, resolution);
 	G_LINK_WORKER_THREAD(SlmWorker, x_cluster_ready, BulkRnaItem, s_receive_slm);
 }
@@ -938,8 +928,6 @@ void BulkRnaItem::s_modified_louvain_custom() {
 
 	int modularity_function = settings[7].toInt();
 
-	G_LOG("Start Clustering...");
-
 	SlmWorker* worker = new SlmWorker(*from_matrix, "Modified Louvain", metric, modularity_function, n_start, n_iteration, random_state, n_neighbors, n_trees, resolution);
 	G_LINK_WORKER_THREAD(SlmWorker, x_cluster_ready, BulkRnaItem, s_receive_modified_louvain);
 }
@@ -1003,8 +991,6 @@ void BulkRnaItem::s_leiden_custom() {
 		n_neighbors = from_matrix->cols() > 15 ? 15 : from_matrix->cols();
 		G_WARN("Illegal number of neighbors! reset to " + QString::number(n_neighbors));
 	}
-
-	G_LOG("Start Clustering...");
 
 	LeidenPartitionWorker* worker = new LeidenPartitionWorker(*from_matrix, method, metric, n_neighbors, n_trees, resolution);
 	G_LINK_WORKER_THREAD(LeidenPartitionWorker, x_leiden_ready, BulkRnaItem, s_receive_leiden);
@@ -1089,7 +1075,6 @@ void BulkRnaItem::s_louvain_custom() {
 
 	int modularity_function = settings[7].toInt();
 
-	G_LOG("Start Clustering...");
 	SlmWorker* worker = new SlmWorker(*from_matrix, "Louvain", metric, modularity_function, n_start, n_iteration, random_state, n_neighbors, n_trees, resolution);
 	G_LINK_WORKER_THREAD(SlmWorker, x_cluster_ready, BulkRnaItem, s_receive_louvain);
 }
@@ -1122,7 +1107,7 @@ void BulkRnaItem::s_find_deg() {
 
 	auto factor_map = this->data()->metadata()->mat_.get_factor_information(false);
 	if (factor_map.isEmpty()) {
-		G_LOG("No suitable feature for Find DEG");
+		G_WARN("No suitable feature for Find DEG");
 		G_UNLOCK;
 		return;
 	}
@@ -1160,7 +1145,6 @@ void BulkRnaItem::s_find_deg() {
 
 	QString p_adjust_method = settings[2];
 
-	G_LOG("Finding DEG in " + factor_name + "...");
 	DifferentialAnalysisWorker* worker = new DifferentialAnalysisWorker(
 		this->data(),
 		factor_name,
@@ -1221,7 +1205,7 @@ void BulkRnaItem::s_gsea() {
 
 	auto factor_map = this->data()->metadata()->mat_.get_factor_information(false);
 	if (factor_map.isEmpty()) {
-		G_LOG("No suitable feature for GSEA");
+		G_WARN("No suitable feature for GSEA");
 		G_UNLOCK;
 		return;
 	}
@@ -1254,7 +1238,7 @@ void BulkRnaItem::s_gsea() {
 	auto comparison = compare_layouts_to_list(settings[0]);
 	QString factor_name = comparison[0], comparison1 = comparison[1], comparison2 = comparison[2];
 	if (comparison1 == comparison2) {
-		G_LOG("Invalid comparison!");
+		G_WARN("Invalid comparison!");
 		G_UNLOCK;
 		return;
 	}
@@ -1267,7 +1251,6 @@ void BulkRnaItem::s_gsea() {
 
 	QStringList metadata = this->data()->metadata()->mat_.get_qstring(factor_name);
 
-	G_LOG("GSEAing in " + factor_name + "...");
 	SparseDouble tmp = normalized->to_sparse();
 
 	GseaWorker* worker = new GseaWorker(

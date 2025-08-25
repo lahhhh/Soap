@@ -54,7 +54,7 @@ void StringVectorItem::s_intersect_with() {
 
 	QStringList available_data = this->signal_emitter_->get_type_variable(soap::VariableType::StringVector).keys();
 	if (available_data.size() < 2) {
-		G_LOG("No enough string vector found.");
+		G_NOTICE("No enough string vector found.");
 		return;
 	}
 

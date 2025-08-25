@@ -279,8 +279,6 @@ void SingleCellAtacItem::s_normalize_gene_activity() {
 		normalized->__remove_this();
 	}
 
-	G_LOG("Gene Activity Normalization Start...");
-
 	auto* worker = new LogNormalizeWorker(gene_activity_counts);
 	G_LINK_WORKER_THREAD(LogNormalizeWorker, x_log_normalize_ready, SingleCellAtacItem, s_receive_normalized_gene_activity);
 };
@@ -321,7 +319,6 @@ void SingleCellAtacItem::s_tfidf_default() {
 		normalized->__remove_this();
 	}
 
-	G_LOG("TFIDF start...");
 	TfidfWorker* worker = new TfidfWorker(
 		counts,
 		10000
@@ -388,8 +385,6 @@ void SingleCellAtacItem::s_svd_custom() {
 		item->__remove_this();
 	}
 
-	G_LOG("SVD start...");
-
 	SvdWorker* worker = new SvdWorker(normalized->mat_, perc, 50, this->data()->random_state_);
 	G_LINK_WORKER_THREAD(SvdWorker, x_svd_ready, SingleCellAtacItem, s_receive_svd);
 };
@@ -408,8 +403,6 @@ void SingleCellAtacItem::s_svd_default() {
 	if (auto item = this->pca()) {
 		item->__remove_this();
 	}
-
-	G_LOG("SVD start...");
 
 	SvdWorker* worker = new SvdWorker(normalized->mat_, 100, 50, this->data()->random_state_);
 	G_LINK_WORKER_THREAD(SvdWorker, x_svd_ready, SingleCellAtacItem, s_receive_svd);
@@ -605,27 +598,27 @@ void SingleCellAtacItem::s_umap_custom() {
 	double minimum_distance = settings[6].toDouble();
 	double spread = settings[7].toDouble();
 	if (minimum_distance < 0 || minimum_distance > spread) {
-		G_LOG("Minimum distance must be less than or equal to spread and can not be negative. Please reset");
+		G_NOTICE("Minimum distance must be less than or equal to spread and can not be negative. Please reset");
 		G_UNLOCK;
 		return;
 	}
 	double set_op_mix_ratio = settings[8].toDouble();
 	if (set_op_mix_ratio < 0 || set_op_mix_ratio > 1.0) {
-		G_LOG("Set op mix ratio must be between 0.0 and 1.0. Reset to 1.0");
+		G_NOTICE("Set op mix ratio must be between 0.0 and 1.0. Reset to 1.0");
 		set_op_mix_ratio = 1.0;
 	}
 	double repulsion_strength = settings[9].toDouble();
 	if (repulsion_strength < 0) {
-		G_LOG("Repulsion strength cannot be negative. Reset to 1.0");
+		G_NOTICE("Repulsion strength cannot be negative. Reset to 1.0");
 		repulsion_strength = 1.0;
 	}
 	int negative_sample_rate = settings[10].toInt();
 	if (negative_sample_rate <= 0) {
-		G_LOG("Negative sample rate must be positive. Reset to 5.");
+		G_NOTICE("Negative sample rate must be positive. Reset to 5.");
 		negative_sample_rate = 5;
 	}
 	else if (negative_sample_rate > 10) {
-		G_LOG("Larger negative sample rate may cost more time.");
+		G_NOTICE("Larger negative sample rate may cost more time.");
 	}
 	int random_state = settings[11].toInt();
 	umap_input = mat->block(0, start_dimension - 1, nrow, last_dimension - start_dimension + 1);
@@ -841,8 +834,6 @@ void SingleCellAtacItem::s_louvain_default() {
 
 	G_GETLOCK;
 
-	G_LOG("Start Clustering...");
-
 	SlmWorker* worker = new SlmWorker(pca->data_.mat_, "Louvain", "Euclidean", 1, 10, 10, 1997, 30, 50, 0.6);
 	G_LINK_WORKER_THREAD(SlmWorker, x_cluster_ready, SingleCellAtacItem, s_receive_louvain);
 }
@@ -857,8 +848,6 @@ void SingleCellAtacItem::s_modified_louvain_default() {
 
 	G_GETLOCK;
 
-	G_LOG("Start Clustering...");
-
 	SlmWorker* worker = new SlmWorker(pca->data_.mat_, "Modified Louvain", "Euclidean", 1, 10, 10, 1997, 30, 50, 0.6);
 	G_LINK_WORKER_THREAD(SlmWorker, x_cluster_ready, SingleCellAtacItem, s_receive_modified_louvain);
 }
@@ -872,8 +861,6 @@ void SingleCellAtacItem::s_smart_local_moving_default() {
 	}
 
 	G_GETLOCK;
-
-	G_LOG("Start Clustering...");
 
 	SlmWorker* worker = new SlmWorker(pca->data_.mat_, "SLM", "Euclidean", 1, 10, 10, 1997, 30, 50, 0.6);
 	G_LINK_WORKER_THREAD(SlmWorker, x_cluster_ready, SingleCellAtacItem, s_receive_slm);
@@ -980,8 +967,6 @@ void SingleCellAtacItem::s_smart_local_moving_custom() {
 
 	int modularity_function = settings[8].toInt();
 
-	G_LOG("Start Clustering...");
-
 	SlmWorker* worker = new SlmWorker(*from_matrix, "SLM", metric, modularity_function, n_start, n_iteration, random_state, n_neighbors, n_trees, resolution);
 	G_LINK_WORKER_THREAD(SlmWorker, x_cluster_ready, SingleCellAtacItem, s_receive_slm);
 }
@@ -1085,8 +1070,6 @@ void SingleCellAtacItem::s_modified_louvain_custom() {
 
 	int modularity_function = settings[8].toInt();
 
-	G_LOG("Start Clustering...");
-
 	SlmWorker* worker = new SlmWorker(*from_matrix, "Modified Louvain", metric, modularity_function, n_start, n_iteration, random_state, n_neighbors, n_trees, resolution);
 	G_LINK_WORKER_THREAD(SlmWorker, x_cluster_ready, SingleCellAtacItem, s_receive_modified_louvain);
 }
@@ -1156,8 +1139,6 @@ void SingleCellAtacItem::s_leiden_custom() {
 		n_neighbors = from_matrix->cols() > 15 ? 15 : from_matrix->cols();
 		G_WARN("Illegal number of neighbors! reset to " + QString::number(n_neighbors));
 	}
-
-	G_LOG("Start Clustering...");
 
 	LeidenPartitionWorker* worker = new LeidenPartitionWorker(*from_matrix, method, metric, n_neighbors, n_trees, resolution);
 	G_LINK_WORKER_THREAD(LeidenPartitionWorker, x_leiden_ready, SingleCellAtacItem, s_receive_leiden);
@@ -1263,7 +1244,6 @@ void SingleCellAtacItem::s_louvain_custom() {
 
 	int modularity_function = settings[8].toInt();
 
-	G_LOG("Start Clustering...");
 	SlmWorker* worker = new SlmWorker(*from_matrix, "Louvain", metric, modularity_function, n_start, n_iteration, random_state, n_neighbors, n_trees, resolution);
 	G_LINK_WORKER_THREAD(SlmWorker, x_cluster_ready, SingleCellAtacItem, s_receive_louvain);
 }
@@ -1296,7 +1276,7 @@ void SingleCellAtacItem::s_find_dap() {
 
 	auto factor_map = this->data()->metadata()->mat_.get_factor_information(false);
 	if (factor_map.isEmpty()) {
-		G_LOG("No suitable feature for Find DEG");
+		G_NOTICE("No suitable feature for Find DEG");
 		G_UNLOCK;
 		return;
 	}
@@ -2931,7 +2911,7 @@ void SingleCellAtacItem::s_integrate() {
 		}
 	}
 	if (available_data.size() < 2) {
-		G_LOG("No enough single cell atac data found.");
+		G_NOTICE("No enough single cell atac data found.");
 		return;
 	}
 

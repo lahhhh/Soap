@@ -509,11 +509,11 @@ void DifferentialAnalysisItem::s_volcano_plot() {
 	double fold_change_threshold = standard[1].toDouble();
 	auto filter = custom::equal(comparisons, standard[2]);
 	if (feature_p_threshold <= 0) {
-		G_LOG("Invalid P Value.");
+		G_NOTICE("Invalid P Value.");
 		return;
 	}
 	if (fold_change_threshold <= 0) {
-		G_LOG("Invalid Threshold Value.");
+		G_NOTICE("Invalid Threshold Value.");
 		return;
 	}
 	feature_p_threshold = -log10(feature_p_threshold);
@@ -611,7 +611,7 @@ void DifferentialAnalysisItem::s_extract_feature_names() {
 	double feature_p_threshold = settings[0].toDouble();
 	double value_threshold = settings[1].toDouble();
 	if (feature_p_threshold <= 0 || feature_p_threshold > 1) {
-		G_LOG("Invalid p value! Reset to 0.05");
+		G_NOTICE("Invalid p value! Reset to 0.05");
 		feature_p_threshold = 0.05;
 	}
 
@@ -708,7 +708,7 @@ void DifferentialAnalysisItem::s_show_significant() {
 	double feature_p_threshold = settings[0].toDouble();
 	double value_threshold = settings[1].toDouble();
 	if (feature_p_threshold <= 0 || feature_p_threshold > 1) {
-		G_LOG("Invalid p value! Reset to 0.05");
+		G_NOTICE("Invalid p value! Reset to 0.05");
 		feature_p_threshold = 0.05;
 	}
 
@@ -777,7 +777,7 @@ void DifferentialAnalysisItem::s_enrich_go() {
 		species = res[0] == "Human" ? soap::Species::Human : soap::Species::Mouse;
 	}
 	if (species == soap::Species::Undefined) {
-		G_LOG("Only human and mouse feature enrichment are supported");
+		G_NOTICE("Only human and mouse feature enrichment are supported");
 		G_UNLOCK;
 		return;
 	}
@@ -804,11 +804,11 @@ void DifferentialAnalysisItem::s_enrich_go() {
 	}
 	double feature_p_threshold = settings[1].toDouble(), fold_change_threshold = settings[2].toDouble(), pathway_p_threshold = settings[5].toDouble();
 	if (feature_p_threshold <= 0 || feature_p_threshold > 1) {
-		G_LOG("Invalid p value to filter features! Reset to 0.05");
+		G_NOTICE("Invalid p value to filter features! Reset to 0.05");
 		feature_p_threshold = 0.05;
 	}
 	if (pathway_p_threshold <= 0 || pathway_p_threshold > 1) {
-		G_LOG("Invalid p value to filter pathways! Reset to 0.05");
+		G_NOTICE("Invalid p value to filter pathways! Reset to 0.05");
 		pathway_p_threshold = 0.05;
 	}
 
@@ -824,7 +824,7 @@ void DifferentialAnalysisItem::s_enrich_go() {
 	}
 	filter *= custom::equal(comparisons, settings[6]);
 	if (filter.count() == 0) {
-		G_LOG("No feature meets requirement.");
+		G_NOTICE("No feature meets requirement.");
 		G_UNLOCK;
 		return;
 	}
@@ -868,7 +868,7 @@ void DifferentialAnalysisItem::s_enrich_kegg() {
 	}
 
 	if (species == soap::Species::Undefined) {
-		G_LOG("Only human and mouse feature enrichment are supported");
+		G_NOTICE("Only human and mouse feature enrichment are supported");
 		G_UNLOCK;
 		return;
 	}
@@ -895,11 +895,11 @@ void DifferentialAnalysisItem::s_enrich_kegg() {
 
 	double feature_p_threshold = settings[1].toDouble(), fold_change_threshold = settings[2].toDouble(), pathway_p_threshold = settings[4].toDouble();
 	if (feature_p_threshold <= 0 || feature_p_threshold > 1) {
-		G_LOG("Invalid p value to filter features! Reset to 0.05");
+		G_NOTICE("Invalid p value to filter features! Reset to 0.05");
 		feature_p_threshold = 0.05;
 	}
 	if (pathway_p_threshold <= 0 || pathway_p_threshold > 1) {
-		G_LOG("Invalid p value to filter pathways! Reset to 0.05");
+		G_NOTICE("Invalid p value to filter pathways! Reset to 0.05");
 		pathway_p_threshold = 0.05;
 	}
 	Eigen::ArrayX<bool> filter = custom::less_than(this->data()->mat_.get_const_double_reference(METADATA_DE_ADJUSTED_P_VALUE), feature_p_threshold);
@@ -916,7 +916,7 @@ void DifferentialAnalysisItem::s_enrich_kegg() {
 	filter *= custom::equal(comparisons, settings[5]);
 
 	if (filter.count() == 0) {
-		G_LOG("No feature meets requirement.");
+		G_NOTICE("No feature meets requirement.");
 		G_UNLOCK;
 		return;
 	}
@@ -965,7 +965,7 @@ void DifferentialAnalysisItem::s_enrich_motif() {
 	soap::Species species = single_cell_multiome->species_;
 
 	if (species != soap::Species::Human) {
-		G_LOG("Only human gene enrichment are supported");
+		G_NOTICE("Only human gene enrichment are supported");
 		G_UNLOCK;
 		return;
 	}
@@ -992,12 +992,12 @@ void DifferentialAnalysisItem::s_enrich_motif() {
 
 	double peak_p_threshold = settings[1].toDouble(), fold_change_threshold = settings[2].toDouble(), motif_p_threshold = settings[4].toDouble();
 	if (peak_p_threshold <= 0 || peak_p_threshold > 1) {
-		G_LOG("Invalid p value to filter genes! Reset to 0.05");
+		G_NOTICE("Invalid p value to filter genes! Reset to 0.05");
 		peak_p_threshold = 0.05;
 	}
 
 	if (motif_p_threshold <= 0 || motif_p_threshold > 1) {
-		G_LOG("Invalid p value to filter pathways! Reset to 0.05");
+		G_NOTICE("Invalid p value to filter pathways! Reset to 0.05");
 		motif_p_threshold = 0.05;
 	}
 
@@ -1015,7 +1015,7 @@ void DifferentialAnalysisItem::s_enrich_motif() {
 	filter *= custom::equal(comparisons, settings[5]);
 
 	if (filter.count() == 0) {
-		G_LOG("No peak meets requirement.");
+		G_NOTICE("No peak meets requirement.");
 		G_UNLOCK;
 		return;
 	}

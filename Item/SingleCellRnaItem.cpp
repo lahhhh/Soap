@@ -526,7 +526,6 @@ void SingleCellRnaItem::s_log_normalize_default() {
 		item->__remove_this();
 	}
 
-	G_LOG("Log normalize start...");
 	LogNormalizeWorker* worker = new LogNormalizeWorker(counts, 10000.0);
 	G_LINK_WORKER_THREAD(LogNormalizeWorker, x_log_normalize_ready, SingleCellRnaItem, s_receive_normalize)
 };
@@ -563,7 +562,6 @@ void SingleCellRnaItem::s_log_normalize_custom() {
 		item->__remove_this();
 	}
 
-	G_LOG("Log normalize start...");
 	LogNormalizeWorker* worker = new LogNormalizeWorker(counts, factor);
 	G_LINK_WORKER_THREAD(LogNormalizeWorker, x_log_normalize_ready, SingleCellRnaItem, s_receive_normalize)
 };
@@ -853,7 +851,7 @@ void SingleCellRnaItem::s_harmony() {
 	QStringList factor_names = this->data()->metadata()->mat_.get_factor_name(false);
 
 	if (factor_names.isEmpty()) {
-		G_LOG("No suitable feature for Harmony");
+		G_NOTICE("No suitable feature for Harmony");
 		G_UNLOCK;
 		return;
 	}
@@ -1213,30 +1211,30 @@ void SingleCellRnaItem::s_umap_custom() {
 
 	double minimum_distance = settings[6].toDouble(), spread = settings[7].toDouble();
 	if (minimum_distance < 0 || minimum_distance > spread) {
-		G_LOG("Minimum distance must be less than or equal to spread and can not be negative. Please reset");
+		G_NOTICE("Minimum distance must be less than or equal to spread and can not be negative. Please reset");
 		G_UNLOCK;
 		return;
 	}
 
 	double set_op_mix_ratio = settings[8].toDouble();
 	if (set_op_mix_ratio < 0 || set_op_mix_ratio > 1.0) {
-		G_LOG("Set op mix ratio must be between 0.0 and 1.0. Reset to 1.0");
+		G_NOTICE("Set op mix ratio must be between 0.0 and 1.0. Reset to 1.0");
 		set_op_mix_ratio = 1.0;
 	}
 
 	double gamma = settings[9].toDouble();
 	if (gamma < 0) {
-		G_LOG("Repulsion strength cannot be negative. Reset to 1.0");
+		G_NOTICE("Repulsion strength cannot be negative. Reset to 1.0");
 		gamma = 1.0;
 	}
 
 	int negative_sample_rate = settings[10].toInt();
 	if (negative_sample_rate <= 0) {
-		G_LOG("Negative sample rate must be positive. Reset to 5.");
+		G_NOTICE("Negative sample rate must be positive. Reset to 5.");
 		negative_sample_rate = 5;
 	}
 	else if (negative_sample_rate > 10) {
-		G_LOG("Larger negative sample rate may cost more time.");
+		G_NOTICE("Larger negative sample rate may cost more time.");
 	}
 
 	if (auto item = this->umap()) {
@@ -1313,8 +1311,6 @@ void SingleCellRnaItem::s_louvain_default() {
 
 	G_GETLOCK;
 
-	G_LOG("Start Clustering...");
-
 	SlmWorker* worker = new SlmWorker(pca->data_.mat_, "Louvain", "Euclidean", 1, 10, 10, 1997, 30, 50, 0.6);
 	G_LINK_WORKER_THREAD(SlmWorker, x_cluster_ready, SingleCellRnaItem, s_receive_louvain);
 }
@@ -1328,8 +1324,6 @@ void SingleCellRnaItem::s_modified_louvain_default() {
 	}
 
 	G_GETLOCK;
-	
-	G_LOG("Start Clustering...");
 
 	SlmWorker* worker = new SlmWorker(pca->data_.mat_, "Modified Louvain", "Euclidean", 1, 10, 10, 1997, 30, 50, 0.6);
 	G_LINK_WORKER_THREAD(SlmWorker, x_cluster_ready, SingleCellRnaItem, s_receive_modified_louvain);
@@ -1344,8 +1338,6 @@ void SingleCellRnaItem::s_smart_local_moving_default() {
 	}
 
 	G_GETLOCK;
-
-	G_LOG("Start Clustering...");
 
 	SlmWorker* worker = new SlmWorker(pca->data_.mat_, "SLM", "Euclidean", 1, 10, 10, 1997, 30, 50, 0.6);
 	G_LINK_WORKER_THREAD(SlmWorker, x_cluster_ready, SingleCellRnaItem, s_receive_slm);
@@ -1452,8 +1444,6 @@ void SingleCellRnaItem::s_smart_local_moving_custom() {
 
 	int modularity_function = settings[8].toInt();
 
-	G_LOG("Start Clustering...");
-
 	SlmWorker* worker = new SlmWorker(*from_matrix, "SLM", metric, modularity_function, n_start, n_iteration, random_state, n_neighbors, n_trees, resolution);
 	G_LINK_WORKER_THREAD(SlmWorker, x_cluster_ready, SingleCellRnaItem, s_receive_slm);
 }
@@ -1557,8 +1547,6 @@ void SingleCellRnaItem::s_modified_louvain_custom() {
 
 	int modularity_function = settings[8].toInt();
 
-	G_LOG("Start Clustering...");
-
 	SlmWorker* worker = new SlmWorker(*from_matrix, "Modified Louvain", metric, modularity_function, n_start, n_iteration, random_state, n_neighbors, n_trees, resolution);
 	G_LINK_WORKER_THREAD(SlmWorker, x_cluster_ready, SingleCellRnaItem, s_receive_modified_louvain);
 }
@@ -1628,8 +1616,6 @@ void SingleCellRnaItem::s_leiden_custom() {
 		n_neighbors = from_matrix->cols() > 15 ? 15 : from_matrix->cols();
 		G_WARN("Illegal number of neighbors! reset to " + QString::number(n_neighbors));
 	}
-
-	G_LOG("Start Clustering...");
 
 	LeidenPartitionWorker* worker = new LeidenPartitionWorker(*from_matrix, method, metric, n_neighbors, n_trees, resolution);
 	G_LINK_WORKER_THREAD(LeidenPartitionWorker, x_leiden_ready, SingleCellRnaItem, s_receive_leiden);
@@ -1735,7 +1721,6 @@ void SingleCellRnaItem::s_louvain_custom() {
 
 	int modularity_function = settings[8].toInt();
 
-	G_LOG("Start Clustering...");
 	SlmWorker* worker = new SlmWorker(*from_matrix, "Louvain", metric, modularity_function, n_start, n_iteration, random_state, n_neighbors, n_trees, resolution);
 	G_LINK_WORKER_THREAD(SlmWorker, x_cluster_ready, SingleCellRnaItem, s_receive_louvain);
 }
@@ -1781,7 +1766,7 @@ void SingleCellRnaItem::s_set_scrublet_threshold() {
 
 	double threshold = ret[0].toDouble();
 	if (threshold <= 0.0 || threshold >= 1.0) {
-		G_LOG("Please set a threshold between 0 and 1.");
+		G_NOTICE("Please set a threshold between 0 and 1.");
 		return;
 	}
 	QVector<double> scores = this->data()->double_vectors_[VECTOR_SCRUBLET_SCORES];
@@ -1909,7 +1894,6 @@ void SingleCellRnaItem::s_scrublet() {
 		return;
 	}
 
-	G_LOG("Detect doublets by Scrublet...");
 	ScrubletWorker* worker = new ScrubletWorker(counts->mat_);
 	G_LINK_WORKER_THREAD(ScrubletWorker, x_scrublet_ready, SingleCellRnaItem, s_receive_scrublet)
 };
@@ -1919,7 +1903,7 @@ void SingleCellRnaItem::s_bubble_plot() {
 	auto& metadata = this->data()->metadata()->mat_;
 	QMap<QString, QStringList> map = metadata.get_factor_information();
 	if (map.isEmpty()) {
-		G_LOG("No suitable metadata detected.");
+		G_NOTICE("No suitable metadata detected.");
 		return;
 	}
 	const auto& gs = this->draw_suite_->graph_settings_;
@@ -1993,7 +1977,7 @@ void SingleCellRnaItem::s_distribution_plot() {
 	auto& metadata = this->data()->metadata()->mat_;
 	QStringList features = metadata.get_factor_name();
 	if (features.isEmpty()) {
-		G_LOG("No suitable metadata detected.");
+		G_NOTICE("No suitable metadata detected.");
 		return;
 	}
 	const auto& gs = this->draw_suite_->graph_settings_;
@@ -2034,7 +2018,7 @@ void SingleCellRnaItem::s_distribution_plot() {
 			valid_features.append(feature);
 	}
 	if (valid_features.isEmpty()) {
-		G_LOG("No valid features!");
+		G_NOTICE("No valid features!");
 		return;
 	}
 	QCustomPlot* draw_area = custom_plot::initialize_plot(gs);
@@ -2413,7 +2397,7 @@ void SingleCellRnaItem::s_find_deg() {
 
 	auto factor_map = this->data()->metadata()->mat_.get_factor_information(false);
 	if (factor_map.isEmpty()) {
-		G_LOG("No suitable feature for Find DEG");
+		G_NOTICE("No suitable feature for Find DEG");
 		G_UNLOCK;
 		return;
 	}
@@ -2451,7 +2435,6 @@ void SingleCellRnaItem::s_find_deg() {
 
 	QString p_adjust_method = settings[2];
 
-	G_LOG("Finding DEG in " + factor_name + "...");
 	DifferentialAnalysisWorker* worker = new DifferentialAnalysisWorker(
 		this->data(),
 		factor_name,
@@ -2494,7 +2477,7 @@ void SingleCellRnaItem::s_gsea() {
 
 	auto factor_map = this->data()->metadata()->mat_.get_factor_information(false);
 	if (factor_map.isEmpty()) {
-		G_LOG("No suitable feature for GSEA");
+		G_NOTICE("No suitable feature for GSEA");
 		G_UNLOCK;
 		return;
 	}
@@ -2527,7 +2510,7 @@ void SingleCellRnaItem::s_gsea() {
 	auto comparison = compare_layouts_to_list(settings[0]);
 	QString factor_name = comparison[0], comparison1 = comparison[1], comparison2 = comparison[2];
 	if (comparison1 == comparison2) {
-		G_LOG("Invalid comparison!");
+		G_NOTICE("Invalid comparison!");
 		G_UNLOCK;
 		return;
 	}
@@ -2612,7 +2595,7 @@ void SingleCellRnaItem::s_infercnv() {
 	G_GETLOCK;
 	auto factor_map = this->data()->metadata()->mat_.get_factor_information();
 	if (factor_map.isEmpty()) {
-		G_LOG("CNV analysis requires at least one factor for visualisation.");
+		G_NOTICE("CNV analysis requires at least one factor for visualisation.");
 		G_UNLOCK;
 		return;
 	}
@@ -2661,7 +2644,6 @@ void SingleCellRnaItem::s_infercnv() {
 		reference = custom::unique(reference);
 	}
 
-	G_LOG("InferCnv start...");
 	InferCnvWorker* worker = new InferCnvWorker(
 		counts->col_reordered(selected),
 		custom::reordered(metadata, selected),
@@ -2685,7 +2667,7 @@ void SingleCellRnaItem::s_scicnv() {
 
 	auto factor_map = this->data()->metadata()->mat_.get_factor_information();
 	if (factor_map.isEmpty()) {
-		G_LOG("CNV analysis requires at least one factor for visualisation.");
+		G_NOTICE("CNV analysis requires at least one factor for visualisation.");
 		G_UNLOCK;
 		return;
 	}
@@ -2710,7 +2692,7 @@ void SingleCellRnaItem::s_scicnv() {
 	double threshold = settings[2].toDouble();
 	double sharpness = settings[3].toDouble();
 	if (sharpness < 0.6 || sharpness > 1.4) {
-		G_LOG("Sharpness must be between 0.6 and 1.4");
+		G_NOTICE("Sharpness must be between 0.6 and 1.4");
 		G_UNLOCK;
 		return;
 	}
@@ -2746,7 +2728,7 @@ void SingleCellRnaItem::s_scicnv() {
 			G_UNLOCK;
 		return;
 	}
-	G_LOG("SciCnv start...");
+
 	ScicnvWorker* worker = new ScicnvWorker(
 		normalized->col_reordered(selected),
 		custom::reordered(factor, selected),
@@ -3108,7 +3090,7 @@ void SingleCellRnaItem::s_integrate() {
 
 	QStringList available_data = this->signal_emitter_->get_type_variable(soap::VariableType::SingleCellRna).keys();
 	if (available_data.size() < 2) {
-		G_LOG("No enough single cell data found.");
+		G_NOTICE("No enough single cell data found.");
 		return;
 	}
 
@@ -3140,7 +3122,7 @@ void SingleCellRnaItem::s_integrate() {
 	auto species = custom::unique(custom::sapply(choosed, [](const SingleCellRna* single_cell_rna) {return single_cell_rna->species_; }));
 
 	if (species.size() != 1) {
-		G_LOG("Unmatched species!");
+		G_NOTICE("Unmatched species!");
 		return;
 	}
 
@@ -3149,8 +3131,6 @@ void SingleCellRnaItem::s_integrate() {
 	if (!distinguish) {
 		G_NOTICE("Metadata will not be inherited to avoid collision.");
 	}
-
-	G_LOG("Start integrating data...");
 
 	IntegrateWorker* worker = new IntegrateWorker(choosed, species[0], distinguish);
 
@@ -3193,7 +3173,7 @@ void SingleCellRnaItem::s_cellchat_default() {
 	QStringList features = this->data()->metadata()->mat_.get_factor_name(false);
 
 	if (features.isEmpty()) {
-		G_LOG("No suitable feature for GSEA");
+		G_NOTICE("No suitable feature for GSEA");
 		G_UNLOCK;
 		return;
 	}

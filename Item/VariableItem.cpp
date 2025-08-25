@@ -199,8 +199,6 @@ void VariableItem::__s_export_as_item() {
 		G_UNLOCK;
 		return;
 	}
-
-	G_LOG("Item Exportation start...");
 	
 	ItemIOWorker* worker = new ItemIOWorker(export_item_path, this->data_type_, this->data_, this->title_);
 	G_LINK_WORKER_THREAD_NO_RESPONSE(ItemIOWorker, VariableItem);
@@ -245,8 +243,6 @@ void VariableItem::__s_export_as_csv() {
 	if (!keep_colnames) {
 		settings << CSV_NO_COLNAMES;
 	}
-
-	G_LOG("Begin Writing CSV File...");
 
 	FileWritingWorker* worker = new FileWritingWorker(
 		this->data_, 
@@ -296,8 +292,6 @@ void VariableItem::__s_export_as_tsv() {
 	if (!keep_colnames) {
 		settings << TSV_NO_COLNAMES;
 	}
-
-	G_LOG("Begin Writing TSV File...");
 
 	FileWritingWorker* worker = new FileWritingWorker(
 		this->data_,

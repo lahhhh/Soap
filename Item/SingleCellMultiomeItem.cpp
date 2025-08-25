@@ -945,8 +945,6 @@ void SingleCellMultiomeItem::s_call_peaks_by_macs() {
 		return;
 	}
 
-	G_LOG("MACS start...");
-
 	MacsCallPeakWorker* worker = new MacsCallPeakWorker({ fragments });
 	G_LINK_WORKER_THREAD(MacsCallPeakWorker, x_genomic_range_ready, SingleCellMultiomeItem, s_receive_macs_peaks);
 }
@@ -979,8 +977,6 @@ void SingleCellMultiomeItem::s_calculate_quality_metrics() {
 		G_UNLOCK;
 		return;
 	}
-
-	G_LOG("Start Quality Control from Fragments.");
 
 	FragmentsQualityViewWorker* worker = new FragmentsQualityViewWorker(this->data(), fragments);
 	G_LINK_WORKER_THREAD(FragmentsQualityViewWorker, x_qc_ready, SingleCellMultiomeItem, s_receive_qc);
@@ -1521,7 +1517,7 @@ void SingleCellMultiomeItem::s_set_scrublet_threshold() {
 
 	double threshold = ret[0].toDouble();
 	if (threshold <= 0 || threshold >= 1) {
-		G_LOG("Please set a threshold between 0 and 1.");
+		G_NOTICE("Please set a threshold between 0 and 1.");
 		return;
 	}
 	QVector<double> scores = this->data()->double_vectors_[VECTOR_SCRUBLET_SCORES];
@@ -1656,7 +1652,7 @@ void SingleCellMultiomeItem::s_rna_scrublet() {
 		G_UNLOCK;
 		return;
 	}
-	G_LOG("Detect doublets by Scrublet...");
+
 	ScrubletWorker* worker = new ScrubletWorker(rna_counts->mat_);
 	G_LINK_WORKER_THREAD(ScrubletWorker, x_scrublet_ready, SingleCellMultiomeItem, s_receive_scrublet)
 };
@@ -1748,7 +1744,7 @@ void SingleCellMultiomeItem::s_gsea_in_database() {
 
 	auto factor_map = this->data()->metadata()->mat_.get_factor_information(false);
 	if (factor_map.isEmpty()) {
-		G_LOG("No suitable feature for GSEA");
+		G_NOTICE("No suitable feature for GSEA");
 		G_UNLOCK;
 		return;
 	}
@@ -1782,7 +1778,7 @@ void SingleCellMultiomeItem::s_gsea_in_database() {
 	auto comparison = compare_layouts_to_list(settings[0]);
 	QString factor_name = comparison[0], comparison1 = comparison[1], comparison2 = comparison[2];
 	if (comparison1 == comparison2) {
-		G_LOG("Invalid comparison!");
+		G_NOTICE("Invalid comparison!");
 		G_UNLOCK;
 		return;
 	}
@@ -1849,7 +1845,7 @@ void SingleCellMultiomeItem::s_infercnv() {
 	G_GETLOCK;
 	auto factor_map = this->data()->metadata()->mat_.get_factor_information();
 	if (factor_map.isEmpty()) {
-		G_LOG("CNV analysis requires at least one factor for visualisation.");
+		G_NOTICE("CNV analysis requires at least one factor for visualisation.");
 		G_UNLOCK;
 		return;
 	}
@@ -1898,7 +1894,6 @@ void SingleCellMultiomeItem::s_infercnv() {
 		reference = custom::unique(reference);
 	}
 
-	G_LOG("InferCnv start...");
 	InferCnvWorker* worker = new InferCnvWorker(
 		counts->col_reordered(selected),
 		custom::reordered(metadata, selected),
@@ -1938,7 +1933,7 @@ void SingleCellMultiomeItem::s_scicnv() {
 	G_GETLOCK;
 	auto factor_map = this->data()->metadata()->mat_.get_factor_information();
 	if (factor_map.isEmpty()) {
-		G_LOG("CNV analysis requires at least one factor for visualisation.");
+		G_NOTICE("CNV analysis requires at least one factor for visualisation.");
 		G_UNLOCK;
 		return;
 	}
@@ -1962,7 +1957,7 @@ void SingleCellMultiomeItem::s_scicnv() {
 	double threshold = settings[2].toDouble();
 	double sharpness = settings[3].toDouble();
 	if (sharpness < 0.6 || sharpness > 1.4) {
-		G_LOG("Sharpness must be between 0.6 and 1.4");
+		G_NOTICE("Sharpness must be between 0.6 and 1.4");
 		G_UNLOCK;
 		return;
 	}
@@ -1992,7 +1987,7 @@ void SingleCellMultiomeItem::s_scicnv() {
 			selected << index;
 		}
 	}
-	G_LOG("SciCnv start...");
+
 	ScicnvWorker* worker = new ScicnvWorker(
 		rna_normalized->col_reordered(selected),
 		custom::reordered(metadata, selected),
@@ -2359,7 +2354,7 @@ void SingleCellMultiomeItem::s_integrate() {
 		}
 	}
 	if (available_data.size() < 2) {
-		G_LOG("No enough single cell multiome data found.");
+		G_NOTICE("No enough single cell multiome data found.");
 		return;
 	}
 
@@ -2432,7 +2427,6 @@ void SingleCellMultiomeItem::s_integrate() {
 		G_NOTICE("Metadata will not be inherited to avoid collision.");
 	}
 
-	G_LOG("Start integrating data...");
 	IntegrateWorker* worker = new IntegrateWorker(all_data, distinguish, species[0]);
 	G_LINK_WORKER_THREAD(IntegrateWorker, x_scmultiome_ready, SingleCellMultiomeItem, s_receive_integrated_data);
 };
@@ -2457,8 +2451,6 @@ void SingleCellMultiomeItem::s_scent() {
 };
 
 void SingleCellMultiomeItem::s_receive_scent(Eigen::ArrayXd data) {
-
-	G_LOG("Signalling Entropy Calculation Finished.");
 
 	this->data()->metadata()->mat_.update("Signalling Entropy", custom::cast<QVector>(data));
 
@@ -3065,7 +3057,7 @@ void SingleCellMultiomeItem::s_cellchat_default() {
 	QStringList features = this->data()->metadata()->mat_.get_factor_name(false);
 
 	if (features.isEmpty()) {
-		G_LOG("No suitable feature for GSEA");
+		G_NOTICE("No suitable feature for GSEA");
 		G_UNLOCK;
 		return;
 	}

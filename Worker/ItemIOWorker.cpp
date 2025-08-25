@@ -4,7 +4,7 @@
 
 #include "Serialization.h"
 
-const QStringList valid_editions = {SOAP_EDITION_1_0};
+const QStringList valid_editions = {SOAP_EDITION_1_0, SOAP_EDITION_1_1};
 
 ItemIOWorker::ItemIOWorker(
 	const QString& file_path, 

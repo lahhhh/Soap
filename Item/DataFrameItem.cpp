@@ -1433,6 +1433,7 @@ void DataFrameItem::s_replace_first() {
 
 	metadata.update(feature_name, data, metadata.data_type_[feature_name]);
 };
+
 void DataFrameItem::s_replace_last() {
 
 	G_GETLOCK;

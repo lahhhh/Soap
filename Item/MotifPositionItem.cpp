@@ -296,7 +296,7 @@ void MotifPositionItem::s_difference_footprinting() {
 		map = metadata->mat_.get_factor_information();
 
 		if (map.isEmpty()) {
-			G_LOG("No suitable metadata detected.");
+			G_NOTICE("No suitable metadata detected.");
 			return;
 		}
 	}
@@ -405,7 +405,7 @@ void MotifPositionItem::s_batch_task() {
 		map = metadata->mat_.get_factor_information();
 
 		if (map.isEmpty()) {
-			G_LOG("No suitable metadata detected.");
+			G_NOTICE("No suitable metadata detected.");
 			return;
 		}
 	}
@@ -425,7 +425,7 @@ void MotifPositionItem::s_batch_task() {
 		map = metadata->mat_.get_factor_information();
 
 		if (map.isEmpty()) {
-			G_LOG("No suitable metadata detected.");
+			G_NOTICE("No suitable metadata detected.");
 			return;
 		}
 	}
@@ -461,8 +461,6 @@ void MotifPositionItem::s_batch_task() {
 		G_UNLOCK;
 		return;
 	}
-
-	G_LOG("Batch footprinting calculation start...");
 
 	QStringList factors = metadata->mat_.get_qstring(factor_name);
 
@@ -560,8 +558,6 @@ void MotifPositionItem::s_show_transcriptional_factor_footprinting() {
 		G_UNLOCK;
 		return;
 	}
-
-	G_LOG("Footprinting calculation start...");
 
 	TranscriptionalFactorFootprintingWorker* worker = new TranscriptionalFactorFootprintingWorker(
 		metadata,
@@ -841,7 +837,7 @@ void MotifPositionItem::s_multiple_footprint_plot() {
 	QMap<QString, QStringList> map = metadata.get_factor_information();
 
 	if (map.isEmpty()) {
-		G_LOG("No suitable metadata detected.");
+		G_NOTICE("No suitable metadata detected.");
 		return;
 	}
 

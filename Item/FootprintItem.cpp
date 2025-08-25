@@ -48,7 +48,7 @@ void FootprintItem::s_show() {
 		map = metadata->mat_.get_factor_information();
 
 		if (map.isEmpty()) {
-			G_LOG("No suitable metadata detected.");
+			G_NOTICE("No suitable metadata detected.");
 			return;
 		}
 	}
@@ -60,7 +60,7 @@ void FootprintItem::s_show() {
 		map = metadata->mat_.get_factor_information();
 
 		if (map.isEmpty()) {
-			G_LOG("No suitable metadata detected.");
+			G_NOTICE("No suitable metadata detected.");
 			return;
 		}
 	}

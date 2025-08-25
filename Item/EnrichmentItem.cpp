@@ -106,11 +106,11 @@ void EnrichmentItem::s_barplot() {
 
 	int path_number = setting[0].toInt();
 	if (path_number <= 0) {
-		G_LOG("Number of Pathway should be positive!");
+		G_NOTICE("Number of Pathway should be positive!");
 		return;
 	}
 	if (path_number < 1 || path_number > 100) {
-		G_LOG("Invalid pathway number! Reset to 10.");
+		G_NOTICE("Invalid pathway number! Reset to 10.");
 		path_number = 10;
 	}
 	barplot(path_number);

@@ -2,9 +2,10 @@
 
 #define SOAP_INLINE __forceinline
 
-#define SOAP_EDITION_NOW "soap_1_0"
-
 #define SOAP_EDITION_1_0 "soap_1_0"
+#define SOAP_EDITION_1_1 "soap_1_1"
+
+#define SOAP_EDITION_NOW SOAP_EDITION_1_1
 
 #include "soapFileName.h"
 #include "soapMetadataName.h"

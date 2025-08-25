@@ -43,7 +43,7 @@ void ChromVARItem::s_differential_analysis() {
 
 	auto factor_map = single_cell_multiome->metadata()->mat_.get_factor_information(false);
 	if (factor_map.isEmpty()) {
-		G_LOG("No suitable feature for Differential Analysis");
+		G_WARN("No suitable feature for Differential Analysis");
 		G_UNLOCK;
 		return;
 	}
