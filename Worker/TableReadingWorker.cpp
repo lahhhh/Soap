@@ -4,7 +4,7 @@
 
 bool TableReadingWorker::work() {
 
-	this->res_.reset(read_table(this->file_name_, fast_));
+	this->res_.reset(read_table(this->file_name_, fast_, skip_symbol_));
 
 	if (this->res_ == nullptr) {
 		G_TASK_WARN("File reading failed.");

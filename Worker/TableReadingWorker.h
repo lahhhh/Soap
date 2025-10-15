@@ -10,14 +10,20 @@ class TableReadingWorker
 	Q_OBJECT
 public:
 
-	TableReadingWorker(const QString& file_name, bool fast) :
+	TableReadingWorker(
+		const QString& file_name, 
+		bool fast,
+		const QString& skip_symbol = {}) :
 		file_name_(file_name),
-		fast_(fast)
+		fast_(fast),
+		skip_symbol_(skip_symbol)
 	{}
 
 	QString file_name_;
 
 	bool fast_{ false };
+
+	QString skip_symbol_;
 
 	std::unique_ptr<CustomMatrix> res_{ nullptr };
 

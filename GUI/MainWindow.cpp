@@ -789,14 +789,33 @@ void MainWindow::s_new_plot() {
 
 void MainWindow::s_read_data_frame_default() {
 
-	QString file_name = QFileDialog::getOpenFileName();
+	auto settings = CommonDialog::get_response(
+		this->signal_emitter_,
+		"File Reading Settings",
+		{ "Skip header?", "Header Symbol", "File Name" },
+		{ soap::InputStyle::SwitchButton, soap::InputStyle::StringLineEdit, soap::InputStyle::ChooseOpenFile }
+	);
+
+	if (settings.isEmpty()) {
+		return;
+	}
+
+	bool skip_header = switch_to_bool(settings[0]);
+
+	QString skip_symbol;
+
+	if (skip_header) {
+		skip_symbol = settings[1];
+	}
+
+	QString file_name = settings[2];
 	if (file_name.isEmpty()) {
 		return;
 	}
 
 	G_LOG("Begin loading " + file_name);
 
-	TableReadingWorker* worker = new TableReadingWorker(file_name, false);
+	TableReadingWorker* worker = new TableReadingWorker(file_name, false, skip_symbol);
 	G_LINK_WORKER_THREAD(TableReadingWorker, x_data_frame_ready, MainWindow, s_receive_data_frame);
 };
 
@@ -832,6 +851,10 @@ void MainWindow::__s_receive_message(const QString& message, int mode) {
 	else {
 		G_NOTICE(message);
 	}
+};
+
+void MainWindow::s_test() {
+
 };
 
 void MainWindow::__s_work_finished() {

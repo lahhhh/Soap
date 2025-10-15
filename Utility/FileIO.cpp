@@ -586,7 +586,7 @@ void write_sv(
 	out.flush();
 };
 
-CustomMatrix* read_table(const QString& file_name, bool fast) {
+CustomMatrix* read_table(const QString& file_name, bool fast, const QString& skip_symbol) {
 
 	QFile file(file_name);
 	if (!file.open(QIODevice::ReadOnly | QIODevice::Text))
@@ -594,6 +594,16 @@ CustomMatrix* read_table(const QString& file_name, bool fast) {
 
 	QTextStream in(&file);
 	QString line = in.readLine();
+
+	int skip_line{ 0 };
+
+	if (!skip_symbol.isNull()) {
+
+		while (line.startsWith(skip_symbol)) {
+			line = in.readLine();
+			++skip_line;
+		}
+	}
 
 	if (line.isNull()) {
 
@@ -612,14 +622,14 @@ CustomMatrix* read_table(const QString& file_name, bool fast) {
 	file.close();
 
 	if (fast) {
-		return read_sv_fast(file_name, delimiter.toLatin1());
+		return read_sv_fast(file_name, delimiter.toLatin1(), skip_line);
 	}
 	else {
-		return read_sv(file_name, delimiter);
+		return read_sv(file_name, delimiter, skip_line);
 	}
 };
 
-CustomMatrix* read_sv_fast(const QString& file_name, const char delimiter) {
+CustomMatrix* read_sv_fast(const QString& file_name, const char delimiter, int skip_line) {
 
 	std::ifstream ifs(file_name.toStdString());
 
@@ -648,7 +658,13 @@ CustomMatrix* read_sv_fast(const QString& file_name, const char delimiter) {
 			if (content[i - 1] == '\r') {
 				--line_end;
 			}
-			line_start_end.emplace_back(index, line_end);
+
+			if (skip_line > 0) {
+				--skip_line;
+			}
+			else {
+				line_start_end.emplace_back(index, line_end);
+			}
 			index = i + 1;
 		}
 	}
@@ -745,7 +761,7 @@ CustomMatrix* read_sv_fast(const QString& file_name, const char delimiter) {
 
 };
 
-CustomMatrix* read_sv(const QString& file_name, const QChar& delimiter) {
+CustomMatrix* read_sv(const QString& file_name, const QChar& delimiter, int skip_line) {
 
 	QFile file(file_name);
 	if (!file.open(QIODevice::ReadOnly | QIODevice::Text)) {
@@ -773,7 +789,14 @@ CustomMatrix* read_sv(const QString& file_name, const QChar& delimiter) {
 			if (content[i - 1] == '\r') {
 				--line_end;
 			}
-			line_start_end << qMakePair(index, line_end);
+
+			if (skip_line > 0) {
+				--skip_line;
+			}
+			else {
+				line_start_end << qMakePair(index, line_end);
+			}
+
 			index = i + 1;
 		}
 	}

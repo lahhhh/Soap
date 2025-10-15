@@ -13,9 +13,7 @@
 class VcfProcessor
 {
 public:
-	VcfProcessor(const std::string& bam_file_name, int cache_size = 10000);
-
-	bool generate_snp_matrix(const std::string& output_name, int min_mutation_depth = 10);
+	VcfProcessor(const std::string& vcf_file_name, int cache_size = 10000);
 
 private:
 

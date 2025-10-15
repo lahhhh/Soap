@@ -9,12 +9,12 @@
 
 #include "SingleCellMultiome.h"
 
-CustomMatrix* read_table(const QString& file_name, bool fast = false);
+CustomMatrix* read_table(const QString& file_name, bool fast = false, const QString& skip_symbol = {});
 
-CustomMatrix* read_sv(const QString& file_name, const QChar& delimiter = ',');
+CustomMatrix* read_sv(const QString& file_name, const QChar& delimiter = ',', int skip_line = 0);
 
 // Note : do not support unicode, char only
-CustomMatrix* read_sv_fast(const QString& file_name, const char delimiter = ',');
+CustomMatrix* read_sv_fast(const QString& file_name, const char delimiter = ',', int skip_line = 0);
 
 void write_sv(
 	const CustomMatrix& mat, 
